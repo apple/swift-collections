@@ -118,7 +118,7 @@ extension SortedDictionary.Values: BidirectionalCollection {
   /// The specified index must be a valid index less than `endIndex`, or the
   /// returned value won't be a valid index in the collection.
   ///
-  /// - Parameter i: A valid index of the collection.
+  /// - Parameter index: A valid index of the collection.
   ///
   /// - Complexity: O(log(`self.count`))
   @inlinable
@@ -132,9 +132,9 @@ extension SortedDictionary.Values: BidirectionalCollection {
   /// The specified index must be a valid index less than `endIndex`, or the
   /// returned value won't be a valid index in the collection.
   ///
-  /// - Parameter i: A valid index of the collection.
+  /// - Parameter index: A valid index of the collection.
   ///
-  /// - Returns: The index immediately after `i`.
+  /// - Returns: The index immediately after `index`.
   ///
   /// - Complexity: O(log(`self.count`))
   @inlinable
@@ -148,7 +148,7 @@ extension SortedDictionary.Values: BidirectionalCollection {
   /// The specified index must be a valid index less than `endIndex`, or the
   /// returned value won't be a valid index in the collection.
   ///
-  /// - Parameter i: A valid index of the collection.
+  /// - Parameter index: A valid index of the collection.
   ///
   /// - Complexity: O(log(`self.count`))
   @inlinable
@@ -162,9 +162,9 @@ extension SortedDictionary.Values: BidirectionalCollection {
   /// The specified index must be a valid index greater than `startIndex`, or
   /// the returned value won't be a valid index in the collection.
   ///
-  /// - Parameter i: A valid index of the collection.
+  /// - Parameter index: A valid index of the collection.
   ///
-  /// - Returns: The index immediately before `i`.
+  /// - Returns: The index immediately before `index`.
   ///
   /// - Complexity: O(`log n`) where `n` is the number of key-value pairs in the
   ///   sorted dictionary.
@@ -215,8 +215,8 @@ extension SortedDictionary.Values: BidirectionalCollection {
 extension SortedDictionary.Values {
   /// Accesses the element at the specified position.
   ///
-  /// - Parameter index: The position of the element to access. `index` must be
-  ///   greater than or equal to `startIndex` and less than `endIndex`.
+  /// - Parameter position: The position of the element to access. `position` must
+  ///   be greater than or equal to `startIndex` and less than `endIndex`.
   ///
   /// - Complexity: O(1)
   @inlinable

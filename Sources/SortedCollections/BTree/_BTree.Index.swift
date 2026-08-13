@@ -58,7 +58,7 @@ extension _BTree {
     ///   - node: The node to which this index points.
     ///   - slot: The specific slot within node where the path points
     ///   - childSlots: The children's offsets for this path.
-    ///   - index: The absolute offset of this path's element in the tree.
+    ///   - offset: The absolute offset of this path's element in the tree.
     ///   - tree: The tree of this index.
     @inlinable
     @inline(__always)
