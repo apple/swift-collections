@@ -274,9 +274,9 @@ extension _UnsafeBitSet: Sequence {
 
 extension _UnsafeBitSet: BidirectionalCollection {
   @inlinable
-  @inline(__always)
   package var count: Int {
-    _words.reduce(0) { $0 + $1.count }
+    assert(_words.count <= Int.max / _Word.capacity)
+    return _words.reduce(0) { $0 &+ $1.count }
   }
 
   @inlinable
