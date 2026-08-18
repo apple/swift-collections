@@ -56,9 +56,9 @@ extension BitArray: RandomAccessCollection, MutableCollection {
 
   /// Returns the position immediately after the given index.
   ///
-  /// - Parameter `index`: A valid index of the bit set. `index` must be less than `endIndex`.
+  /// - Parameter i: A valid index of the bit set. `i` must be less than `endIndex`.
   ///
-  /// - Returns: The valid index immediately after `index`.
+  /// - Returns: The valid index immediately after `i`.
   ///
   /// - Complexity: O(1)
   @inlinable @inline(__always)
@@ -66,10 +66,10 @@ extension BitArray: RandomAccessCollection, MutableCollection {
 
   /// Returns the position immediately before the given index.
   ///
-  /// - Parameter `index`: A valid index of the bit set. `index` must be greater
+  /// - Parameter i: A valid index of the bit set. `i` must be greater
   ///    than `startIndex`.
   ///
-  /// - Returns: The valid index immediately before `index`.
+  /// - Returns: The valid index immediately before `i`.
   ///
   /// - Complexity: O(1)
   @inlinable @inline(__always)

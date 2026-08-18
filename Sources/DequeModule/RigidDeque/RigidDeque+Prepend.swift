@@ -202,7 +202,7 @@ extension RigidDeque where Element: ~Copyable {
   /// many items as promised.
   ///
   /// - Parameters:
-  ///    - maxCount: The maximum number of items to prepend to the deque, or
+  ///    - newItemCount: The maximum number of items to prepend to the deque, or
   ///       nil to use all available capacity.
   ///    - producer: A producer that generates the items to prepend.
   ///

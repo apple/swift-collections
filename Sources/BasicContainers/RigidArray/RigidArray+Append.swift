@@ -238,10 +238,10 @@ extension RigidArray {
   /// buffer, then this triggers a runtime error.
   ///
   /// - Parameters:
-  ///    - newElements: A fully initialized buffer whose contents to copy into
+  ///    - items: A fully initialized buffer whose contents to copy into
   ///        the array.
   ///
-  /// - Complexity: O(`newElements.count`)
+  /// - Complexity: O(`items.count`)
   @_alwaysEmitIntoClient
   public mutating func append(
     copying items: UnsafeMutableBufferPointer<Element>
@@ -255,9 +255,9 @@ extension RigidArray {
   /// span, then this triggers a runtime error.
   ///
   /// - Parameters:
-  ///    - newElements: A span whose contents to copy into the array.
+  ///    - items: A span whose contents to copy into the array.
   ///
-  /// - Complexity: O(`newElements.count`)
+  /// - Complexity: O(`items.count`)
   @_alwaysEmitIntoClient
   public mutating func append(copying items: Span<Element>) {
     precondition(items.count <= freeCapacity, "RigidArray capacity overflow")
