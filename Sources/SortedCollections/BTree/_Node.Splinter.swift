@@ -34,7 +34,7 @@ extension _Node {
     
     /// Converts the splinter object to a node.
     /// - Parameters:
-    ///   - node: The node generating the splinter. Becomes the returned
+    ///   - leftChild: The node generating the splinter. Becomes the returned
     ///     node's left child.
     ///   - capacity: The desired capacity of the new node.
     /// - Returns: A new node of `capacity` with a single element.
