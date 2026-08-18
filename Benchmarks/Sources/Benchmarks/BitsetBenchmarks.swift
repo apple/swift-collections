@@ -383,5 +383,73 @@ extension Benchmark {
         blackHole(a)
       }
     }
+
+    self.add(
+      title: "BitSet formUnion with Range",
+      input: Int.self
+    ) { input in
+      guard input > 0 else { return nil }
+      return { timer in
+        var a = BitSet(reservingCapacity: input)
+        a.insert(input - 1)
+        timer.measure {
+          a.formUnion(0 ..< input)
+        }
+        blackHole(a)
+      }
+    }
+
+    self.add(
+      title: "BitSet init from Range",
+      input: Int.self
+    ) { input in
+      guard input > 0 else { return nil }
+      return { timer in
+        timer.measure {
+          blackHole(BitSet(0 ..< input))
+        }
+      }
+    }
+
+    self.add(
+      title: "BitSet union with Range",
+      input: Int.self
+    ) { input in
+      guard input > 0 else { return nil }
+      var a = BitSet(reservingCapacity: input)
+      a.insert(input - 1)
+      return { timer in
+        timer.measure {
+          blackHole(a.union(0 ..< input))
+        }
+      }
+    }
+
+    self.add(
+      title: "BitSet.Counted formUnion with Range",
+      input: Int.self
+    ) { input in
+      guard input > 0 else { return nil }
+      return { timer in
+        var a = BitSet.Counted(reservingCapacity: input)
+        a.insert(input - 1)
+        timer.measure {
+          a.formUnion(0 ..< input)
+        }
+        blackHole(a)
+      }
+    }
+
+    self.add(
+      title: "BitSet.Counted init from Range",
+      input: Int.self
+    ) { input in
+      guard input > 0 else { return nil }
+      return { timer in
+        timer.measure {
+          blackHole(BitSet.Counted(0 ..< input))
+        }
+      }
+    }
   }
 }
