@@ -5,6 +5,8 @@
    - 0.1 (2026-07-21): Initial draft, describing `Container`.
    - 0.2 (2026-07-22): Second draft, completing the chapter on the read-only container model.
    - 0.3 (2026-07-28): `PermutableContainer` and `MutableContainer`
+   - 0.4 (2026-08-06): `Producer`
+   - 0.5 (2026-08-18): Add `Overview of Container Protocols` section. Spin off `DrainableContainer` as a separate protocol.
 
 ## Table of Contents
 
@@ -14,6 +16,7 @@
     * ["Iteration by Borrowing" vs "Iteration by Taking"](#iteration-by-borrowing-vs-iteration-by-taking)
     * ["Generative" vs "Visitative Iteration"](#generative-vs-visitative-iteration)
     * [Failability](#failability)
+  * [Overview of the Container Protocols](#overview-of-the-container-protocols)
   * [A Read\-Only Container Model](#a-read-only-container-model)
     * [Counting Elements](#counting-elements)
     * [Container Indices](#container-indices)
@@ -33,21 +36,27 @@
   * [Mutable Containers](#mutable-containers)
     * [protocol PermutableContainer](#protocol-permutablecontainer)
     * [protocol MutableContainer](#protocol-mutablecontainer)
+    * [Interaction with BidirectionalContainer](#interaction-with-bidirectionalcontainer)
   * [Producers](#producers)
+    * [Iterating Over a Producer](#iterating-over-a-producer)
+    * [Creating a Producer](#creating-a-producer)
     * [Default Implementations on Producer](#default-implementations-on-producer)
   * [In\-Place Consumption](#in-place-consumption)
     * [struct InputSpan](#struct-inputspan)
     * [protocol Drain](#protocol-drain)
-  * [Range\-Replaceable Containers](#range-replaceable-containers)
+  * [Operations over Container Subranges](#operations-over-container-subranges)
     * [Index Ranges and Range Expressions](#index-ranges-and-range-expressions)
-    * [Adding Elements to a Container](#adding-elements-to-a-container)
-    * [Replacing Subranges](#replacing-subranges)
-    * [Consuming Subranges](#consuming-subranges)
-    * [Removing Subranges](#removing-subranges)
+    * [Drainable Containers](#drainable-containers)
+      * [Consuming Subranges](#consuming-subranges)
+      * [Removing Subranges](#removing-subranges)
+    * [Range\-Replaceable Containers](#range-replaceable-containers)
+      * [Adding Elements to a Container](#adding-elements-to-a-container)
+      * [Replacing Subranges](#replacing-subranges)
     * [Dynamic Containers](#dynamic-containers)
   * [Rejected Directions](#rejected-directions)
     * [Cursors](#cursors)
     * [Index Rounding Operations](#index-rounding-operations)
+    * [protocol ContiguousContainer](#protocol-contiguouscontainer)
   * [Potential Future Directions](#potential-future-directions)
     * [Support for Nonescapable Element Types](#support-for-nonescapable-element-types)
     * [Factoring Indexing Out of Containers](#factoring-indexing-out-of-containers)
@@ -269,7 +278,50 @@ This greatly simplifies the container model, but it does mean that throwing algo
 
 </details>
 
-Let us now introduce the actual protocols, starting with `Container` itself.
+## Overview of the Container Protocols
+
+The classic `Collection` protocol establishes the basic shape of a repeatable sequence with indexing. However, `Collection` is only a part of Swift's collections story, as it is merely the top of an intricate protocol hierarchy:
+
+```swift
+Sequence
+└╴Collection
+  ├╴BidirectionalCollection
+  │ └╴RandomAccessCollection
+  ├╴MutableCollection
+  ├╴RangeReplaceableCollection
+  └╴LazyCollectionProtocol
+```
+
+The refining protocols define standard API surface for additional capabilities, enabling us to define useful generic algorithms for solving common tasks. Collection types conform to these protocols as needed to express their capabilities.
+
+`Container` follows in the same footsteps by defining a standard interface for a repeatable and indexable, ownership-aware iterable type. But it merely defines a baseline shape of a read-only container type. Container types can often do much more than that: some support backward iteration; some support arbitrary element reassignments; some allow clients to change their count by inserting or removing elements. Establishing a shared vocabulary for these capabilities enables us to develop a rich library of generic algorithms that use them. Thus, `Container` also sits at the top of an elaborate protocol hierarchy:
+
+```swift
+Iterable
+└╴Container
+  ├╴BidirectionalContainer
+  │ └╴RandomAccessContainer
+  ├╴PermutableContainer
+  │ └╴MutableContainer
+  └╴DrainableContainer
+    └╴RangeReplaceableContainer
+      └╴DynamicContainer
+```
+
+This new container protocol hierarchy closely matches `Collection`'s design, and should feel immediately familiar to veteran Swift programmers. However, it does have several refinements that address known limitations and new requirements:
+
+- The functionality of `MutableCollection` is split across two protocols: `PermutableContainer` defines a standard interface for containers that support element reordering, while `MutableContainer` sits on top of that, adding support for arbitrary element replacements.
+
+    This branch of the protocol hierarchy models mutating operations that do not change the count (or general shape) of a container, but merely reorder or replace its contents. The split acknowledges that there is a useful class of data structures whose contents can be reordered but not arbitrary replaced, and that element reordering operations alone still support a rich variety of useful generic algorithms.
+
+- The functionality of `RangeReplaceableCollection` is similarly split into three parts:
+   - `DrainableContainer` defines the shape of a shrinkable container: one that allows its elements to be removed by directly consuming them out of its storage.
+   - `RangeReplaceableContainer` adds insertion, append, and replacement operations, establishing the model for adding new items to an existing container. On this level, operations never assume that storage is resizable: we want fixed-capacity containers like `OutputSpan` to provide a standard set of range-replacement operations.
+   - `DynamicContainer` adds initializer requirements and more flexible insertion operations that require dynamically allocated, easily resizable storage.
+
+- There is no `LazyContainerProtocol` -- we expect container algorithms to be lazy by default, whenever possible.
+
+Let us now introduce the actual protocols in detail, starting with `Container` itself.
 
 ## A Read-Only Container Model
 
@@ -312,6 +364,8 @@ Unlike `Collection`, types conforming to `Container` are **required to produce t
 <details><summary>Click to expand footnote</summary>
 
 > One consequence of this requirement is that constructs like lazy filter algorithms cannot practically conform to the protocol. However, they can still conform to `Iterable`, and that is in fact good enough for the vast majority of their use cases in practice. Notably, custom on-the-fly filtering is inherently incompatible with our emphasis on predictable performance. (After all, the `Container` protocol exists to focus on high-performance use cases; it would be a mistake to dilute this focus until the protocol becomes indistinguishable from `Collection`.)
+>
+> A constant-complexity `count` also dictates a particular model for representing linked list indices so that splicing operations (i.e., Swift's own variants of the C++ STL's `std::list::splice()` function family) can update the list's count while themselves remaining O(1). This effectively requires list insertions/removals to invalidate all outstanding indices; however, efficient index validation also appears to require the same rules. (Having range-replacement/splicing operations return a valid index range for the affected region is one way to mitigate this, getting us to _approach_ the same expressivity as STL's iterators without their issues with memory safety. Additionally, we can also choose to revive the [`Cursor` concept](#cursors), although it would not be inherently more limited than indices: the lack of (easily expressible) cursor ranges is particularly problematic.)
 >
 > `count` is required to return a finite integer that fits in `Int`. This can be a true limitation, as some containers may have more than `Int.max` elements, despite the protocol's requirement for preexisting storage! The storage requirement does not preclude some containers from linking specific storage chunks multiple times (or simply repeating them), without allocating separate storage for each duplicate run. Such repetitions can cause the count of a container to overflow `Int`'s range, without ever overflowing available memory. While such humongous containers are certainly interesting, we do not consider it crucial to provide dedicated support for them.
 >
@@ -1074,6 +1128,8 @@ where Element: ~Copyable
 }
 ```
 
+(FIXME: Consider adding range sliding and rotation operations as direct requirements.)
+
 Like its `MutableCollection` counterpart, `swapAt` swaps the two elements addressed by the given indices. (Doing nothing if `i == j`.) Swapping elements does not invalidate any existing index in the container; it merely changes the elements that the two indices are addressing.
 
 The single `swapAt` operation on `PermutableContainer` enables us to develop a variety of useful generic algorithms, including for [reversing][PermutableContainer-reverse], [shuffling][PermutableContainer-shuffle] and [sorting][PermutableContainer-heapSort] elements, or [moving subranges][PermutableContainer-moveSubrange] within a container.
@@ -1225,7 +1281,7 @@ Mutable containers with noncopyable elements must manually provide a direct impl
 
 </details>
 
-There are surprisingly few interesting generic algorithms that operate on `MutableContainer`; we expect most generic code will simply perform an elementwise mutation, such as the `incrementAll` implementations above. However, the ability to express that is already worth the price of admission! Mutating iterations are a common need, and it is reasonable to spend a protocol on making them pleasant. For example, we could teach Swift's for-in loops to efficiently iterate over inout references to a mutable container's elements, with a nice, succinct syntax:
+There are remarkably few interesting generic algorithms that operate on `MutableContainer`; we expect most generic code will simply perform an elementwise mutation, such as the `incrementAll` implementations above. However, the ability to express that is already worth the price of admission! Mutating iterations are a common need, and it is reasonable to spend a protocol on making them pleasant. For example, we could teach Swift's for-in loops to efficiently iterate over inout references to a mutable container's elements, with a nice, succinct syntax:
 
 ```swift
 extension MutableContainer where Self: ~Copyable & ~Escapable, Element: BinaryInteger {
@@ -1237,155 +1293,201 @@ extension MutableContainer where Self: ~Copyable & ~Escapable, Element: BinaryIn
 }
 ```
 
-## Producers
+### Interaction with `BidirectionalContainer`
+
+`MutableContainer` provides the reason why `BidirectionalContainer` is built around the `spanBoundary(before:)` method, rather than `previousSpan(before:)`, which would be the obvious choice. By making backward bulk iteration work by identifying the closest span boundary before the supplied index, we have decoupled it from the specific choice of the span type. Therefore, bidirectional mutable containers can build their `previousMutableSpan(before:)` requirement the same way as we did `previousSpan`: by building on the same `spanBoundary(before:)` operation:
 
 ```swift
-/// A type that supplies the values of a generative sequence by populating
-/// a client-supplied series of `OutputSpan` instances. "Generative" sequences
-/// transfer the ownership of items they produce to their clients, rather than
-/// merely providing borrowing access to them. A `Producer` instance represents
-/// an ongoing iteration over such a generative sequence.
-public protocol Producer<Element, Failure>: ~Copyable, ~Escapable {
-  /// The type of the items that this producer generates.
+@available(SwiftStdlib 6.4, *)
+extension MutableContainer
+where
+  Self: BidirectionalContainer & ~Copyable & ~Escapable,
+  Element: ~Copyable
+{
+  @_lifetime(&self)
+  mutating func previousMutableSpan(
+    before index: inout Index
+  ) -> MutableSpan<Element> {
+    let start = self.spanBoundary(before: index).index
+    var i = start
+    let span = self.nextMutableSpan(after: &i, limitedBy: index)
+    precondition(i == index, "Invalid BidirectionalContainer")
+    return span
+  }
+
+  @_lifetime(&self)
+  mutating func previousMutableSpan(
+    before index: inout Index,
+    maxCount: Int,
+    limitedBy limit: Index
+  ) -> MutableSpan<Element> {
+    let start = self.spanBoundary(
+      before: index,
+      maxDistance: maxCount,
+      limitedBy: limit
+    ).index
+    var i = start
+    let span = self.nextMutableSpan(after: &i, limitedBy: index)
+    precondition(i == index, "Invalid BidirectionalContainer")
+    index = start
+    return span
+  }
+}
+```
+
+This way, we can avoid having to define a separate `BidirectionalMutableContainer` protocol just to carry these.
+
+## Producers
+
+Protocol `Iterable` allows clients to iterate over a conforming type by borrowing elements. However, we also need a model for [_iterating by taking_](#iteration-by-borrowing-vs-iteration-by-taking), where the iterator transfers the ownership of its elements to the client, to do with them as it pleases.
+
+We model this form of iteration with the protocol `Producer`.
+
+```swift
+protocol Producer<Element, Failure>: ~Copyable, ~Escapable {
   associatedtype Element: ~Copyable
 
-  /// The error that this producer may throw, or `Never` if this producer
-  /// always succeeds.
   associatedtype Failure: Error = Never
 
-  /// A value less than or equal to the number of remaining items that this
-  /// producer is able to generate until it reaches its end.
-  ///
-  /// The default implementation returns 0. If you provide your own
-  /// implementation, make sure to compute the value nondestructively.
-  var underestimatedCount: Int { get }
+  // Core requirement:
 
-  /// Generate the next batch of items into the supplied output span instance,
-  /// which must have room for at least one new element.
-  ///
-  /// Repeatedly calling this method produces, in order, all the elements of the
-  /// underlying generative sequence. As soon as the sequence has run out of
-  /// elements, all subsequent calls return false without appending any new
-  /// items to their target. This method is not guaranteed to fully populate the
-  /// given output span, but it always appends at least one item until the end
-  /// of the underlying generative sequence.
-  ///
-  /// The ownership of all generated elements is transferred to the caller of
-  /// this method -- it can arbitrarily store, mutate, consume or discard them
-  /// as needed, even across invocations of this method, or after the producer
-  /// is destroyed.
-  ///
-  /// The returned Boolean value can be used to easily determine if the
-  /// method was able to make progress towards filling `target` without hitting
-  /// the end of the underlying sequence.
-  ///
-  /// If `target` is a full span, this method is allowed to unconditionally
-  /// return true. Passing an empty span is not a reliable way to test if the
-  /// producer has reached its end. (Some producers may only be able to detect
-  /// that they are finished while trying to generate the next item.)
-  ///
-  /// ### Error handling
-  ///
-  /// This method throws an error to indicate a failure while trying to generate
-  /// the upcoming next item in the sequence. Failure may happen midway through
-  /// populating `target`, in which case the output span will still gain
-  /// new items despite the error. (Those items are successfully
-  /// generated, and do not necessarilly need to be discarded.)
-  ///
-  /// This protocol does not specify the meaning of a failure, or the
-  /// precise state of the iterator after an error is thrown; however, the
-  /// error must not trigger runtime traps in subsequent attempts at iteration.
-  /// (After a failure, conforming types may choose to produce new items, or
-  /// signal the end of the iteration, or throw another error, which may or may
-  /// not match the first.)
-  ///
-  /// Absent of more specific information, generic code should stop
-  /// iterating, discard the producer and rethrow the error when it encounters
-  /// a failure. Generic code is encouraged to preserve the items that got
-  /// successfully produced before the throw (including ones appended by
-  /// the call that ultimately ended in failure); however, whether this is
-  /// possible (or desirable) ultimately depends on the specific problem that
-  /// the algorithm is solving.
-  ///
-  /// - Parameter target: An output span ready to take newly generated items.
-  /// - Returns: A boolean value indicating whether the operation was able to
-  ///    append at least one item to the supplied output span without hitting
-  ///    the end of the underlying sequence.
   @discardableResult
-  @_lifetime(target: copy target)
-  @_lifetime(self: copy self)
   mutating func generate(
     into target: inout OutputSpan<Element>
   ) throws(Failure) -> Bool
 
-  /// Skip the given number items in the underlying generative sequence,
-  /// decreasing it by the number of items successfully skipped before hitting
-  /// the end of the sequence or an error.
-  ///
-  /// This is equivalent to generating the same number of items then immediately
-  /// discarding them, except it may avoid the overhead of actually
-  /// materializing the elements.
-  ///
-  /// As soon as the producer has run out of items, all subsequent calls to
-  /// this method stop decrementing `n` and return false.
-  ///
-  /// The default implementation of this method repeatedly calls
-  /// `generate(into:)` with a small temporary buffer, immediately discarding
-  /// all generated items. Conforming types are encouraged to replace this
-  /// default approach with a more efficient implementation whenever it is
-  /// possible to do so.
-  ///
-  /// ### Error handling
-  ///
-  /// This method throws an error to indicate a failure while trying to skip
-  /// an upcoming item in the sequence. Failure may happen midway through
-  /// skipping a batch of items, in which case `n` will still be
-  /// decremented by the number of elements that were successfully skipped
-  /// before encountering the problem. This can be used to precisely track
-  /// the current position of the failed producer, allowing better diagnostics,
-  /// and allowing iteration to continue if the failure is resolvable.
-  ///
-  /// - Parameter n: The number of items to skip. This must be greater than
-  ///     zero. This method decrements this value by the number of items it
-  ///     successfully skipped before returning.
-  @_lifetime(self: copy self)
-  mutating func skip(by n: inout Int) throws(Failure)
+  // Requirements with default implementations:
 
-  /// Generate and return the next element in the underlying generative
-  /// sequence.
-  ///
-  /// Repeatedly calling this method produces, in order, all the elements of the
-  /// underlying generative sequence. As soon as the sequence has run out of
-  /// elements, all subsequent calls return `nil`.
-  ///
-  /// The ownership of all generated elements is transferred to the
-  /// caller of this method -- it can arbitrarily store, mutate,
-  /// consume or discard them as needed, even across invocations of this method,
-  /// or after the producer is destroyed.
-  ///
-  /// This method throws an error to indicate a failure. This protocol does not
-  /// specify the meaning of such errors, or the precise state of the
-  /// iterator after an error is thrown; however, the error must not trigger
-  /// runtime traps in subsequent attempts at iteration.
-  /// (Conforming types may choose to produce new items, or signal the end of
-  /// the iteration, or throw another error, which may or may not match the
-  /// first.) Absent of more specific information, generic code should stop
-  /// iterating, discard the producer and rethrow the error when it encounters
-  /// a failure.
-  ///
-  /// The default implementation of this method calls `generate(into:)` with
-  /// a temporary output span with room for a single item, and returns the
-  /// resulting contents. This often produces satisfactory results; but the
-  /// protocol allows conformances to customize this entry point if they believe
-  /// it to be necessary (for example, if they can take shortcuts that aren't
-  /// available in the bulk method). Custom implementations of `next()`
-  /// must produce results that are indistinguishable from the default
-  /// implementation, but they may exhibit observably different performance
-  /// metrics.
-  @_lifetime(self: copy self)
+  var underestimatedCount: Int { get }
+  mutating func skip(by n: inout Int) throws(Failure)
   mutating func next() throws(Failure) -> Element?
 }
 ```
+
+Producers are allowed to be noncopyable and/or nonescapable types, and they may have noncopyable elements. (Support for nonescapable elements is deferred until we gain better support for managing their lifetime dependencies.)
+
+### Iterating Over a Producer
+
+The `generate(into:)` member requirement forms the core producer operation: it models [_failable_](#failability), [_generative_](#generative-vs-visitative-iteration), [_bulk_](#elementwise-iteration-vs-bulk-iteration) iteration by [_taking elements_](#iteration-by-borrowing-vs-iteration-by-taking).
+
+```swift
+  @discardableResult
+  mutating func generate(
+    into target: inout OutputSpan<Element>
+  ) throws(Failure) -> Bool
+```
+
+This operation generates the next batch of items into the supplied output span instance, which should have room for at least one new element. Repeatedly calling this method produces, in order, all the elements of the underlying sequence. The operation is not guaranteed to fully populate the given output span, but it always appends at least one item until it hits the end of the producer. The returned Boolean indicates the end condition: as soon as the sequence has run out of elements, all subsequent calls return `false` without appending any new items to their target.
+
+<details><summary>Click to expand footnote</summary>
+
+(If a client passes `generate(into:)` a `target` output span that's already full, this operation is allowed to unconditionally return true without doing anything. Some producers are only able to detect that they are finished while trying to actually generate the next item, so we cannot test if the producer has reached its end by passing a zero-capacity span to it.)
+
+</details>
+
+The ownership of all generated elements is transferred to the caller of this method -- it can arbitrarily store, mutate, consume or discard them as needed, even across invocations of this method. The elements are allowed to survive indefinitely, even after the producer has been destroyed.
+
+<details><summary>Click to expand footnote</summary>
+
+(Of course, this statement will need to be revised when/if we add support for nonescapable elements.)
+
+</details>
+
+The `generate(into:)` operation may throw an error if it encounters an issue while trying to generate the upcoming next item in the sequence. Failure may happen midway through populating `target`, in which case the output span will still gain new items, despite the error. (Those items have been successfully generated, and do not necessarilly need to be discarded.)
+
+This protocol does not specify the meaning of a failure, or the precise state of the iterator after an error is thrown; however, the error must not trigger runtime traps in subsequent attempts at iteration. (After a failure, conforming types may choose to produce new items, or signal the end of the iteration, or throw another error, which may or may not match the first.)
+
+Absent of more specific information, generic code should stop iterating, discard the producer and rethrow the error when it encounters a failure. Generic code is encouraged to preserve the items that got successfully produced before the throw (including ones appended by the call that ultimately ended in failure); however, whether this is possible (or desirable) ultimately depends on the specific problem that the algorithm is solving.
+
+For example, here is how we can append the elements of an arbitrary `Producer` to the end of a `UniqueArray`:
+
+```swift
+extension UniqueArray where Element: ~Copyable {
+  mutating func append<
+    E: Error,
+    P: Producer<Element, E> & ~Copyable & ~Escapable
+  >(
+    from producer: consuming P
+  ) throws(E)
+  where P.Element: ~Copyable
+  {
+    var done = false
+    repeat {
+      let c = Swift.max(1, Swift.max(producer.underestimatedCount, self.freeCapacity))
+      try self.append(addingCount: c) { target throws(E) in
+        while !target.isFull {
+          guard try producer.generate(into: &target) else {
+            done = true
+            return
+          }
+        }
+      }
+    } while !done
+  }
+}
+```
+
+Note how the elements are generated in bulk, directly populating array storage -- the operation progresses as efficiently as possible, avoiding moving elements through any temporary variables or buffers. We make best use of `underestimatedCount` to avoid resizing the array more times than necessary.
+
+If the producer throws an error, then this algorithm leaves the array in a valid state, containing every element that was successfully generated -- however, the array may be left with unnecessarily allocated free capacity. The client who attempted the append is free decide to keep those elements appended (by simply doing nothing), or to get rid of them: the correct choice depends on the specific problem it is solving. The default behavior is to keep partial results, as doing anything else would lead to potential data loss.
+
+(Later on, we'll introduce a [`DynamicContainer` protocol](#dynamic-containers) that will define a variant of this `append` algorithm on a generic dynamically allocated container. As `UniqueArray` will conform to `DynamicContainer`, it does not need to actually define this operation: it gets it for free.)
+
+### Creating a Producer
+
+The `Producer` protocol does not define a standard way to create a producer instance. This is because there is no satisfying way to model this: some producers are naturally created with `borrowing` methods, some `mutating`, and some `consuming`, and the operations usually come with a custom parameters.
+
+For example, a basic example of a commonly useful producer type is the result of a generative lazy `map` algorithm over an `Iterable`:
+
+```swift
+extension Iterable {
+  @_lifetime(borrow self)
+  borrowing func map<T: ~Copyable>(
+    _ transform: @escaping (borrowing Element) throws(Failure) -> T
+  ) -> BorrowingMapProducer<Self, T> { ... }
+}
+```
+
+`BorrowingMapProducer` would conform to `Producer` by [running the given transformation on each element borrowed from the underlying `Iterable`][BorrowingMapProducer]. Notably, `func map` here only needs to borrow the iterable, but the resulting producer is still able to transfer ownership of the generated items to the client.
+
+[BorrowingMapProducer]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Iterable/BorrowingIteratorProtocol%2BMap.swift
+
+Another common class of producers are for consuming a subrange of items out of a container type, such as the `UniqueArray` operation below:
+
+```swift
+extension UniqueArray where Element: ~Copyable {
+  struct SubrangeConsumer: Producer, ~Copyable, ~Escapable { ... }
+
+  @_lifetime(&self)
+  mutating func consume(_ subrange: Range<Index>) -> SubrangeConsumer {
+    ...
+  }
+}
+```
+
+`UniqueArray.SubrangeConsumer` conforms to `Producer` by moving the specified elements out of the array and into the supplied output spans. The subrange consumer extends the duration of the mutation of the array that produced it -- the array is in an inconsistent state while it is being consumed from. When the `SubrangeConsumer` is destroyed, its deinitializer restores the array's invariants by closing the resulting gap in array storage and updating its count to reflect the removals.
+
+(Later on, we'll introduce the [`RangeRemovableContainer` protocol](#range-removable-containers) to standardize the `SubrangeConsumer` shape, allowing us to supply a small family of useful generic algorithms built around it.)
+
+
+Note how the `Producer` protocol defines an iterator shape, not a sequence. It is the "taking" analogue of `BorrowingIterator`, without a separate `Iterable` analogue.
+
+`Iterable` provides a uniform way to create a borrowing iterator, but there is no way to _(usefully)_ unify producer creation like that. For example, the `borrowing func map(_:)` and `mutating func consume(_:)` operations above are two prominent instances of `Producer` creation. Neither their ownership modifiers nor their parameter lists lend themselves to easy unification: the parameters are naturally unique, and the modifiers can only be unified by requiring them both to be `consuming` -- which would be unacceptable.
+
+Additionally, many producers are inherently nonrepeatable: for instance, a `SubrangeConsumer` can only move the subrange of elements out of its underlying container a single time: once it has transferred their ownership to the client, it cannot do so again.
+
+These two features combine to make it undesirable to try defining a uniform way to create a producer. If we tried, we would end up with something like the protocol below:
+
+```swift
+protocol Produceable: ~Copyable, ~Escapable { // EXAMPLE, NOT A REAL PROTOCOL
+  associatedtype Producer: Swift.Producer, ~Copyable, ~Escapable
+  @_lifetime(copy self) // ?!
+  consuming func makeProducer() -> Producer
+  var underestimatedCount: Int { get }
+}
+```
+
+Of course, the issue is that `makeProducer` would be defined as a _consuming_ method with no arguments, and with a name that fails to clarify what we're iterating over. To make the `map` method and the `SubrangeConsumer` construct above work, we'd need to have them return either separate `Produceable` value only for it to be almost immediately consumed, or (more likely) to have them return a type that conforms to both `Producer` and `Produceable`. In practice, `Produceable` would provide no practical benefit -- separating it out would complicate our design for no good reason.
 
 ### Default Implementations on `Producer`
 
@@ -1615,59 +1717,7 @@ extension Drain where Self: ~Copyable & ~Escapable, Element: ~Copyable  {
 }
 ```
 
-## Range-Replaceable Containers
-
-```swift
-protocol RangeReplaceableContainer<Element>
-: Container, ~Copyable, ~Escapable
-where
-  Element: ~Copyable,
-  Index: Comparable // For `Range<Index>`
-{
-  // MARK: Core requirements
-
-  var freeCapacity: Int { get }
-
-  mutating func replace<E: Error>(
-    removing subrange: Range<Index>,
-    consumingWith consumer: (inout InputSpan<Element>) -> Void,
-    addingCount newItemCount: Int,
-    initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
-  ) throws(E)
-
-  associatedtype SubrangeConsumer: Drain<Element> & ~Copyable & ~Escapable
-
-  @_lifetime(&self)
-  mutating func consume(_ subrange: Range<Index>) -> SubrangeConsumer
-
-  // MARK: Requirements with default implementations
-
-  mutating func remove(at index: Index) -> Element
-  mutating func removeSubrange(_ bounds: Range<Index>)
-  mutating func removeAll()
-  mutating func removeFirst() -> Element
-  mutating func removeFirst(_ n: Int)
-  mutating func _customRemoveLast() -> Element?
-  mutating func _customRemoveLast(_ n: Int) -> Bool
-
-  mutating func insert<E: Error>(
-    addingCount newItemCount: Int,
-    at index: Index,
-    initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
-  ) throws(E)
-
-  mutating func insert(_ item: consuming Element, at index: Index)
-
-  mutating func append<E: Error>(
-    addingCount newItemCount: Int,
-    initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
-  ) throws(E)
-
-  mutating func append(_ item: consuming Element)
-}
-```
-
-(TODO: Go through the myriad standard algorithms, either here or in thematic sections below.)
+## Operations over Container Subranges
 
 ### Index Ranges and Range Expressions
 
@@ -1689,13 +1739,84 @@ extension PartialRangeUpTo: RangeExpression2 {...}
 extension PartialRangeThrough: RangeExpression2 {...}
 ```
 
-### Adding Elements to a Container
+### Drainable Containers
 
-### Replacing Subranges
+```swift
+protocol DrainableContainer<Element>
+: Container, ~Copyable, ~Escapable
+where
+  Element: ~Copyable,
+  Index: Comparable // For `Range<Index>`
+{
+  // MARK: Core requirements
 
-### Consuming Subranges
+  associatedtype SubrangeConsumer: Drain<Element> & ~Copyable & ~Escapable
 
-### Removing Subranges
+  @_lifetime(&self)
+  mutating func consume(_ subrange: Range<Index>) -> SubrangeConsumer
+
+  // MARK: Requirements with default implementations
+
+  mutating func remove(at index: Index) -> Element
+  mutating func removeSubrange(_ bounds: Range<Index>)
+  mutating func removeAll()
+  mutating func removeFirst() -> Element
+  mutating func removeFirst(_ n: Int)
+  mutating func _customRemoveLast() -> Element?
+  mutating func _customRemoveLast(_ n: Int) -> Bool
+}
+```
+
+(FIXME: We need `consumeAll(where:)`/`removeAll(where:)` methods, ideally implemented through `SubrangeConsumer`. This would require `Drain` to allow partial draining (by clients leaving some items in the `InputSpan` instances), which seems unlikely to be viable, but it's worth a try.)
+
+#### Consuming Subranges
+
+#### Removing Subranges
+
+### Range-Replaceable Containers
+
+```swift
+protocol RangeReplaceableContainer<Element>
+: RangeRemovableContainer, ~Copyable, ~Escapable
+where
+  Element: ~Copyable,
+  Index: Comparable // For `Range<Index>`
+{
+  // MARK: Core requirements
+
+  var freeCapacity: Int { get }
+
+  mutating func replace<E: Error>(
+    removing subrange: Range<Index>,
+    consumingWith consumer: (inout InputSpan<Element>) -> Void,
+    addingCount newItemCount: Int,
+    initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
+  ) throws(E)
+
+  // MARK: Requirements with default implementations
+
+  mutating func insert<E: Error>(
+    addingCount newItemCount: Int,
+    at index: Index,
+    initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
+  ) throws(E)
+
+  mutating func insert(_ item: consuming Element, at index: Index)
+
+  mutating func append<E: Error>(
+    addingCount newItemCount: Int,
+    initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
+  ) throws(E)
+
+  mutating func append(_ item: consuming Element)
+}
+```
+
+(TODO: Go through the myriad standard algorithms, either here or in thematic sections below.)
+
+#### Adding Elements to a Container
+
+#### Replacing Subranges
 
 ### Dynamic Containers
 
