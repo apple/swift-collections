@@ -21,7 +21,7 @@ import InternalCollectionsUtilities
 
 @available(SwiftStdlib 6.4, *)
 public protocol RangeReplaceableContainer<Element>
-: Container, ~Copyable, ~Escapable
+: DrainableContainer, ~Copyable, ~Escapable
 where
   Element: ~Copyable,
   Index: Comparable // For `Range<Index>`
@@ -37,20 +37,7 @@ where
     initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E)
 
-  associatedtype SubrangeConsumer: Drain<Element> & ~Copyable & ~Escapable
-
-  @_lifetime(&self)
-  mutating func consume(_ subrange: Range<Index>) -> SubrangeConsumer
-
   // MARK: Requirements with default implementations
-
-  mutating func remove(at index: Index) -> Element
-  mutating func removeSubrange(_ bounds: Range<Index>)
-  mutating func removeAll()
-  mutating func removeFirst() -> Element
-  mutating func removeFirst(_ n: Int)
-  mutating func _customRemoveLast() -> Element?
-  mutating func _customRemoveLast(_ n: Int) -> Bool
 
   mutating func insert<E: Error>(
     addingCount newItemCount: Int,
@@ -74,60 +61,6 @@ where
 extension RangeReplaceableContainer
 where Self: ~Copyable & ~Escapable, Element: ~Copyable
 {
-  @_alwaysEmitIntoClient
-  public mutating func remove(at index: Index) -> Element {
-    let range = Range(uncheckedBounds: (index, self.index(after: index)))
-    var result: Element?
-    self.consume(range) {
-      result = $0.removeFirst()
-    }
-    guard let result else {
-      preconditionFailure("Invalid RangeReplaceableContainer")
-    }
-    return result
-  }
-
-  @_alwaysEmitIntoClient
-  public mutating func removeSubrange(_ bounds: Range<Index>) {
-    replace(
-      removing: bounds,
-      consumingWith: { _ in },
-      addingCount: 0,
-      initializingWith: { _ in })
-  }
-
-  @_alwaysEmitIntoClient
-  public mutating func removeFirst() -> Element {
-    precondition(
-      !isEmpty,
-      "Can't remove first element from an empty container")
-    return self.remove(at: self.startIndex)
-  }
-
-  @_alwaysEmitIntoClient
-  public mutating func removeFirst(_ n: Int) {
-    if n == 0 { return }
-    precondition(n >= 0, "Number of elements to remove should be non-negative")
-    let start = self.startIndex
-    guard
-      let end = self.index(start, offsetBy: n, limitedBy: endIndex)
-    else {
-      preconditionFailure(
-        "Can't remove more items from a container than it has")
-    }
-    removeSubrange(start ..< end)
-  }
-
-  @_alwaysEmitIntoClient
-  public mutating func _customRemoveLast() -> Element? {
-    nil
-  }
-
-  @_alwaysEmitIntoClient
-  public mutating func _customRemoveLast(_ n: Int) -> Bool {
-    false
-  }
-
   @_alwaysEmitIntoClient
   public mutating func insert<E: Error>(
     addingCount newItemCount: Int,
@@ -287,155 +220,6 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
     consuming source: consuming C
   ) where C.Element: ~Copyable {
     replace(removing: targetSubrange, addingFrom: source.consumeAll())
-  }
-
-}
-
-@available(SwiftStdlib 6.4, *)
-extension RangeReplaceableContainer
-where Self: ~Copyable & ~Escapable, Element: ~Copyable {
-  @_alwaysEmitIntoClient
-  public mutating func consume(
-    _ subrange: Range<Index>,
-    consumingWith consumer: (inout InputSpan<Element>) -> Void
-  ) {
-    self.replace(
-      removing: subrange,
-      consumingWith: consumer,
-      addingCount: 0,
-      initializingWith: {
-        precondition($0.isFull, "Invalid RangeReplaceableContainer")
-      })
-  }
-
-  @_alwaysEmitIntoClient
-  @_lifetime(&self)
-  public mutating func consumeAll() -> SubrangeConsumer {
-    consume(startIndex ..< endIndex)
-  }
-
-  @_alwaysEmitIntoClient
-  @_lifetime(&self)
-  public mutating func consume(
-    _ subrange: some RangeExpression2<Index>
-  ) -> SubrangeConsumer {
-    consume(subrange.relative(to: self))
-  }
-
-  // This unavailable default implementation of the protocol requirement
-  // prevents incomplete RangeReplaceableContainer implementations from
-  // satisfying the protocol through the use of the generic algorithm above.
-  @available(*, unavailable)
-  @_alwaysEmitIntoClient
-  @_lifetime(&self)
-  public mutating func consume(_ subrange: Range<Index>) -> SubrangeConsumer {
-    fatalError()
-  }
-
-  @_alwaysEmitIntoClient
-  @_lifetime(&self)
-  public mutating func consume(
-    _ subrange: UnboundedRange
-  ) -> SubrangeConsumer {
-    consume(startIndex ..< endIndex)
-  }
-
-  @_alwaysEmitIntoClient
-  @_lifetime(&self)
-  public mutating func consumeFirst(_ n: Int) -> SubrangeConsumer {
-    precondition(n >= 0, "Count of elements to consume is out of bounds")
-    let start = self.startIndex
-    var i = start
-    var n = n
-    self.formIndex(&i, offsetBy: &n, limitedBy: self.endIndex)
-    precondition(n == 0, "Count of elements to consume is out of bounds")
-    return consume(start ..< i)
-  }
-}
-
-@available(SwiftStdlib 6.4, *)
-extension RangeReplaceableContainer
-where
-  Self: BidirectionalContainer,
-  Self: ~Copyable & ~Escapable,
-  Element: ~Copyable
-{
-  @_alwaysEmitIntoClient
-  @_lifetime(&self)
-  public mutating func consumeLast(_ n: Int) -> SubrangeConsumer {
-    precondition(n >= 0, "Count of elements to consume is out of bounds")
-    let end = self.endIndex
-    var i = end
-    var distance = -n
-    self.formIndex(&i, offsetBy: &distance, limitedBy: self.startIndex)
-    precondition(distance == 0, "Count of elements to consume is out of bounds")
-    return consume(i ..< end)
-  }
-}
-
-@available(SwiftStdlib 6.4, *)
-extension RangeReplaceableContainer
-where Self: ~Copyable & ~Escapable, Element: ~Copyable
-{
-  @_alwaysEmitIntoClient
-  public mutating func removeAll() {
-    removeSubrange(startIndex ..< endIndex)
-  }
-
-  @_alwaysEmitIntoClient
-  public mutating func removeSubrange(
-    _ bounds: some RangeExpression2<Index>
-  ) {
-    removeSubrange(bounds.relative(to: self))
-  }
-
-  @_alwaysEmitIntoClient
-  public mutating func removeSubrange(
-    _ bounds: UnboundedRange
-  ) {
-    removeAll()
-  }
-}
-
-@available(SwiftStdlib 6.4, *)
-extension RangeReplaceableContainer
-where Self: BidirectionalContainer & ~Copyable & ~Escapable, Element: ~Copyable
-{
-  @_alwaysEmitIntoClient
-  public mutating func removeLast() -> Element {
-    precondition(
-      !self.isEmpty,
-      "Can't remove last element from an empty container")
-    if let result = self._customRemoveLast() { return result }
-    return self.remove(at: self.index(before: self.endIndex))
-  }
-
-  @_alwaysEmitIntoClient
-  public mutating func removeLast(_ n: Int) {
-    if n == 0 { return }
-    precondition(n >= 0, "Number of elements to remove should be non-negative")
-    if self._customRemoveLast(n) {
-      return
-    }
-    let end = self.endIndex
-    guard let start = self.index(end, offsetBy: -n, limitedBy: self.startIndex)
-    else {
-      preconditionFailure(
-        "Can't remove more items from a collection than it contains")
-    }
-    self.removeSubrange(start ..< end)
-  }
-}
-
-@available(SwiftStdlib 6.4, *)
-extension RangeReplaceableContainer
-where Self: BidirectionalContainer & ~Copyable & ~Escapable, Element: ~Copyable
-{
-  @_alwaysEmitIntoClient
-  public mutating func popLast() -> Element? {
-    if self.isEmpty { return nil }
-    if let result = self._customRemoveLast() { return result }
-    return self.remove(at: self.index(before: self.endIndex))
   }
 }
 
