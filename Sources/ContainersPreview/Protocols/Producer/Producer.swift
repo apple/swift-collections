@@ -21,27 +21,48 @@ import InternalCollectionsUtilities
 @_transparent
 public var _producerBufferSize: Int { 8 }
 
-/// A type that supplies the values of a generative sequence by populating
-/// a client-supplied series of `OutputSpan` instances. "Generative" sequences
-/// transfer the ownership of items they produce to their clients, rather than
-/// merely providing borrowing access to them. A `Producer` instance represents
-/// an ongoing iteration over such a generative sequence.
+/// A type that supports iteration by transferring ownership of its elements to
+/// clients, by populating a client-supplied series of `OutputSpan` instances.
+/// Clients take full ownership of each element they receive, and they are free
+/// to store them, mutate them and destroy them as they see fit, without
+/// notifying the producer.
+///
+/// The elements produced by a `Producer` may be generated on demand.
+/// Consequently, some producers may encounter errors during iteration; this is
+/// represented by the `Failure` associated type that operations are declared to
+/// throw.
 @available(SwiftStdlib 5.0, *)
 public protocol Producer<Element, Failure>: ~Copyable, ~Escapable {
   /// The type of the items that this producer generates.
   associatedtype Element: ~Copyable
-  
+
   /// The error that this producer may throw, or `Never` if this producer
   /// always succeeds.
   associatedtype Failure: Error = Never
-  
+
   /// A value less than or equal to the number of remaining items that this
-  /// producer is able to generate until it reaches its end.
+  /// producer knows it is able to generate until it reaches its end.
   ///
   /// The default implementation returns 0. If you provide your own
   /// implementation, make sure to compute the value nondestructively.
+  ///
+  /// As producers generate more items, they may develop more information about
+  /// the number of items remaining; accordingly, their underestimated count may
+  /// fluctuate both upwards and downwards as the iteration progresses. However,
+  /// the value returned must always be a true underestimate of the actual
+  /// distance from the end of the producer. (For example, it is invalid for a
+  /// producer to say it has at least five items remaining, but then reach its
+  /// end after generating two.)
+  ///
+  /// Note that `underestimatedCount` does not account for failures. Failable
+  /// producers are allowed to throw an error while producing any element, no
+  /// matter how many remaining items they previously promised. (Typically,
+  /// there is no way to foresee errors in advance; they are only triggered
+  /// while the elements are actually generated.)
+  ///
+  /// - Complexity: O(1)
   var underestimatedCount: Int { get }
-  
+
   /// Generate the next batch of items into the supplied output span instance,
   /// which must have room for at least one new element.
   ///
@@ -99,7 +120,7 @@ public protocol Producer<Element, Failure>: ~Copyable, ~Escapable {
   mutating func generate(
     into target: inout OutputSpan<Element>
   ) throws(Failure) -> Bool
-  
+
   /// Skip the given number items in the underlying generative sequence,
   /// decreasing it by the number of items successfully skipped before hitting
   /// the end of the sequence or an error.
