@@ -2,11 +2,11 @@
 
 ## Overview
 
-This module provides previews of ownership-aware reimplementations of basic data structures that have been shipping in the Swift Standard Library.
+This module provides variants, both extended utility and owership-aware reimplementations, to the basic data structures that have been shipping in the Swift Standard Library.
 
-This currently consists of two noncopyable variants of the standard `Array` type: ``UniqueArray`` and ``RigidArray``. Both of these allow noncopyable elements, and they store them in heap-allocated storage buffers.
+This currently consists of ``StringCollection``, a `Collection` type specialized for `String` data, and two noncopyable variants of the standard `Array` type: ``UniqueArray`` and ``RigidArray``. Those last two types allow noncopyable elements, and they store them in heap-allocated storage buffers.
 
-Unlike `Array`, these new types do not support copy-on-write value semantics -- indeed, they aren't (implicitly) copyable at all, even if their element type happens to be copyable.
+``StringCollection`` optimizes memory by using a single heap-allocated storage buffer for *all* the string elements. `String` values are extracted buffer segments on demand. While ``StringCollection`` supports copy-on-write value semantics, ``UniqueArray`` and ``RigidArray`` do not. The latter two types are not (implicitly) copyable at all, even if their element type happens to be copyable.
 
 ### struct UniqueArray
 
@@ -60,9 +60,16 @@ Unlike ``InlineArray``, the capacity of a ``RigidArray`` is not part of its type
 
 This allows ``RigidArray`` to still provide _explicit_ resizing operations: it has a `reallocate(capacity:)` method that can be used to arbitrarily resize its storage, as well as the familiar ``reserveCapacity(_:)`` operation. This enables building dynamic array types on top of ``RigidArray``; indeed, `UniqueArray` is a relatively simple wrapper around rigid array instance, forwarding operations to it when possible.
 
+### struct StringCollection
+
+``StringCollection`` is a dynamically self-resizing array type that stores all its `String` elements within a single memory buffer. Copies of a collection share the same storage until one runs a mutating operation. That one clones the data first before any changes. `String`s and `StringCollection`s share the same collection interface, `BidirectionalCollection` for traversal and `RangeReplaceableCollection` (only) for mutation.
+
+Besides initialization from array literals, ``StringCollection`` also supports equality and ordered comparisons, hashing values, specialized print outs, and `Codable` data management.
+
 ## Topics
 
 ### Types
 
 - ``UniqueArray``
 - ``RigidArray``
+- ``StringCollection``
