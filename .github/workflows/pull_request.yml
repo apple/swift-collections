@@ -10,7 +10,7 @@ on:
 jobs:
   tests:
     name: Test
-    uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.13
+    uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.14
     with:
       enable_macos_checks: true
       macos_xcode_versions: '["swift_6.1", "swift_6.2", "swift_6.3", "swift_6.4"]'
@@ -24,7 +24,7 @@ jobs:
 
   containers-tests:
     name: Containers Test
-    uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.13
+    uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.14
     with:
       linux_exclude_swift_versions: '[{"swift_version": "5.9"}, {"swift_version": "5.10"}, {"swift_version": "6.0"}, {"swift_version": "6.1"}, {"swift_version": "6.2"}, {"swift_version": "6.3"}, {"swift_version": "nightly-6.3"}]'
       enable_macos_checks: false
@@ -34,7 +34,7 @@ jobs:
 
   hashed-containers-tests:
     name: Hashed Containers Test
-    uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.13
+    uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.14
     with:
       linux_exclude_swift_versions: '[{"swift_version": "5.8"}, {"swift_version": "5.9"}, {"swift_version": "5.10"}, {"swift_version": "6.0"}, {"swift_version": "6.1"}, {"swift_version": "6.2"}, {"swift_version": "6.3"}, {"swift_version": "nightly-6.3"}]'
       windows_exclude_swift_versions: '[{"swift_version": "5.9"}, {"swift_version": "5.10"}, {"swift_version": "6.0"}, {"swift_version": "6.1"}, {"swift_version": "6.2"}]'
@@ -46,7 +46,7 @@ jobs:
 
   all-traits-tests:
     name: All Unstable Package Traits Test
-    uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.13
+    uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.14
     with:
       linux_exclude_swift_versions: '[{"swift_version": "5.9"}, {"swift_version": "5.10"}, {"swift_version": "6.0"}, {"swift_version": "6.1"}, {"swift_version": "6.2"}, {"swift_version": "6.3"}, {"swift_version": "nightly-6.3"}]'
       enable_macos_checks: false
@@ -56,7 +56,7 @@ jobs:
 
   embedded-swift:
     name: Build with Embedded Swift
-    uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.13
+    uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.14
     with:
       enable_linux_checks: false
       enable_macos_checks: false
@@ -67,7 +67,7 @@ jobs:
 
   soundness:
     name: Soundness
-    uses: swiftlang/github-workflows/.github/workflows/soundness.yml@0.0.13
+    uses: swiftlang/github-workflows/.github/workflows/soundness.yml@0.0.14
     with:
       license_header_check_project_name: "Swift.org"
       # https://github.com/apple/swift-collections/issues/428
