@@ -25,7 +25,7 @@ jobs:
     name: Containers Test
     uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.14
     with:
-      linux_swift_versions: '["6.0", "nightly-main"]'
+      linux_swift_versions: '["6.2", "nightly-main"]'
       enable_macos_checks: false
       enable_linux_checks: true
       enable_windows_checks: false
@@ -35,7 +35,7 @@ jobs:
     name: Hashed Containers Test
     uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.14
     with:
-      linux_swift_versions: '["6.0", "nightly-main"]'
+      linux_swift_versions: '["6.2", "nightly-main"]'
       enable_macos_checks: false
       enable_linux_checks: true
       enable_windows_checks: false
@@ -45,7 +45,7 @@ jobs:
     name: All Unstable Package Traits Test
     uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.14
     with:
-      linux_swift_versions: '["6.0", "nightly-main"]'
+      linux_swift_versions: '["6.2", "nightly-main"]'
       enable_macos_checks: false
       enable_linux_checks: true
       enable_windows_checks: false
