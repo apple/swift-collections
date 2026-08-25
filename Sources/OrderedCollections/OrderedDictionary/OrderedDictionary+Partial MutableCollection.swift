@@ -83,8 +83,7 @@ extension OrderedDictionary {
     // in place. The hash bucket is unchanged, so no rehash is needed.
     if existingIndex == index {
       let oldKey = _keys.update(key, at: index)
-      let oldValue = _values[index]
-      _values[index] = value
+      let oldValue = exchange(&_values[index], with: value)
       _checkInvariants()
       return (oldKey, oldValue)
     }
