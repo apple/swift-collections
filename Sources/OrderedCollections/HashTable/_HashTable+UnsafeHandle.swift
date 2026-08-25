@@ -560,7 +560,6 @@ extension _UnsafeHashTable {
   /// Fill an empty hash table by populating it with data from `elements`.
   ///
   /// - Parameter elements: A random-access collection for which this table is being generated.
-  /// - Parameter stoppingOnFirstDuplicateValue: If true, check for duplicate values and stop inserting items when one is found.
   /// - Returns: `(success, index)` where `success` is a boolean value indicating that every value in `elements` was successfully inserted. A false success indicates that duplicate elements have been found; in this case `index` points to the first duplicate value; otherwise `index` is set to `elements.endIndex`.
   @inlinable
   internal func fill<C: RandomAccessCollection>(

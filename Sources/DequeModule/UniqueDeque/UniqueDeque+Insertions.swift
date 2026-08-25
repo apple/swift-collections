@@ -434,7 +434,7 @@ extension UniqueDeque /* where Element: Copyable */ {
   /// geometric growth rate.
   ///
   /// - Parameters:
-  ///    - newElements: The new elements to insert into the deque.
+  ///    - items: The new elements to insert into the deque.
   ///    - index: The position at which to insert the new elements. It must be
   ///        a valid index of the deque.
   ///

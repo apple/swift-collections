@@ -745,7 +745,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   /// successfully initialized before the callback terminated.
   ///
   /// - Parameters:
-  ///    - capacity: The maximum number of items to append to the deque.
+  ///    - newItemCount: The maximum number of items to append to the deque.
   ///    - body: A callback that gets called at most twice to directly
   ///       populate newly reserved storage within the deque. The function
   ///       is allowed to initialize fewer than `count` items. The deque is
@@ -805,7 +805,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   ///     // `buffer` now contains [0, 1, 2, 3, 4, 5, 10]
   ///
   /// - Parameters:
-  ///    - count: The number of items to append to the deque.
+  ///    - newItemCount: The number of items to append to the deque.
   ///    - body: A callback that gets called at most twice to directly
   ///       populate newly reserved storage within the deque. The function
   ///       is allowed to initialize fewer than `count` items. The deque is

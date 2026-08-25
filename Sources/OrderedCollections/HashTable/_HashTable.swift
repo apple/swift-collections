@@ -61,7 +61,6 @@ extension _HashTable {
   ///
   /// - Parameter scale: The desired hash table scale or nil to use the minimum scale that satisfies invariants.
   /// - Parameter reservedScale: The reserved scale to remember in the returned storage.
-  /// - Parameter duplicates: The strategy to use to handle duplicate items.
   /// - Returns: `(storage, index)` where `storage` is a storage instance. The contents of `storage` reflects all elements in `contents[contents.startIndex ..< index]`. `index` is usually `contents.endIndex`, except when the function was asked to reject duplicates, in which case `index` addresses the first duplicate element in `contents` (if any).
   @inlinable
   @inline(never)
@@ -87,7 +86,6 @@ extension _HashTable {
   ///
   /// - Parameter scale: The desired hash table scale or nil to use the minimum scale that satisfies invariants.
   /// - Parameter reservedScale: The reserved scale to remember in the returned storage.
-  /// - Parameter duplicates: The strategy to use to handle duplicate items.
   /// - Returns: `(storage, index)` where `storage` is a storage instance. The contents of `storage` reflects all elements in `contents[contents.startIndex ..< index]`. `index` is usually `contents.endIndex`, except when the function was asked to reject duplicates, in which case `index` addresses the first duplicate element in `contents` (if any).
   @inlinable
   @inline(never)

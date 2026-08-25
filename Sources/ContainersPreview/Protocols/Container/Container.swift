@@ -195,7 +195,7 @@ public protocol Container<Element>:
   /// collection’s end index. The end index refers to the position one past the
   /// last element of a collection, so it doesn’t correspond with an element.
   ///
-  /// - Parameter position: The position of the element to access.
+  /// - Parameter index: The position of the element to access.
   ///    `position` must be a valid index of the container that is not equal
   ///    to the `endIndex` property.
   /// - Complexity: O(1). This is a hard requirement.

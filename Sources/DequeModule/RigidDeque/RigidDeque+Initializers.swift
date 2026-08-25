@@ -41,7 +41,7 @@ extension RigidDeque where Element: ~Copyable {
   ///   - capacity: The number of elements to allocate space for in the new
   ///     rigid deque.
   ///   - initializer: A closure that initializes the elements of the new deque.
-  ///     - Parameter outputSpan: An `OutputSpan` allowing initialization of the
+  ///     - Parameter initializer: An `OutputSpan` allowing initialization of the
   ///       deque's initial elements.
   @inlinable @inline(__always)
   public init<E: Error>(

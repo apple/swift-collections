@@ -369,7 +369,7 @@ extension RigidArray {
   /// elements, then this method triggers a runtime error.
   ///
   /// - Parameters:
-  ///    - newElements: The new elements to insert into the array.
+  ///    - items: The new elements to insert into the array.
   ///    - index: The position at which to insert the new elements. It must be
   ///        a valid index of the array.
   ///
