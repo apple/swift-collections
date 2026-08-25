@@ -376,8 +376,8 @@ extension _BTree {
   /// This 'consumes' the tree, however it expects the callee to retain the root of the tree for the duration of
   /// the cursors lifetime.
   ///
-  /// - Parameter key: The key to search for
-  /// - Returns: A cursor to the key or where the key should be inserted.
+  /// - Parameter index: The index to take the cursor at
+  /// - Returns: A cursor to the element at that index.
   /// - Complexity: O(`log n`)
   @inlinable
   internal mutating func takeCursor(at index: Index) -> UnsafeCursor {

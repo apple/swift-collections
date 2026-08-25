@@ -451,11 +451,6 @@ extension _BTree {
 
 // MARK: Custom Indexing Operations
 extension _BTree {
-  /// Returns a path to the key at absolute offset `i`.
-  /// - Parameter offset: 0-indexed offset within BTree bounds, else may panic.
-  /// - Returns: the index of the appropriate element.
-  /// - Complexity: O(`log n`)
-  
 
   /// Obtains the start index for a key (or where it would exist).
   @inlinable
