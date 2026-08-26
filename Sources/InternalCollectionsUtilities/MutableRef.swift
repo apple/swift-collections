@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.3) && UnstableContainersPreview
+#if compiler(>=6.3)
 import Builtin
 
 // FIXME: Remove when MutableRef becomes usable
@@ -19,9 +19,6 @@ import Builtin
 @safe
 @usableFromInline
 package struct _MutableRef<Value: ~Copyable /* FIXME: ~Escapable */>: ~Copyable, ~Escapable {
-  @available(*, deprecated, renamed: "Value")
-  package typealias Target = Value
-
   @usableFromInline
   package let _pointer: UnsafeMutablePointer<Value>
 
@@ -72,20 +69,6 @@ package struct _MutableRef<Value: ~Copyable /* FIXME: ~Escapable */>: ~Copyable,
 }
 
 extension _MutableRef where Value: ~Copyable {
-  @_alwaysEmitIntoClient
-  @available(*, deprecated, renamed: "value")
-  package subscript() -> Value {
-    @_transparent
-    unsafeAddress {
-      unsafe UnsafePointer<Value>(_pointer)
-    }
-
-    @_transparent
-    unsafeMutableAddress {
-      unsafe _pointer
-    }
-  }
-  
   /// Dereferences the mutable reference allowing for in-place reads and writes
   /// to the underlying instance.
   @_alwaysEmitIntoClient

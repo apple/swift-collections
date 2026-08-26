@@ -19,6 +19,8 @@ import Collections
 import TrailingElementsModule
 #endif
 
+#if compiler(>=6.2)
+
 struct Point {
   var x: Int
   var y: Int
@@ -184,3 +186,5 @@ struct TrailingElementsTests {
     }
   }
 }
+
+#endif

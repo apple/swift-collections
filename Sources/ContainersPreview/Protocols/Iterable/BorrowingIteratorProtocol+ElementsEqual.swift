@@ -18,158 +18,20 @@ import InternalCollectionsUtilities
 #if compiler(>=6.4) && UnstableContainersPreview
 
 @available(SwiftStdlib 6.4, *)
-extension Iterable
-where
-  Self: ~Copyable & ~Escapable, Element: Equatable,
-  Element: ~Copyable
-{
-  @inlinable
-  package func _elementsEqual<
-    Other: Iterable<Element, Failure> & ~Copyable & ~Escapable
-  >(
-    _ other: borrowing Other,
-  ) throws(Failure) -> Bool
-  where Other.Element: ~Copyable
-  {
-    let it1 = self.makeBorrowingIterator()
-    let it2 = other.makeBorrowingIterator()
-    return try it1.elementsEqual(it2)
-  }
-}
-
-@available(SwiftStdlib 6.4, *)
-extension Iterable
-where
-  Self: ~Copyable & ~Escapable,
-  Element: ~Copyable
-{
-  /// Returns a Boolean value indicating whether two borrowing sequences contain
-  /// equivalent elements in the same order, using the given predicate as the
-  /// equivalence test.
-  ///
-  /// The predicate must form an *equivalence relation* over the elements. That
-  /// is, for any elements `a`, `b`, and `c`, the following conditions must
-  /// hold:
-  ///
-  /// - `areEquivalent(a, a)` is always `true`. (Reflexivity)
-  /// - `areEquivalent(a, b)` implies `areEquivalent(b, a)`. (Symmetry)
-  /// - If `areEquivalent(a, b)` and `areEquivalent(b, c)` are both `true`, then
-  ///   `areEquivalent(a, c)` is also `true`. (Transitivity)
-  ///
-  /// - Parameters:
-  ///   - other: A BorrowingSequence to compare to this BorrowingSequence.
-  ///   - areEquivalent: A predicate that returns `true` if its two arguments
-  ///     are equivalent; otherwise, `false`.
-  /// - Returns: `true` if this BorrowingSequence and `other` contain equivalent items,
-  ///   using `areEquivalent` as the equivalence test; otherwise, `false.`
-  ///
-  /// - Complexity: O(*m*), where *m* is the count of the longer of the input sequences.
-  @inlinable
-  package func _elementsEqual<
-    Other: Iterable & ~Copyable & ~Escapable
-  >(
-    _ other: borrowing Other,
-    by areEquivalent: (borrowing Element, borrowing Other.Element) throws(Failure) -> Bool
-  ) throws(Failure) -> Bool
-  where Other.Element: ~Copyable, Other.Failure == Failure
-  {
-    let it1 = self.makeBorrowingIterator()
-    let it2 = other.makeBorrowingIterator()
-    return try it1.elementsEqual(it2, by: areEquivalent)
-  }
-}
-
-@available(SwiftStdlib 6.4, *)
 extension BorrowingIteratorProtocol
 where
   Self: ~Copyable & ~Escapable,
   Element: ~Copyable & Equatable
 {
-  @inlinable
-  package consuming func elementsEqual<
+  @_alwaysEmitIntoClient
+  public consuming func elementsEqual<
     Other: BorrowingIteratorProtocol<Element, Failure> & ~Copyable & ~Escapable
   >(
     _ other: consuming Other,
   ) throws(Failure) -> Bool
-  where Other.Element: ~Copyable
+    where Other.Element: ~Copyable
   {
-    var result = true
-    try _spanwiseZip(state: &result, with: other) { state, a, b in
-      if a.isEmpty || b.isEmpty {
-        state = false
-        return false
-      }
-      precondition(a.count == b.count)
-      for i in 0 ..< a.count {
-        guard a[unchecked: i] == b[unchecked: i] else {
-          state = false
-          return false
-        }
-      }
-      return true
-    }
-    return result
-  }
-
-  @inlinable
-  package consuming func _directElementsEqual<
-    Other: BorrowingIteratorProtocol<Element, Failure> & ~Copyable & ~Escapable
-  >(
-    _ other: consuming Other,
-  ) throws(Failure) -> Bool
-  where Other.Element: ~Copyable
-  {
-#if true // FIXME: rdar://150228920 Exclusive access scopes aren't expanded enough
-    // Note: This is the less efficient implementation of elementsEqual. The
-    // variant in the #else branch would be preferable, but it doesn't work yet.
-    // (It lets the two iterators run at their native speeds, with no artificial
-    // maxCounts.)
-    while true {
-      let a = try self.nextSpan()
-      var i = 0
-      if a.isEmpty {
-        return try other.nextSpan().isEmpty
-      }
-      while i < a.count {
-        let b = try other.nextSpan(maxCount: a.count - i)
-        if b.isEmpty {
-          return false
-        }
-        precondition(b.count <= a.count - i)
-
-        var j = 0
-        while j < b.count {
-          guard a[unchecked: i] == b[unchecked: j] else { return false }
-          i &+= 1
-          j &+= 1
-        }
-      }
-    }
-#else
-    var a = Span<Element>()
-    var b = Span<Element>()
-  loop:
-    while true {
-      if a.isEmpty {
-        a = self.nextSpan()
-      }
-      if b.isEmpty {
-        b = other.nextSpan()
-      }
-      if a.isEmpty || b.isEmpty {
-        return a.isEmpty && b.isEmpty
-      }
-
-      let c = Swift.min(a.count, b.count)
-      var i = 0
-      while i < c {
-        guard a[unchecked: i] == b[unchecked: i] else { return false }
-        i &+= 1
-      }
-      a = a.extracting(droppingFirst: c)
-      b = b.extracting(droppingFirst: c)
-    }
-#endif
+    try self._elementsEqual(other)
   }
 }
 
@@ -179,8 +41,8 @@ where
   Self: ~Copyable & ~Escapable,
   Element: ~Copyable
 {
-  @inlinable
-  package consuming func elementsEqual<
+  @_alwaysEmitIntoClient
+  public consuming func elementsEqual<
     Other: BorrowingIteratorProtocol & ~Copyable & ~Escapable
   >(
     _ other: consuming Other,
@@ -188,22 +50,7 @@ where
   ) throws(Failure) -> Bool
   where Other.Element: ~Copyable, Other.Failure == Failure
   {
-    var result = true
-    try _spanwiseZip(state: &result, with: other) { state, a, b throws(Failure) in
-      assert(a.count == b.count || a.isEmpty || b.isEmpty)
-      if a.isEmpty || b.isEmpty {
-        state = false
-        return false
-      }
-      for i in 0 ..< a.count {
-        guard try areEquivalent(a[i], b[i]) else {
-          state = false
-          return false
-        }
-      }
-      return true
-    }
-    return result
+    try self._elementsEqual(other, by: areEquivalent)
   }
 }
 

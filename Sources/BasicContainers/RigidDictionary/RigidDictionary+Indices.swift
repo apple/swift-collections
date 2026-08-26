@@ -11,11 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !COLLECTIONS_SINGLE_MODULE
-import ContainersPreview
-#endif
-
-#if compiler(>=6.4) && UnstableHashedContainers && UnstableContainersPreview
+#if compiler(>=6.4) && UnstableHashedContainers
 
 @available(SwiftStdlib 6.2, *)
 extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {

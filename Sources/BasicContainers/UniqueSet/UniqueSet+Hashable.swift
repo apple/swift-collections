@@ -13,10 +13,9 @@
 
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
-import ContainersPreview
 #endif
 
-#if compiler(>=6.4) && UnstableHashedContainers && UnstableContainersPreview
+#if compiler(>=6.4) && UnstableHashedContainers
 
 @available(SwiftStdlib 6.4, *)
 extension UniqueSet: Hashable where Element: ~Copyable {}

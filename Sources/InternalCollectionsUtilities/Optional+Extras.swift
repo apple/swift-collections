@@ -11,14 +11,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.4) && UnstableContainersPreview
+#if compiler(>=6.4)
 import Builtin
 
 extension Optional where Wrapped: ~Copyable /* FIXME: ~Escapable */  {
   @available(SwiftStdlib 6.4, *)
   @_lifetime(borrow self)
   @_addressableSelf
-  public func borrow() -> Ref<Wrapped>? {
+  package func _borrow() -> Ref<Wrapped>? {
     if self == nil {
       return nil
     }
@@ -37,7 +37,7 @@ extension Optional where Wrapped: ~Copyable /* FIXME: ~Escapable */ {
   @available(SwiftStdlib 6.4, *)
   @_lifetime(&self)
   @_alwaysEmitIntoClient
-  package mutating func mutate() -> MutableRef<Wrapped>? {
+  package mutating func _mutate() -> MutableRef<Wrapped>? {
     if self == nil {
       return nil
     }
@@ -50,9 +50,9 @@ extension Optional where Wrapped: ~Copyable /* FIXME: ~Escapable */ {
   @_lifetime(&self)
   @_alwaysEmitIntoClient
   @_transparent
-  package mutating func insert(_ value: consuming Wrapped) -> MutableRef<Wrapped> {
+  package mutating func _insert(_ value: consuming Wrapped) -> MutableRef<Wrapped> {
     self = .some(value)
-    return mutate()._consumingUnsafelyUnwrap()
+    return _mutate()._consumingUnsafelyUnwrap()
   }
 }
 

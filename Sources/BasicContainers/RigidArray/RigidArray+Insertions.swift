@@ -13,7 +13,7 @@
 
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
-import ContainersPreview
+import SpanPreview
 #endif
 
 #if compiler(>=6.2)
@@ -208,7 +208,6 @@ extension RigidArray where Element: ~Copyable {
     }
   }
 
-#if !UnstableContainersPreview
   /// Inserts the elements of a given array into the given position in this
   /// array by moving them between the containers. On return, the input array
   /// becomes empty, but it is not destroyed, and it preserves its original
@@ -237,7 +236,6 @@ extension RigidArray where Element: ~Copyable {
       self.insert(moving: &source, at: index)
     }
   }
-#endif
 }
 
 @available(SwiftStdlib 5.0, *)

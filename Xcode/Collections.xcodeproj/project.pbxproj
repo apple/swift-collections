@@ -83,8 +83,11 @@
 				HeapModule/HeapModule.docc,
 				InternalCollectionsUtilities/CMakeLists.txt,
 				OrderedCollections/CMakeLists.txt,
+				OrderedCollections/OrderedCollections.docc,
 				RopeModule/CMakeLists.txt,
+				SpanPreview/CMakeLists.txt,
 				TrailingElementsModule/CMakeLists.txt,
+				TrailingElementsModule/TrailingElementsModule.docc,
 			);
 			target = 7DE91B2529CA6721004483EB /* Collections */;
 		};

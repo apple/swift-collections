@@ -13,9 +13,7 @@
 
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
-import ContainersPreview
 #endif
-
 
 #if compiler(>=6.4) && UnstableHashedContainers
 
@@ -39,7 +37,6 @@ extension RigidSet where Element: ~Copyable {
     
     guard left.count == right.count else { return false }
 
-    #if UnstableContainersPreview
     var lit = left.makeBorrowingIterator()
     while true {
       let l = lit.nextSpan(maxCount: .max)
@@ -50,13 +47,6 @@ extension RigidSet where Element: ~Copyable {
         i &+= 1
       }
     }
-    #else
-    var i = left.startIndex
-    while i != left.endIndex {
-      guard right.contains(left[i]) else { return false }
-      i = left.index(after: i)
-    }
-    #endif
     return true
   }
 }

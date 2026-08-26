@@ -13,7 +13,7 @@
 
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
-import ContainersPreview
+import SpanPreview
 #endif
 
 #if compiler(>=6.2)
@@ -176,7 +176,6 @@ extension RigidArray where Element: ~Copyable {
     }
   }
 
-#if !UnstableContainersPreview
   /// Appends the elements of a given array to the end of this array by moving
   /// them between the containers. On return, the input array becomes empty, but
   /// it is not destroyed, and it preserves its original storage capacity.
@@ -192,11 +191,11 @@ extension RigidArray where Element: ~Copyable {
   public mutating func append(
     moving items: inout RigidArray<Element>
   ) {
+    // FIXME: Remove this; RangeReplaceableContainer provides a more general algorithm
     items.edit { span in
       self.append(moving: &span)
     }
   }
-#endif
 }
 
 @available(SwiftStdlib 5.0, *)
@@ -275,8 +274,8 @@ extension RigidArray {
     _count += c
     return it
   }
-  
-#if compiler(>=6.4) && UnstableContainersPreview
+
+#if compiler(>=6.4)
   @available(SwiftStdlib 6.4, *)
   @inlinable
   internal mutating func _append<
@@ -290,7 +289,7 @@ extension RigidArray {
   }
 #endif
 
-#if compiler(>=6.4) && UnstableContainersPreview
+#if compiler(>=6.4)
   /// Copies the elements of a borrowing sequence to the end of this array.
   ///
   /// If the array does not have sufficient capacity to hold all items in the
@@ -334,7 +333,7 @@ extension RigidArray {
     precondition(it.next() == nil, "RigidArray capacity overflow")
   }
   
-#if compiler(>=6.4) && UnstableContainersPreview
+#if compiler(>=6.4)
   /// Copies the elements of a borrowing sequence to the end of this array.
   ///
   /// If the array does not have sufficient capacity to hold all items in the

@@ -13,59 +13,9 @@
 
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
-import ContainersPreview
 #endif
 
 #if compiler(>=6.2)
-
-
-@available(SwiftStdlib 5.0, *)
-extension UniqueDeque where Element: ~Copyable {
-#if compiler(>=6.4) && UnstableContainersPreview
-  public typealias BorrowingIterator = RigidDeque<Element>.BorrowingIterator
-  
-  @_alwaysEmitIntoClient
-  @_lifetime(borrow self)
-  public borrowing func makeBorrowingIterator() -> BorrowingIterator {
-    BorrowingIterator(_deque: self._storage)
-  }
-#endif
-}
-
-#if compiler(>=6.4) && UnstableContainersPreview
-@available(SwiftStdlib 5.0, *)
-extension UniqueDeque: Container where Element: ~Copyable {
-  @_alwaysEmitIntoClient
-  @_lifetime(borrow self)
-  public func makeBorrowingIterator(
-    from start: Index, to end: Index
-  ) -> BorrowingIterator {
-    _storage.makeBorrowingIterator(from: start, to: end)
-  }
-
-  @_alwaysEmitIntoClient
-  public func currentIndex(of iterator: inout BorrowingIterator) -> Index {
-    _storage.currentIndex(of: &iterator)
-  }
-}
-
-@available(SwiftStdlib 5.0, *)
-extension UniqueDeque: BidirectionalContainer where Element: ~Copyable {}
-
-@available(SwiftStdlib 5.0, *)
-extension UniqueDeque: RandomAccessContainer where Element: ~Copyable {}
-
-@available(SwiftStdlib 5.0, *)
-extension UniqueDeque: MutableContainer where Element: ~Copyable {}
-
-#if compiler(>=6.4)
-@available(SwiftStdlib 5.0, *)
-extension UniqueDeque: RangeReplaceableContainer where Element: ~Copyable {}
-
-@available(SwiftStdlib 5.0, *)
-extension UniqueDeque: DynamicContainer where Element: ~Copyable {}
-#endif
-#endif
 
 @available(SwiftStdlib 5.0, *)
 extension UniqueDeque where Element: ~Copyable {

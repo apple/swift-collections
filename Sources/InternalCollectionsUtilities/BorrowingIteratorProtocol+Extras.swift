@@ -11,11 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.4) && UnstableContainersPreview
-
-#if !COLLECTIONS_SINGLE_MODULE
-import InternalCollectionsUtilities
-#endif
+#if compiler(>=6.4)
 
 @available(SwiftStdlib 6.4, *)
 extension BorrowingIteratorProtocol

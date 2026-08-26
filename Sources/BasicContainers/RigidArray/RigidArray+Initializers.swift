@@ -13,7 +13,6 @@
 
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
-import ContainersPreview
 #endif
 
 #if compiler(>=6.2)
@@ -116,7 +115,7 @@ extension RigidArray /*where Element: Copyable*/ {
     self.append(copying: contents)
   }
   
-#if compiler(>=6.4) && UnstableContainersPreview
+#if compiler(>=6.4)
   /// Creates a new array with the specified capacity, holding a copy
   /// of the contents of a given container.
   ///
@@ -139,7 +138,7 @@ extension RigidArray /*where Element: Copyable*/ {
   
 #endif
   
-#if compiler(>=6.4) && UnstableContainersPreview
+#if compiler(>=6.4)
   /// Creates a new array with the specified capacity, holding a copy
   /// of the contents of a given container.
   ///

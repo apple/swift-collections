@@ -16,6 +16,7 @@ import XCTest
 @_spi(Testing) import Collections
 #else
 import _CollectionsTestSupport
+import SpanPreview
 import DequeModule
 import BasicContainers
 import ContainersPreview

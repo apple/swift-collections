@@ -13,6 +13,7 @@
 
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
+import SpanPreview
 #endif
 
 #if compiler(>=6.4) && UnstableContainersPreview

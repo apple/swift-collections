@@ -13,7 +13,6 @@
 
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
-import ContainersPreview
 #endif
 
 #if compiler(<6.2)
@@ -24,7 +23,7 @@ import ContainersPreview
 @available(*, unavailable, message: "UniqueArray requires a Swift 6.2 toolchain")
 public struct UniqueArray<Element: ~Copyable>: ~Copyable {
   @usableFromInline
-  internal var _storage: RigidArray<Element>
+  package var _storage: RigidArray<Element>
 
   @inlinable
   public init() {
@@ -65,7 +64,7 @@ public struct UniqueArray<Element: ~Copyable>: ~Copyable {
 @frozen
 public struct UniqueArray<Element: ~Copyable>: ~Copyable {
   @usableFromInline
-  internal var _storage: RigidArray<Element>
+  package var _storage: RigidArray<Element>
 
   @_alwaysEmitIntoClient
   package init(_storage: consuming RigidArray<Element>) {

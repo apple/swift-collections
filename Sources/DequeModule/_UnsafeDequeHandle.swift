@@ -13,7 +13,7 @@
 
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
-import ContainersPreview
+import SpanPreview
 #endif
 
 @frozen
@@ -814,7 +814,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   ///
   /// - Complexity: O(`count`)
   @_alwaysEmitIntoClient
-  internal mutating func uncheckedPrepend<E: Error>(
+  package mutating func uncheckedPrepend<E: Error>(
     addingCount newItemCount: Int,
     initializingWith body: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) {

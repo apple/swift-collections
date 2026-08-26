@@ -226,6 +226,25 @@ extension InputSpan {
   }
 }
 
+@available(SwiftStdlib 6.4, *)
+extension InputSpan where Element: ~Copyable {
+  @inlinable
+  public var underestimatedCount: Int { count }
+}
+
+#if compiler(>=6.4)
+@available(SwiftStdlib 6.4, *)
+extension InputSpan: Iterable where Element: ~Copyable {
+  public typealias BorrowingIterator = Span<Element>.BorrowingIterator
+
+  @_lifetime(borrow self)
+  @inlinable
+  public func makeBorrowingIterator() -> BorrowingIterator {
+    BorrowingIterator(self.span)
+  }
+}
+#endif
+
 @available(SwiftStdlib 5.0, *)
 extension InputSpan where Element: ~Copyable {
   /// The type that represents an initialized position in an `InputSpan`.

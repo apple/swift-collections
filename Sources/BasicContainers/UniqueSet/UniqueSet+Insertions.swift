@@ -11,10 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !COLLECTIONS_SINGLE_MODULE
-import ContainersPreview
-#endif
-
 #if compiler(>=6.4) && UnstableHashedContainers
 
 @available(SwiftStdlib 5.0, *)
@@ -79,45 +75,6 @@ extension UniqueSet where Element: ~Copyable {
     try _storage.insert(
       addingCount: newItemCount, initializingWith: initializer)
   }
-
-#if UnstableContainersPreview
-  @_alwaysEmitIntoClient
-  public mutating func insert<
-    E: Error,
-    P: Producer<Element, E> & ~Copyable & ~Escapable
-  >(
-    from producer: inout P
-  ) throws(E)
-  where P.Element: ~Copyable
-  {
-    var done = false
-    while !done {
-      _ensureFreeCapacity(Swift.max(producer.underestimatedCount, 1))
-      try self.insert(addingCount: self.freeCapacity) { target throws(E) in
-        while !target.isFull, !done {
-          done = try !producer.generate(into: &target)
-        }
-      }
-    }
-  }
-#endif
-
-#if UnstableContainersPreview
-  @_alwaysEmitIntoClient
-  public mutating func insert<
-    D: Drain<Element> & ~Copyable & ~Escapable
-  >(
-    from drain: inout D
-  ) {
-    while true {
-      var span = drain.drainNext()
-      guard !span.isEmpty else { break }
-      while let next = span.popFirst() {
-        self.insert(next)
-      }
-    }
-  }
-#endif
 }
 
 @available(SwiftStdlib 5.0, *)
@@ -130,7 +87,6 @@ extension UniqueSet /* where Element: Copyable */ {
     _storage.insert(copying: items)
   }
   
-#if UnstableContainersPreview
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   package mutating func _insert<
@@ -147,9 +103,7 @@ extension UniqueSet /* where Element: Copyable */ {
       self.insert(copying: span)
     }
   }
-#endif
-  
-#if UnstableContainersPreview
+
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
@@ -160,8 +114,7 @@ extension UniqueSet /* where Element: Copyable */ {
   ) throws(S.Failure) where S.Element == Element {
     try _insert(copying: items)
   }
-#endif
-  
+
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func insert(copying items: some Sequence<Element>) {
@@ -172,7 +125,6 @@ extension UniqueSet /* where Element: Copyable */ {
     }
   }
   
-#if UnstableContainersPreview
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
@@ -184,7 +136,6 @@ extension UniqueSet /* where Element: Copyable */ {
   where S.Element == Element {
     try _insert(copying: items)
   }
-#endif
 }
 
 #endif

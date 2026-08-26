@@ -13,7 +13,7 @@
 
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
-import ContainersPreview
+import SpanPreview
 #endif
 
 #if compiler(>=6.2)
@@ -177,7 +177,6 @@ extension UniqueArray where Element: ~Copyable {
     _storage.insert(moving: &items, at: index)
   }
 
-#if !UnstableContainersPreview
   /// Inserts the elements of a given array into the given position in this
   /// array by moving them between the containers. On return, the input array
   /// becomes empty, but it is not destroyed, and it preserves its original
@@ -201,7 +200,6 @@ extension UniqueArray where Element: ~Copyable {
     _ensureFreeCapacity(items.count)
     _storage.insert(moving: &items, at: index)
   }
-#endif
 }
 
 @available(SwiftStdlib 5.0, *)

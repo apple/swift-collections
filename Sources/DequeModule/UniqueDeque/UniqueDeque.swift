@@ -13,7 +13,6 @@
 
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
-import ContainersPreview
 #endif
 
 #if compiler(<6.2)
@@ -292,7 +291,7 @@ extension UniqueDeque where Element: ~Copyable {
 
   @_alwaysEmitIntoClient
   @_transparent
-  internal mutating func _ensureFreeCapacity(_ freeCapacity: Int) {
+  package mutating func _ensureFreeCapacity(_ freeCapacity: Int) {
     guard _storage.freeCapacity < freeCapacity else { return }
     _ensureFreeCapacitySlow(freeCapacity)
   }

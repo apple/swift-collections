@@ -13,7 +13,6 @@
 
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
-import ContainersPreview
 #endif
 
 #if compiler(>=6.2)
@@ -85,7 +84,7 @@ extension UniqueArray where Element: ~Copyable {
 
 @available(SwiftStdlib 5.0, *)
 extension UniqueArray /*where Element: Copyable*/ {
-#if compiler(>=6.4) && UnstableContainersPreview
+#if compiler(>=6.4)
   /// Creates a new array with the specified initial capacity, holding a copy
   /// of the contents of a given borrowing sequence.
   ///
@@ -124,7 +123,7 @@ extension UniqueArray /*where Element: Copyable*/ {
     self.append(copying: contents)
   }
   
-#if compiler(>=6.4) && UnstableContainersPreview
+#if compiler(>=6.4)
   /// Creates a new array with the specified initial capacity, holding a copy
   /// of the contents of a given container.
   ///

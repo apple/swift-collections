@@ -11,6 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if compiler(>=6.2)
+
 /// A value that manages a contiguous block of memory starting with a header
 /// value and then followed by a contiguous array of elements. Values of this
 /// type own the underlying memory, and are non-copyable to ensure that
@@ -406,3 +408,5 @@ extension TrailingArray where Header.Element: BitwiseCopyable {
     }
   }
 }
+
+#endif

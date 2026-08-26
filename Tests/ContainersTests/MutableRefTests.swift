@@ -156,7 +156,7 @@ final class MutableRefTests: CollectionTestCase {
   @available(SwiftStdlib 6.4, *)
   func test_optional_mutate_some() {
     var x: Int? = 77
-    if var ref = x.mutate() {
+    if var ref = x._mutate() {
       expectEqual(ref.value, 77)
       ref.value = 88
     } else {
@@ -168,14 +168,14 @@ final class MutableRefTests: CollectionTestCase {
   @available(SwiftStdlib 6.4, *)
   func test_optional_mutate_none() {
     var x: Int? = nil
-    let ref = x.mutate()
+    let ref = x._mutate()
     expectNil(ref)
   }
 
   @available(SwiftStdlib 6.4, *)
   func test_optional_mutate_noncopyable() {
     var x: NoncopyablePayload? = NoncopyablePayload(33)
-    if var ref = x.mutate() {
+    if var ref = x._mutate() {
       expectEqual(ref.value.value, 33)
       ref.value.value = 44
     } else {
@@ -190,7 +190,7 @@ final class MutableRefTests: CollectionTestCase {
   func test_optional_insert_into_nil() {
     var x: Int? = nil
     do {
-      var ref = x.insert(42)
+      var ref = x._insert(42)
       expectEqual(ref.value, 42)
       ref.value = 99
     }
@@ -201,7 +201,7 @@ final class MutableRefTests: CollectionTestCase {
   func test_optional_insert_into_some() {
     var x: Int? = 10
     do {
-      var ref = x.insert(20)
+      var ref = x._insert(20)
       expectEqual(ref.value, 20)
       ref.value = 30
     }
@@ -212,7 +212,7 @@ final class MutableRefTests: CollectionTestCase {
   func test_optional_insert_noncopyable() {
     var x: NoncopyablePayload? = nil
     do {
-      var ref = x.insert(NoncopyablePayload(55))
+      var ref = x._insert(NoncopyablePayload(55))
       expectEqual(ref.value.value, 55)
       ref.value.value = 66
     }

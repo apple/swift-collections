@@ -17,6 +17,7 @@ import Collections
 #else
 import _CollectionsTestSupport
 import BasicContainers
+import ContainersPreview
 #endif
 
 #if compiler(>=6.4) && UnstableHashedContainers

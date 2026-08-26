@@ -15,7 +15,6 @@
 
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
-import ContainersPreview
 #endif
 
 @available(SwiftStdlib 5.0, *)
@@ -39,11 +38,9 @@ extension RigidDeque where Element: Equatable & ~Copyable {
     guard left.count == right.count else { return false }
     guard !left.isTriviallyIdentical(to: right) else { return true }
 
-#if UnstableContainersPreview
     if #available(anyAppleOS 27, *) {
       return left._elementsEqual(right)
     }
-#endif
     for i in 0 ..< left.count {
       guard left[i] == right[i] else { return false }
     }

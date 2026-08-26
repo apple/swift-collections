@@ -14,6 +14,7 @@
 #if COLLECTIONS_SINGLE_MODULE
 import Collections
 #else
+import InternalCollectionsUtilities
 import BasicContainers
 import ContainersPreview
 #endif

@@ -13,40 +13,9 @@
 
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
-import ContainersPreview
 #endif
 
 #if compiler(>=6.2) && UnstableContainersPreview
-
-#if false // FIXME
-@available(SwiftStdlib 6.4, *)
-extension RigidArray where Element: ~Copyable {
-  @inlinable
-  @_lifetime(borrow self)
-  public func borrowElement(at index: Int) -> Ref<Element> {
-    _checkItemIndex(index)
-    return unsafe Ref(
-      unsafeAddress: _storage.baseAddress.unsafelyUnwrapped.advanced(by: index),
-      borrowing: self
-    )
-  }
-}
-#endif
-
-#if false // FIXME
-@available(SwiftStdlib 5.0, *)
-extension RigidArray where Element: ~Copyable {
-  @inlinable
-  @_lifetime(&self)
-  public mutating func mutateElement(at index: Int) -> Mut<Element> {
-    _checkItemIndex(index)
-    return unsafe Mut(
-      unsafeAddress: _storage.baseAddress.unsafelyUnwrapped.advanced(by: index),
-      mutating: &self
-    )
-  }
-}
-#endif
 
 #if false // FIXME
 @available(SwiftStdlib 5.0, *)
