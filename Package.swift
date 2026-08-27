@@ -220,6 +220,7 @@ let targets: [CustomTarget] = [
       "InternalCollectionsUtilities",
       "ContainersPreview",
       "BasicContainers",
+      "SpanPreview",
     ]),
   .target(
     kind: .test,
@@ -235,10 +236,7 @@ let targets: [CustomTarget] = [
   .target(
     kind: .exported,
     name: "BasicContainers",
-    dependencies: [
-      "InternalCollectionsUtilities",
-      "ContainersPreview",
-    ],
+    dependencies: ["InternalCollectionsUtilities", "SpanPreview"],
     exclude: ["CMakeLists.txt"]
   ),
   .target(
@@ -263,7 +261,12 @@ let targets: [CustomTarget] = [
   .target(
     kind: .exported,
     name: "ContainersPreview",
-    dependencies: ["InternalCollectionsUtilities"],
+    dependencies: [
+      "InternalCollectionsUtilities",
+      "BasicContainers",
+      "DequeModule",
+      "SpanPreview",
+    ],
     exclude: ["CMakeLists.txt"]),
   .target(
     kind: .test,
@@ -275,7 +278,7 @@ let targets: [CustomTarget] = [
   .target(
     kind: .exported,
     name: "DequeModule",
-    dependencies: ["ContainersPreview", "InternalCollectionsUtilities"],
+    dependencies: ["InternalCollectionsUtilities", "SpanPreview"],
     exclude: ["CMakeLists.txt"]),
   .target(
     kind: .test,
@@ -327,6 +330,16 @@ let targets: [CustomTarget] = [
 
   .target(
     kind: .exported,
+    name: "SpanPreview",
+    dependencies: ["InternalCollectionsUtilities"],
+    exclude: ["CMakeLists.txt"]),
+  .target(
+    kind: .test,
+    name: "SpanPreviewTests",
+    dependencies: ["SpanPreview", "_CollectionsTestSupport"]),
+
+  .target(
+    kind: .exported,
     name: "TrailingElementsModule",
     exclude: ["CMakeLists.txt"]),
   .target(
@@ -334,7 +347,6 @@ let targets: [CustomTarget] = [
     name: "TrailingElementsTests",
     dependencies: ["TrailingElementsModule"]),
 
-  // These aren't ready for production use yet.
   .target(
     kind: .exported,
     name: "SortedCollections",

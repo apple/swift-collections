@@ -15,6 +15,7 @@
 import Collections
 #else
 import ContainersPreview
+import SpanPreview
 #endif
 
 #if compiler(>=6.2)

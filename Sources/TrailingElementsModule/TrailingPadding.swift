@@ -11,6 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if compiler(>=6.2)
+
 /// Represents memory containing a header value followed by some extra padding
 /// following it. Values of this type own the underlying memory, and are
 /// non-copyable to ensure that ownership of that memory is unique. Memory
@@ -141,3 +143,5 @@ extension TrailingPadding where Header: Copyable {
     return try result.get()
   }
 }
+
+#endif

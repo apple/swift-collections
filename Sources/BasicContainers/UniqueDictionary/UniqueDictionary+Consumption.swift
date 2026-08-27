@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 #if !COLLECTIONS_SINGLE_MODULE
-import ContainersPreview
+import SpanPreview
 #endif
 
 #if compiler(>=6.4) && UnstableHashedContainers

@@ -13,7 +13,7 @@
 
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
-import ContainersPreview
+import SpanPreview
 #endif
 
 #if compiler(>=6.2)
@@ -219,10 +219,6 @@ extension RigidDeque where Element: ~Copyable {
       self._base._pointer.pointee._handle.closeGap(offsets: self._offsetRange)
     }
   }
-}
-
-@available(SwiftStdlib 5.0, *)
-extension RigidDeque.SubrangeConsumer: Drain where Element: ~Copyable {
 }
 
 @available(SwiftStdlib 5.0, *)

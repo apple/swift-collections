@@ -16,6 +16,7 @@ import XCTest
 import Collections
 #else
 import _CollectionsTestSupport
+import SpanPreview
 import BasicContainers
 import ContainersPreview
 #endif

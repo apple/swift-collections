@@ -13,7 +13,7 @@
 
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
-import ContainersPreview
+import SpanPreview
 #endif
 
 #if compiler(>=6.2)
@@ -188,11 +188,6 @@ extension RigidArray where Element: ~Copyable {
       self._base._pointer.pointee._count -= _offsetRange.count
     }
   }
-}
-
-
-@available(SwiftStdlib 5.0, *)
-extension RigidArray.SubrangeConsumer: Drain where Element: ~Copyable {
 }
 
 @available(SwiftStdlib 5.0, *)

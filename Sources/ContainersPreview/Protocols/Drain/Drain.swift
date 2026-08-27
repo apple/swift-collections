@@ -11,6 +11,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
+import SpanPreview
+#endif
+
 #if compiler(>=6.4) && UnstableContainersPreview
 
 /// A type that supplies the values of an in-place consumable sequence through

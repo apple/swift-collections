@@ -11,10 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !COLLECTIONS_SINGLE_MODULE
-import ContainersPreview
-#endif
-
 #if compiler(>=6.4) && UnstableHashedContainers
 
 @available(SwiftStdlib 5.0, *)
@@ -48,40 +44,10 @@ extension RigidSet where Element: ~Copyable {
     self.init(capacity: capacity)
     try self.insert(addingCount: capacity, initializingWith: initializer)
   }
-
-#if UnstableContainersPreview
-  @_alwaysEmitIntoClient
-  public init<
-    E: Error,
-    P: Producer<Element, E> & ~Copyable & ~Escapable
-  >(
-    capacity: Int,
-    from producer: inout P
-  ) throws(E)
-  where P.Element: ~Copyable
-  {
-    self.init(capacity: capacity)
-    try self.insert(addingCount: capacity, from: &producer)
-  }
-#endif
-
-#if UnstableContainersPreview
-  @_alwaysEmitIntoClient
-  public init<
-    D: Drain<Element> & ~Copyable & ~Escapable
-  >(
-    capacity: Int,
-    from drain: inout D
-  ) {
-    self.init(capacity: capacity)
-    self.insert(addingCount: capacity, from: &drain)
-  }
-#endif
 }
 
 @available(SwiftStdlib 5.0, *)
 extension RigidSet /* where Element: Copyable */ {
-#if UnstableContainersPreview
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
@@ -95,8 +61,7 @@ extension RigidSet /* where Element: Copyable */ {
     self.init(capacity: capacity)
     try self._insert(copying: contents)
   }
-#endif
-  
+
   @_alwaysEmitIntoClient
   @inline(__always)
   public init(
@@ -117,13 +82,10 @@ extension RigidSet /* where Element: Copyable */ {
     self.insert(copying: contents)
   }
 
-#if UnstableContainersPreview
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
-  public init<
-    S: Iterable & Sequence<Element>
-  >(
+  public init<S: Iterable & Sequence<Element>>(
     capacity: Int,
     copying contents: borrowing S
   ) throws(S.Failure)
@@ -135,9 +97,7 @@ extension RigidSet /* where Element: Copyable */ {
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
-  public init<
-    S: Iterable & Collection<Element>
-  >(
+  public init<S: Iterable & Collection<Element>>(
     capacity: Int? = nil,
     copying contents: S
   ) throws(S.Failure)
@@ -145,7 +105,6 @@ extension RigidSet /* where Element: Copyable */ {
     self.init(capacity: capacity ?? contents.count)
     try self._insert(copying: contents)
   }
-#endif
 }
 
 #endif

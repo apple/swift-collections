@@ -68,7 +68,7 @@ let availabilityMacros: KeyValuePairs<String, String> = [
   "SwiftStdlib 6.1":  "macOS 15.4, iOS 18.4, watchOS 11.4, tvOS 18.4, visionOS 2.4",
   "SwiftStdlib 6.2":  "macOS 26.0, iOS 26.0, watchOS 26.0, tvOS 26.0, visionOS 26.0",
   "SwiftStdlib 6.3":  "macOS 26.4, iOS 26.4, watchOS 26.4, tvOS 26.4, visionOS 26.4",
-  "SwiftStdlib 6.4":  "macOS 9999, iOS 9999, watchOS 9999, tvOS 9999, visionOS 9999",
+  "SwiftStdlib 6.4":  "macOS 27.0, iOS 27.0, watchOS 27.0, tvOS 27.0, visionOS 27.0",
   "SwiftStdlib 6.5":  "macOS 9999, iOS 9999, watchOS 9999, tvOS 9999, visionOS 9999",
   // Note: if you touch these, please make sure to also update the similar lists in
   // CMakeLists.txt and Xcode/Shared.xcconfig.
@@ -171,53 +171,6 @@ extension CustomTarget {
   }
 }
 
-extension Array where Element == CustomTarget {
-  func toMonolithicTarget(
-    name: String,
-    linkerSettings: [LinkerSetting] = []
-  ) -> Target {
-    let targets = self.filter { !$0.kind.isTest }
-    return Target.target(
-      name: name,
-      path: "Sources",
-      exclude: [
-        "CMakeLists.txt",
-        "BitCollections/BitCollections.docc",
-        "Collections/Collections.docc",
-        "DequeModule/DequeModule.docc",
-        "HashTreeCollections/HashTreeCollections.docc",
-        "HeapModule/HeapModule.docc",
-        "OrderedCollections/OrderedCollections.docc",
-      ] + targets.flatMap { t in
-        t.exclude.map { "\(t.name)/\($0)" }
-      },
-      sources: targets.map { "\($0.directory)" },
-      swiftSettings: _settings,
-      linkerSettings: linkerSettings)
-  }
-
-  @MainActor
-  func toMonolithicTestTarget(
-    name: String,
-    dependencies: [Target.Dependency] = [],
-    linkerSettings: [LinkerSetting] = []
-  ) -> Target {
-    let targets = self.filter { $0.kind.isTest }
-    return Target.testTarget(
-      name: name,
-      dependencies: dependencies,
-      path: "Tests",
-      exclude: [
-        "README.md",
-      ] + targets.flatMap { t in
-        t.exclude.map { "\(t.name)/\($0)" }
-      },
-      sources: targets.map { "\($0.name)" },
-      swiftSettings: _testSettings,
-      linkerSettings: linkerSettings)
-  }
-}
-
 let targets: [CustomTarget] = [
   .target(
     kind: .testSupport,
@@ -226,6 +179,7 @@ let targets: [CustomTarget] = [
       "InternalCollectionsUtilities",
       "ContainersPreview",
       "BasicContainers",
+      "SpanPreview",
     ]),
   .target(
     kind: .test,
@@ -241,10 +195,7 @@ let targets: [CustomTarget] = [
   .target(
     kind: .exported,
     name: "BasicContainers",
-    dependencies: [
-      "InternalCollectionsUtilities",
-      "ContainersPreview",
-    ],
+    dependencies: ["InternalCollectionsUtilities", "SpanPreview"],
     exclude: ["CMakeLists.txt"]
   ),
   .target(
@@ -269,7 +220,12 @@ let targets: [CustomTarget] = [
   .target(
     kind: .exported,
     name: "ContainersPreview",
-    dependencies: ["InternalCollectionsUtilities"],
+    dependencies: [
+      "InternalCollectionsUtilities",
+      "BasicContainers",
+      "DequeModule",
+      "SpanPreview",
+    ],
     exclude: ["CMakeLists.txt"]),
   .target(
     kind: .test,
@@ -281,7 +237,7 @@ let targets: [CustomTarget] = [
   .target(
     kind: .exported,
     name: "DequeModule",
-    dependencies: ["ContainersPreview", "InternalCollectionsUtilities"],
+    dependencies: ["InternalCollectionsUtilities", "SpanPreview"],
     exclude: ["CMakeLists.txt"]),
   .target(
     kind: .test,
@@ -331,16 +287,24 @@ let targets: [CustomTarget] = [
     name: "RopeModuleTests",
     dependencies: ["_RopeModule", "_CollectionsTestSupport"]),
 
-  // These aren't ready for production use yet.
-//  .target(
-//    kind: .exported,
-//    name: "SortedCollections",
-//    dependencies: ["InternalCollectionsUtilities"],
-//    directory: "SortedCollections"),
-//  .target(
-//    kind: .test,
-//    name: "SortedCollectionsTests",
-//    dependencies: ["SortedCollections", "_CollectionsTestSupport"]),
+  .target(
+    kind: .exported,
+    name: "SpanPreview",
+    dependencies: ["InternalCollectionsUtilities"],
+    exclude: ["CMakeLists.txt"]),
+  .target(
+    kind: .test,
+    name: "SpanPreviewTests",
+    dependencies: ["SpanPreview", "_CollectionsTestSupport"]),
+
+  .target(
+    kind: .exported,
+    name: "TrailingElementsModule",
+    exclude: ["CMakeLists.txt"]),
+  .target(
+    kind: .test,
+    name: "TrailingElementsTests",
+    dependencies: ["TrailingElementsModule"]),
 
   .target(
     kind: .exported,
@@ -362,25 +326,11 @@ let targets: [CustomTarget] = [
     settings: _baseSettings),
 ]
 
-var _products: [Product] = []
-var _targets: [Target] = []
-if defines.contains("COLLECTIONS_SINGLE_MODULE") {
-  _products = [
-    .library(name: "Collections", targets: ["Collections"]),
-  ]
-  _targets = [
-    targets.toMonolithicTarget(name: "Collections"),
-    targets.toMonolithicTestTarget(
-      name: "CollectionsTests",
-    dependencies: ["Collections"]),
-  ]
-} else {
-  _products = targets.compactMap { t in
-    guard t.kind == .exported else { return nil }
-    return .library(name: t.name, targets: [t.name])
-  }
-  _targets = targets.map { $0.toTarget() }
+let _products: [Product] = targets.compactMap { t in
+  guard t.kind == .exported else { return nil }
+  return .library(name: t.name, targets: [t.name])
 }
+let _targets: [Target] = targets.map { $0.toTarget() }
 
 let package = Package(
   name: "swift-collections",

@@ -13,9 +13,7 @@
 
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
-import ContainersPreview
 #endif
-
 
 #if compiler(>=6.4) && UnstableHashedContainers
 

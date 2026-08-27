@@ -13,7 +13,7 @@
 
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
-import ContainersPreview
+import SpanPreview
 #endif
 
 #if compiler(>=6.4) && UnstableHashedContainers
@@ -166,60 +166,6 @@ extension RigidSet where Element: ~Copyable {
       }
     }
   }
-
-#if UnstableContainersPreview
-  @_alwaysEmitIntoClient
-  public mutating func insert<
-    E: Error,
-    P: Producer<Element, E> & ~Copyable & ~Escapable
-  >(
-    addingCount newItemCount: Int? = nil,
-    from producer: inout P
-  ) throws(E)
-  where P.Element: ~Copyable
-  {
-    try self.insert(
-      addingCount: newItemCount ?? freeCapacity
-    ) { target throws(E) in
-      while !target.isFull {
-        guard try producer.generate(into: &target) else { break }
-      }
-    }
-  }
-#endif
-
-#if UnstableContainersPreview
-  @_alwaysEmitIntoClient
-  public mutating func insert<
-    E: Error,
-    P: CountedProducer<Element, E> & ~Copyable & ~Escapable
-  >(
-    from producer: consuming P
-  ) throws(E) {
-    try self.insert(addingCount: producer.count, from: &producer)
-    try producer._expectEnd("Invalid CountedProducer")
-  }
-#endif
-
-#if UnstableContainersPreview
-  @_alwaysEmitIntoClient
-  public mutating func insert<
-    D: Drain<Element> & ~Copyable & ~Escapable
-  >(
-    from drain: consuming D
-  ) {
-    var remainder = drain.count
-    while remainder > 0 {
-      var span = drain.drainNext(maxCount: remainder)
-      guard !span.isEmpty else { break }
-      remainder &-= span.count
-      while let next = span.popFirst() {
-        self.insert(next)
-      }
-    }
-    drain._expectEnd("Invalid Drain")
-  }
-#endif
 }
 
 @available(SwiftStdlib 5.0, *)
@@ -235,7 +181,6 @@ extension RigidSet /* where Element: Copyable */ {
     }
   }
   
-#if UnstableContainersPreview
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   package mutating func _insert<
@@ -251,9 +196,7 @@ extension RigidSet /* where Element: Copyable */ {
       self.insert(copying: span)
     }
   }
-#endif
-  
-#if UnstableContainersPreview
+
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
@@ -265,8 +208,7 @@ extension RigidSet /* where Element: Copyable */ {
   where S.Element == Element {
     try _insert(copying: items)
   }
-#endif
-  
+
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func insert(copying items: some Sequence<Element>) {
@@ -276,7 +218,6 @@ extension RigidSet /* where Element: Copyable */ {
     }
   }
   
-#if UnstableContainersPreview
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
@@ -288,7 +229,6 @@ extension RigidSet /* where Element: Copyable */ {
   where S.Element == Element {
     try _insert(copying: items)
   }
-#endif
 }
 
 #endif

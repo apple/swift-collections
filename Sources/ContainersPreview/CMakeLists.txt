@@ -16,7 +16,7 @@ else()
   add_library(ContainersPreview
     ${COLLECTIONS_CONTAINERS_SOURCES})
   target_link_libraries(ContainersPreview PRIVATE
-    InternalCollectionsUtilities)
+    InternalCollectionsUtilities SpanPreview BasicContainers DequeModule)
   set_target_properties(ContainersPreview PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
 
@@ -28,16 +28,22 @@ target_sources(${module_name} PRIVATE
   "Conformances/Array+Iterable.swift"
   "Conformances/ClosedRange+Iterable.swift"
   "Conformances/InputSpan+Container.swift"
-  "Conformances/InputSpan+Iterable.swift"
   "Conformances/MutableSpan+Container.swift"
   "Conformances/OutputSpan+Container.swift"
   "Conformances/Range+Iterable.swift"
+  "Conformances/RigidArray+Container.swift"
+  "Conformances/RigidDeque+Container.swift"
+  "Conformances/RigidSet+Container.swift"
   "Conformances/Span+Container.swift"
+  "Conformances/UniqueArray+Container.swift"
+  "Conformances/UniqueSet+Container.swift"
+  "Conformances/UniqueDeque+Container.swift"
   "Protocols/Container/BidirectionalContainer.swift"
   "Protocols/Container/Container.swift"
   "Protocols/Container/Container+Filter.swift"
   "Protocols/Container/Container+SpanwiseZip.swift"
   "Protocols/Container/ContainerIterator.swift"
+  "Protocols/Container/DrainableContainer.swift"
   "Protocols/Container/DynamicContainer.swift"
   "Protocols/Container/MutableContainer.swift"
   "Protocols/Container/PermutableContainer.swift"
@@ -49,7 +55,9 @@ target_sources(${module_name} PRIVATE
   "Protocols/Container/RangeExpression2.swift"
   "Protocols/Container/RangeReplaceableContainer.swift"
   "Protocols/Container/Strideable+Limits.swift"
-  "Protocols/Iterable/BorrowingIteratorProtocol.swift"
+  "Protocols/Drain/Drain.swift"
+  "Protocols/Drain/Drain+Map.swift"
+  "Protocols/Drain/Drain+Reduce.swift"
   "Protocols/Iterable/BorrowingIteratorProtocol+Copy.swift"
   "Protocols/Iterable/BorrowingIteratorProtocol+ElementsEqual.swift"
   "Protocols/Iterable/BorrowingIteratorProtocol+Filter.swift"
@@ -59,10 +67,6 @@ target_sources(${module_name} PRIVATE
   "Protocols/Iterable/BorrowingIteratorProtocol+SpanwiseZip.swift"
   "Protocols/Iterable/Iterable+ElementsEqual.swift"
   "Protocols/Iterable/Iterable+Reduce.swift"
-  "Protocols/Iterable/Iterable+Utilities.swift"
-  "Protocols/Drain/Drain.swift"
-  "Protocols/Drain/Drain+Map.swift"
-  "Protocols/Drain/Drain+Reduce.swift"
   "Protocols/Producer/CountedProducer.swift"
   "Protocols/Producer/Producer.swift"
   "Protocols/Producer/Producer+Collect.swift"
@@ -70,9 +74,6 @@ target_sources(${module_name} PRIVATE
   "Protocols/Producer/Producer+Map.swift"
   "Protocols/Producer/Producer+Reduce.swift"
   "Protocols/Producer/Producer+Unfold.swift"
-  "Types/InputSpan.swift"
-  "Types/MutableRef.swift"
-  "Types/OutputSpan+Helpers.swift"
   "Types/Shared.swift"
   "Types/UniqueBox.swift"
 )

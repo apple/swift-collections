@@ -57,6 +57,7 @@ endif()
 
 
 add_subdirectory(InternalCollectionsUtilities)
+add_subdirectory(SpanPreview)
 add_subdirectory(ContainersPreview)
 if(NOT COLLECTIONS_FOUNDATION_TOOLCHAIN_MODULE)
   add_subdirectory(BasicContainers)

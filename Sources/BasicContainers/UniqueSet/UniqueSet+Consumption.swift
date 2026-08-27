@@ -11,15 +11,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !COLLECTIONS_SINGLE_MODULE
-import ContainersPreview
-#endif
-
 #if compiler(>=6.4) && UnstableHashedContainers && UnstableContainersPreview
+
+#if !COLLECTIONS_SINGLE_MODULE
+import SpanPreview
+#endif
 
 @available(SwiftStdlib 5.0, *)
 extension UniqueSet where Element: ~Copyable {
-#if UnstableContainersPreview
   @inlinable
   public mutating func consumeAll(
     consumingWith consumer: (inout InputSpan<Element>) -> Void
@@ -30,7 +29,6 @@ extension UniqueSet where Element: ~Copyable {
       _ = consume span
     }
   }
-#endif
   
   @inlinable
   public mutating func _consumeAll(

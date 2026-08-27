@@ -17,6 +17,7 @@ import Collections
 import InternalCollectionsUtilities
 import BasicContainers
 import ContainersPreview
+import SpanPreview
 #endif
 
 #if compiler(>=6.4) && UnstableContainersPreview

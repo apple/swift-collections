@@ -11,10 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !COLLECTIONS_SINGLE_MODULE
-import ContainersPreview
-#endif
-
 #if compiler(>=6.4) && UnstableHashedContainers
 
 @available(SwiftStdlib 5.0, *)
@@ -40,7 +36,6 @@ extension RigidSet where Element: ~Copyable {
     _find(item).bucket != nil
   }
   
-#if UnstableContainersPreview
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
@@ -48,7 +43,6 @@ extension RigidSet where Element: ~Copyable {
     assert(self._table.isOccupied(bucket))
     return Ref(unsafeAddress: self._memberPtr(at: bucket), borrowing: self)
   }
-#endif
 }
 
 #endif
