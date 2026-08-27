@@ -42,6 +42,22 @@ fileprivate struct Pair: Hashable {
   }
 }
 
+fileprivate struct Employee: ~Copyable {
+  let id: Int
+  var name: String?
+  var age: Int?
+}
+
+extension Employee: Equatable {
+  fileprivate static func ==(lhs: borrowing Self, rhs: borrowing Self) -> Bool {
+    lhs.id == rhs.id
+  }
+}
+extension Employee: Hashable {
+  fileprivate func hash(into hasher: inout Hasher) {
+    hasher.combine(id)
+  }
+}
 
 func expectConsistentSet<Element: ~Copyable>(
   _ set: borrowing RigidSet<Element>,
@@ -81,6 +97,52 @@ class RigidSetTests: CollectionTestCase {
     }
   }
 
+  @available(SwiftStdlib 6.4, *)
+  func test_get() {
+    withLifetimeTracking { tracker in
+      var s = RigidSet<LifetimeTracked<Employee>>(capacity: 5)
+      let alex = Employee(id: 0, name: "Alex", age: 25)
+      let first = tracker.instance(for: alex)
+      expectNil(s.insert(first))
+      
+      let employeeZero = Employee(id: 0)
+      let second = tracker.instance(for: employeeZero)
+      let maybeEmployeeZeroRef = s.get(second)
+      expectNotNil(maybeEmployeeZeroRef) { employeeZeroRef in
+        expectEqual(employeeZeroRef.value.payload.id, 0)
+        expectEqual(employeeZeroRef.value.payload.name, "Alex")
+        expectEqual(employeeZeroRef.value.payload.age, 25)
+      }
+      
+      let employeeOne = Employee(id: 1)
+      let third = tracker.instance(for: employeeOne)
+      let maybeEmployeeOneRef = s.get(third)
+      expectNil(maybeEmployeeOneRef)
+    }
+  }
+  
+  @available(SwiftStdlib 6.4, *)
+  func test_getOrInsert() {
+    withLifetimeTracking { tracker in
+      var s = RigidSet<LifetimeTracked<Employee>>(capacity: 5)
+      let alex = Employee(id: 0, name: "Alex", age: 25)
+      let first = tracker.instance(for: alex)
+      
+      do {
+        let alexRef = s.getOrInsert(first)
+        expectEqual(alexRef.value.payload.id, 0)
+        expectEqual(alexRef.value.payload.name, "Alex")
+        expectEqual(alexRef.value.payload.age, 25)
+      }
+      
+      expectEqual(s.count, 1)
+      
+      let employeeZero = Employee(id: 0)
+      let second = tracker.instance(for: employeeZero)
+      expectTrue(s.contains(second))
+    }
+  }
+  
   func test_insert_one_small() {
     withLifetimeTracking { tracker in
       var s = RigidSet<LifetimeTracked<Int>>(capacity: 5)

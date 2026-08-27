@@ -33,12 +33,12 @@ import BasicContainers
 ///          }
 ///        }
 ///      }
-public class LifetimeTracked<Payload> {
+public class LifetimeTracked<Payload: ~Copyable> {
   public let tracker: LifetimeTracker
   internal var serialNumber: Int = 0
   public let payload: Payload
 
-  public init(_ payload: Payload, for tracker: LifetimeTracker) {
+  public init(_ payload: consuming Payload, for tracker: LifetimeTracker) {
     tracker._instances += 1
     tracker._nextSerialNumber += 1
     self.tracker = tracker
@@ -61,13 +61,13 @@ extension LifetimeTracked: CustomStringConvertible {
 extension LifetimeTracked: TestPrintable {}
 #endif
 
-extension LifetimeTracked: Equatable where Payload: Equatable {
+extension LifetimeTracked: Equatable where Payload: Equatable & ~Copyable {
   public static func == (left: LifetimeTracked, right: LifetimeTracked) -> Bool {
     return left.payload == right.payload
   }
 }
 
-extension LifetimeTracked: Hashable where Payload: Hashable {
+extension LifetimeTracked: Hashable where Payload: Hashable & ~Copyable {
   public func _rawHashValue(seed: Int) -> Int {
     payload._rawHashValue(seed: seed)
   }
@@ -81,7 +81,7 @@ extension LifetimeTracked: Hashable where Payload: Hashable {
   }
 }
 
-extension LifetimeTracked: Comparable where Payload: Comparable {
+extension LifetimeTracked: Comparable where Payload: Comparable & ~Copyable {
   public static func < (left: LifetimeTracked, right: LifetimeTracked) -> Bool {
     return left.payload < right.payload
   }
