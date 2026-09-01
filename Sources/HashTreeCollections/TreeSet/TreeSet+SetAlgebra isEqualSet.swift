@@ -88,6 +88,7 @@ extension TreeSet {
       return other.allSatisfy { _ in false }
     }
 
+#if !$Embedded
     if other is _UniqueCollection {
       // We don't need to create a temporary set.
       guard other.underestimatedCount <= self.count else { return false }
@@ -102,6 +103,7 @@ extension TreeSet {
         "Invalid Collection '\(type(of: other))' (bad underestimatedCount)")
       return seen == self.count
     }
+#endif
 
     // FIXME: Would making this a BitSet of seen positions be better?
     var seen: _Node? = ._emptyNode()
