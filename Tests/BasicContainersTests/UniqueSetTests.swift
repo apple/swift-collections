@@ -110,7 +110,7 @@ class UniqueSetTests: CollectionTestCase {
   @available(SwiftStdlib 6.4, *)
   func test_get() {
     withLifetimeTracking { tracker in
-      var s = UniqueSet<LifetimeTracked<Employee>()
+      var s = UniqueSet<LifetimeTracked<Employee>>()
       let alex = Employee(id: 0, name: "Alex", age: 25)
       let first = tracker.instance(for: alex)
       expectNil(s.insert(first))
