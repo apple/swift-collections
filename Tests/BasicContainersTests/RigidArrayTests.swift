@@ -82,7 +82,7 @@ class RigidArrayTests: CollectionTestCase {
         expectRigidArrayContents(items, equalTo: expected)
 #if compiler(>=6.4) && UnstableContainersPreview
         if #available(SwiftStdlib 6.4, *) {
-          checkIterable(items, expectedContents: expected)
+          checkContainer(items, expectedContents: expected)
         }
 #endif
       }
