@@ -31,6 +31,14 @@ extension RigidSet: Iterable where Element: ~Copyable {
     BorrowingIterator(_set: self)
   }
 
+  @_alwaysEmitIntoClient
+  package borrowing func _validateIterator(
+    _ iterator: borrowing BorrowingIterator
+  ) -> Bool {
+    iterator._baseAddress == UnsafePointer(self._members)
+    && iterator._bucketIterator._words == UnsafePointer(self._table._bitmap)
+  }
+
   @frozen
   public struct BorrowingIterator:
     BorrowingIteratorProtocol,
@@ -38,26 +46,44 @@ extension RigidSet: Iterable where Element: ~Copyable {
     ~Escapable
   {
     @_alwaysEmitIntoClient
-    internal var _baseAddress: UnsafePointer<Element>?
+    package var _baseAddress: UnsafePointer<Element>?
 
     @_alwaysEmitIntoClient
-    internal var _bucketIterator: _HTable.BucketIterator
-  
+    package var _bucketIterator: _HTable.BucketIterator
+
+    @_alwaysEmitIntoClient
+    package var _endBucket: _Bucket
+
     @_alwaysEmitIntoClient
     @_lifetime(borrow _set)
-    internal init(
+    package init(
       _set: borrowing RigidSet<Element>
     ) {
       self._baseAddress = .init(_set._members)
       self._bucketIterator = _set._table.makeBucketIterator()
+      self._endBucket = self._bucketIterator._endBucket
+      _bucketIterator.advanceToOccupied()
+    }
+
+    @_alwaysEmitIntoClient
+    @_lifetime(borrow _set)
+    package init(
+      _set: borrowing RigidSet<Element>,
+      from start: Index,
+      to end: Index
+    ) {
+      self._baseAddress = .init(_set._members)
+      self._bucketIterator = _set._table.makeBucketIterator(from: start._bucket)
+      self._endBucket = end._bucket
+      _bucketIterator.advanceToOccupied()
     }
 
     @_alwaysEmitIntoClient
     @_lifetime(copy self)
-    internal func _span(over buckets: Range<_Bucket>) -> Span<Element> {
+    internal func _span(from start: _Bucket, to end: _Bucket) -> Span<Element> {
       let items = UnsafeBufferPointer(
-        start: _baseAddress.unsafelyUnwrapped + buckets.lowerBound.offset,
-        count: buckets.upperBound.offset - buckets.lowerBound.offset)
+        start: _baseAddress.unsafelyUnwrapped + start.offset,
+        count: end.offset - start.offset)
       return _overrideLifetime(Span(_unsafeElements: items), copying: self)
     }
     
@@ -65,12 +91,19 @@ extension RigidSet: Iterable where Element: ~Copyable {
     @_lifetime(&self)
     public mutating func nextSpan(maxCount: Int = .max) -> Span<Element> {
       precondition(maxCount > 0, "maxCount must be positive")
-      guard
-        let next = _bucketIterator.nextOccupiedRegion(maxCount: maxCount)
-      else {
+      let start = _bucketIterator.currentBucket
+      if start >= _endBucket {
         return .init()
       }
-      return _span(over: next)
+      assert(_bucketIterator.isOccupied)
+      _bucketIterator.advanceToUnoccupied(maxCount: maxCount)
+      var end = _bucketIterator.currentBucket
+      _bucketIterator.advanceToOccupied()
+      if _endBucket < end {
+        end = _endBucket
+        _bucketIterator.advanceToEnd()
+      }
+      return _span(from: start, to: end)
     }
   }
 }

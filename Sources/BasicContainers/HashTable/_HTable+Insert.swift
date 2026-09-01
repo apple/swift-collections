@@ -41,9 +41,9 @@ extension _HTable {
 #if COLLECTIONS_NO_ROBIN_HOOD_HASHING
     let ideal = idealBucket(forHashValue: hashValue)
     let bitmap = self.bitmap
-    var actual = bitmap.firstUnoccupiedBucket(from: ideal)
+    var actual = bitmap.collisionChainEnd(from: ideal)
     if actual._offset >= self.bucketCount {
-      actual = bitmap.firstUnoccupiedBucket(from: Bucket(offset: 0))
+      actual = bitmap.collisionChainEnd(from: Bucket(offset: 0))
     }
     bitmap.setOccupied(actual)
     let probeLength = self.probeLength(from: ideal, to: actual)

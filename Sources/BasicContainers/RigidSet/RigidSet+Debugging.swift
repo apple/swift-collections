@@ -118,8 +118,10 @@ extension RigidSet where Element: ~Copyable {
         histogram += "\n"
         sum += (length + 1) * count
       }
-      let avg = Double((sum * 1000 + 500) / _table.count) / 1000.0
-      str += "   AVG: \(avg)\n"
+      if _table.count > 0 {
+        let avg = Double((sum * 1000 + 500) / _table.count) / 1000.0
+        str += "   AVG: \(avg)\n"
+      }
       str += histogram
     }
     do {
@@ -136,8 +138,10 @@ extension RigidSet where Element: ~Copyable {
         histogram += "\n"
         sum += length * count
       }
-      let avg = Double((sum * 1000 + 500) / _table.storageCapacity) / 1000.0
-      str += "   AVG: \(avg)\n"
+      if _table.storageCapacity > 0 {
+        let avg = Double((sum * 1000 + 500) / _table.storageCapacity) / 1000.0
+        str += "   AVG: \(avg)\n"
+      }
       str += histogram
     }
     return str

@@ -131,7 +131,14 @@ extension _HTable.BucketIterator {
     restart()
   }
 
-  
+  @usableFromInline
+  @_lifetime(self: copy self)
+  package mutating func advanceToEnd() {
+    _bucket = _endBucket
+    _nextBits = .empty
+    _nextBitCount = 0
+  }
+
   @usableFromInline
   @discardableResult
   @_lifetime(self: copy self)
@@ -139,9 +146,7 @@ extension _HTable.BucketIterator {
     assert(!isAtEnd)
     _bucket.advanceToNextWord()
     if isAtEnd {
-      _bucket = _endBucket
-      _nextBits = .empty
-      _nextBitCount = 0
+      advanceToEnd()
       return false
     }
     if let words = _words{
@@ -170,8 +175,7 @@ extension _HTable.BucketIterator {
     assert(!isAtEnd)
     _bucket._offset &+= 1
     if isAtEnd {
-      _nextBits = .empty
-      _nextBitCount = 0
+      advanceToEnd()
       return false
     }
     guard let words = _words else { return true }
@@ -373,7 +377,7 @@ extension _HTable.BucketIterator {
     let end = self.currentBucket
     return Range(uncheckedBounds: (start, end))
   }
-  
+
   @usableFromInline
   @_lifetime(self: copy self)
   package mutating func nextUnoccupiedRegion(

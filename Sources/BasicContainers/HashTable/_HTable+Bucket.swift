@@ -82,6 +82,20 @@ extension _HTable.Bucket: Comparable {
   }
 }
 
+extension _HTable.Bucket: Hashable {
+  @_transparent
+  @usableFromInline
+  package func hash(into hasher: inout Hasher) {
+    hasher.combine(self.offset)
+  }
+
+  @_transparent
+  @usableFromInline
+  package func _rawHashValue(seed: Int) -> Int {
+    self.offset._rawHashValue(seed: seed)
+  }
+}
+
 extension _HTable.Bucket {
   @_alwaysEmitIntoClient
   @_transparent
