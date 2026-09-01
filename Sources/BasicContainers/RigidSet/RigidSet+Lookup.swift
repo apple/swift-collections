@@ -84,41 +84,6 @@ extension RigidSet where Element: ~Copyable {
     return Ref(unsafeAddress: _memberPtr(at: bucket), borrowing: self)
   }
   
-  // FIXME
-  //
-  /// Inserts the given element in the set if it is not already present;
-  /// otherwise it returns a reference to the given element in the set.
-  ///
-  /// This is particularly useful when the equality and hash function of a type
-  /// is only based on a partial set of properties, such as an ID. The example
-  /// uses `get` with just an employee ID to get a reference to the full
-  /// employee value stored in the set.
-  ///
-  ///     let employees = RigidSet(...)
-  ///     let employeeZero = Employee(id: 0)
-  ///     if let ref = employees.get(employeeZero) {
-  ///       print(ref.value) // Employee(id: 0, name: "Alex", age: 25)
-  ///     }
-  ///
-  /// - Parameter item: An element to look for in the set.
-  /// - Returns: A reference to the element if `item` exists in the set;
-  ///            otherwise, `nil`.
-  ///
-  /// - Complexity: O(1)
-  @available(SwiftStdlib 6.4, *)
-  @inlinable
-  @_lifetime(&self)
-  public mutating func getOrInsert(_ item: consuming Element) -> Ref<Element> {
-    let r = _find(item)
-    
-    if let bucket = r.bucket {
-      return Ref(unsafeAddress: _memberPtr(at: bucket), borrowing: self)
-    }
-    
-    let bucket = _insertNew(item, hashValue: r.hashValue)
-    return Ref(unsafeAddress: _memberPtr(at: bucket), borrowing: self)
-  }
-  
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)

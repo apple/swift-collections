@@ -90,6 +90,30 @@ class UniqueSetTests: CollectionTestCase {
     expectEqual(actual.sorted(), expected)
   }
 
+  @available(SwiftStdlib 6.4, *)
+  func test_get() {
+    withLifetimeTracking { tracker in
+      var s = UniqueSet<LifetimeTracked<Employee>()
+      let alex = Employee(id: 0, name: "Alex", age: 25)
+      let first = tracker.instance(for: alex)
+      expectNil(s.insert(first))
+      
+      let employeeZero = Employee(id: 0)
+      let second = tracker.instance(for: employeeZero)
+      let maybeEmployeeZeroRef = s.get(second)
+      expectNotNil(maybeEmployeeZeroRef) { employeeZeroRef in
+        expectEqual(employeeZeroRef.value.payload.id, 0)
+        expectEqual(employeeZeroRef.value.payload.name, "Alex")
+        expectEqual(employeeZeroRef.value.payload.age, 25)
+      }
+      
+      let employeeOne = Employee(id: 1)
+      let third = tracker.instance(for: employeeOne)
+      let maybeEmployeeOneRef = s.get(third)
+      expectNil(maybeEmployeeOneRef)
+    }
+  }
+  
   func test_insert_many() {
     let c = 1000
     withLifetimeTracking { tracker in

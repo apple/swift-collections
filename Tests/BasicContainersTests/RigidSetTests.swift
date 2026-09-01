@@ -121,28 +121,6 @@ class RigidSetTests: CollectionTestCase {
     }
   }
   
-  @available(SwiftStdlib 6.4, *)
-  func test_getOrInsert() {
-    withLifetimeTracking { tracker in
-      var s = RigidSet<LifetimeTracked<Employee>>(capacity: 5)
-      let alex = Employee(id: 0, name: "Alex", age: 25)
-      let first = tracker.instance(for: alex)
-      
-      do {
-        let alexRef = s.getOrInsert(first)
-        expectEqual(alexRef.value.payload.id, 0)
-        expectEqual(alexRef.value.payload.name, "Alex")
-        expectEqual(alexRef.value.payload.age, 25)
-      }
-      
-      expectEqual(s.count, 1)
-      
-      let employeeZero = Employee(id: 0)
-      let second = tracker.instance(for: employeeZero)
-      expectTrue(s.contains(second))
-    }
-  }
-  
   func test_insert_one_small() {
     withLifetimeTracking { tracker in
       var s = RigidSet<LifetimeTracked<Int>>(capacity: 5)
