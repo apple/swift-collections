@@ -16,6 +16,7 @@ import XCTest
 import Collections
 #else
 import _CollectionsTestSupport
+import InternalCollectionsUtilities
 import BasicContainers
 import ContainersPreview
 #endif
@@ -280,6 +281,36 @@ class RigidSetTests: CollectionTestCase {
       }
     }
   }
+
+#if compiler(>=6.4) && UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
+  func test_validate_Container() {
+    withEvery("count", in: [0, 10, 100, 1000]) { count in
+      withLifetimeTracking { tracker in
+        var items: RigidSet<LifetimeTrackedStruct<Int>> = .init(capacity: count)
+        for i in 0 ..< count {
+          guard items.insert(tracker.structInstance(for: i)) == nil else {
+            expectFailure("Duplicate item \(i)")
+            return
+          }
+        }
+
+        // Get expected contents by iterating once.
+        var expected: [Int] = []
+        var it = items.makeBorrowingIterator()
+        while let v = it.next()?.value.payload {
+          expected.append(v)
+        }
+
+        //items._dump(bitmap: true)
+        checkContainer(
+          items,
+          expectedContents: expected,
+          by: { $0.payload == $1 })
+      }
+    }
+  }
+#endif
 
   func test_probeLengths() {
     let c1 = 500

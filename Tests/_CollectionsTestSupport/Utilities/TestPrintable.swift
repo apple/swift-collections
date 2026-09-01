@@ -34,6 +34,24 @@ public protocol TestPrintable: ~Copyable, ~Escapable {
   var testDescription: String { get }
 }
 
+extension TestPrintable where Self: CustomStringConvertible {
+  @inlinable
+  public var testDescription: String { description }
+}
+extension TestPrintable where Self: CustomDebugStringConvertible {
+  @inlinable
+  public var testDescription: String { debugDescription }
+}
+extension TestPrintable where Self: CustomStringConvertible & CustomDebugStringConvertible {
+  @inlinable
+  public var testDescription: String { description }
+}
+
+extension Int: TestPrintable {}
+extension UInt: TestPrintable {}
+extension String: TestPrintable {}
+extension Bool: TestPrintable {}
+
 extension _Pointer {
   internal var _description: String {
     let hex = String(UInt(bitPattern: self), radix: 16)

@@ -19,6 +19,35 @@ import SpanPreview
 #if compiler(>=6.4) && UnstableContainersPreview && UnstableHashedContainers
 
 @available(SwiftStdlib 5.0, *)
+extension UniqueSet: Container where Element: ~Copyable {
+  @_alwaysEmitIntoClient
+  public func currentIndex(of iterator: inout BorrowingIterator) -> Index {
+    _storage.currentIndex(of: &iterator)
+  }
+
+  @_alwaysEmitIntoClient
+  @_lifetime(borrow self)
+  public func makeBorrowingIterator(
+    from start: Index, to end: Index
+  ) -> BorrowingIterator {
+    _storage.makeBorrowingIterator(from: start, to: end)
+  }
+}
+
+#if false // FIXME
+@available(SwiftStdlib 5.0, *)
+extension UniqueSet: DrainableContainer where Element: ~Copyable {
+  public struct SubrangeConsumer: ~Copyable & ~Escapable {
+    //...
+  }
+
+  public func consume(_ subrange: Range<Index>) -> SubrangeConsumer {
+    //...
+  }
+}
+#endif
+
+@available(SwiftStdlib 5.0, *)
 extension UniqueSet where Element: ~Copyable {
   @_alwaysEmitIntoClient
   public init<

@@ -59,6 +59,22 @@ extension UniqueSet where Element: ~Copyable {
       _storage[index]
     }
   }
+
+  @inlinable
+  @_lifetime(borrow self)
+  public func nextSpan(
+    after index: inout Index
+  ) -> Span<Element> {
+    _storage.nextSpan(after: &index)
+  }
+
+  @inlinable
+  @_lifetime(borrow self)
+  public func nextSpan(
+    after index: inout Index, maxCount: Int, limitedBy limit: Index
+  ) -> Span<Element> {
+    _storage.nextSpan(after: &index, maxCount: maxCount, limitedBy: limit)
+  }
 }
 
 #endif

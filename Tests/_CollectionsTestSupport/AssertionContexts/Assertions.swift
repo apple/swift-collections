@@ -215,6 +215,23 @@ public func expectEquivalent<A, B>(
 // FIXME: Remove when CustomStringConvertible starts supporting
 // noncopyable/nonescapable types.
 public func expectEquivalent<
+  A: TestPrintable & ~Copyable & ~Escapable,
+  B
+>(
+  _ left: borrowing A, _ right: borrowing B,
+  by areEquivalent: (borrowing A, borrowing B) -> Bool,
+  _ message: @autoclosure () -> String = "",
+  trapping: Bool = false,
+  file: StaticString = #filePath,
+  line: UInt = #line
+) {
+  if areEquivalent(left, right) { return }
+  _expectFailure(
+    "'\(left.testDescription)' is not equivalent to '\(right)'",
+    message, trapping: trapping, file: file, line: line)
+}
+
+public func expectEquivalent<
   A: ~Copyable & ~Escapable,
   B
 >(

@@ -16,6 +16,7 @@ import XCTest
 import Collections
 #else
 import _CollectionsTestSupport
+import InternalCollectionsUtilities
 import BasicContainers
 #endif
 
@@ -74,6 +75,8 @@ class UniqueArrayTests: CollectionTestCase {
     expectEqual(MemoryLayout<UniqueArray<Int>?>.stride, 3 * word)
   }
 
+#if compiler(>=6.4) && UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
   func test_validate_Container() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withLifetimeTracking { tracker in
@@ -81,14 +84,11 @@ class UniqueArrayTests: CollectionTestCase {
         let expected = (0 ..< layout.count).map { tracker.instance(for: $0) }
         expectEqual(tracker.instances, 2 * layout.count)
         expectUniqueArrayContents(items, equalTo: expected)
-#if compiler(>=6.4) && UnstableContainersPreview
-        if #available(SwiftStdlib 6.4, *) {
-          checkIterable(items, expectedContents: expected)
-        }
-#endif
+        checkContainer(items, expectedContents: expected)
       }
     }
   }
+#endif
 
   func test_basics() {
     withLifetimeTracking { tracker in
