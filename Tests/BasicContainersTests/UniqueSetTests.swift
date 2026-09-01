@@ -21,6 +21,23 @@ import BasicContainers
 #endif
 
 #if compiler(>=6.4) && UnstableHashedContainers
+fileprivate struct Employee: ~Copyable {
+  let id: Int
+  var name: String?
+  var age: Int?
+}
+
+extension Employee: Equatable {
+  fileprivate static func ==(lhs: borrowing Self, rhs: borrowing Self) -> Bool {
+    lhs.id == rhs.id
+  }
+}
+extension Employee: Hashable {
+  fileprivate func hash(into hasher: inout Hasher) {
+    hasher.combine(id)
+  }
+}
+
 class UniqueSetTests: CollectionTestCase {
   func test_empty() {
     let s = UniqueSet<Int>()
