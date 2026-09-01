@@ -93,6 +93,7 @@ extension TreeSet {
       return symmetricDifference(other)
     }
 
+#if !$Embedded
     if other is _UniqueCollection {
       // Fast path: we can do a simple in-place loop.
       var root = self._root
@@ -108,6 +109,7 @@ extension TreeSet {
       }
       return Self(_new: root)
     }
+#endif
 
     // If `other` may contain duplicates, we need to be more
     // careful (and slower).

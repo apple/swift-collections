@@ -57,6 +57,7 @@ extension OrderedSet {
       return other.allSatisfy { _ in false }
     }
 
+#if !$Embedded
     if other is _UniqueCollection {
       // We don't need to create a temporary set.
       guard other.underestimatedCount <= self.count else { return false }
@@ -71,6 +72,7 @@ extension OrderedSet {
         "Invalid Collection '\(type(of: other))' (bad underestimatedCount)")
       return seen == self.count
     }
+#endif
 
     return _UnsafeBitSet.withTemporaryBitSet(capacity: count) { seen in
       var c = 0

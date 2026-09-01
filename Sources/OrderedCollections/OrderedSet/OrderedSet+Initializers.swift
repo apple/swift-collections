@@ -67,11 +67,13 @@ extension OrderedSet {
       self = elements
       return
     }
+#if !$Embedded
     // Fast paths for when we know elements are all unique
     if elements is _UniqueCollection {
       self.init(uncheckedUniqueElements: elements)
       return
     }
+#endif
 
     self.init(minimumCapacity: elements.underestimatedCount)
     append(contentsOf: elements)
