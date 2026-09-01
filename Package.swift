@@ -373,7 +373,7 @@ let targets: [CustomTarget] = [
     kind: .test,
     name: "CollectionsModuleTests",
     dependencies: ["Collections", "_CollectionsTestSupport"],
-    settings: _baseSettings),
+    settings: _baseSettings + [.enableUpcomingFeature("MemberImportVisibility")]),
 ]
 
 let _products: [Product] = targets.compactMap { t in
