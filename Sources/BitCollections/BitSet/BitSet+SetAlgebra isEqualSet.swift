@@ -41,6 +41,7 @@ extension BitSet {
   /// - Complexity: O(min(*max*, `other.upperBound`), where *max* is the largest
   ///    member of `self`.
   public func isEqualSet(to other: Range<Int>) -> Bool {
+    if other.isEmpty { return isEmpty }
     guard let other = other._toUInt() else { return false }
     return _read { $0.isEqualSet(to: other) }
   }

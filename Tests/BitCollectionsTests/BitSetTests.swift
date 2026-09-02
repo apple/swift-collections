@@ -1135,6 +1135,21 @@ final class BitSetTest: CollectionTestCase {
         expectFalse(c.isEqualSet(to: i ..< (j + 1)))
       }
     }
+    // An empty range is equal to the empty set, whatever its bounds are.
+    // (Ranges with negative bounds can never round-trip through `_toUInt`.)
+    expectTrue(BitSet().isEqualSet(to: 0 ..< 0))
+    expectTrue(BitSet().isEqualSet(to: -5 ..< -5))
+    expectTrue(BitSet().isEqualSet(to: Int.min ..< Int.min))
+    expectFalse(BitSet([1]).isEqualSet(to: -5 ..< -5))
+
+    // A nonempty range holding negative values is never equal to a bit set.
+    expectFalse(BitSet().isEqualSet(to: -5 ..< 0))
+    expectFalse(BitSet([0, 1, 2]).isEqualSet(to: -5 ..< 3))
+    expectFalse(BitSet([0, 1, 2]).isEqualSet(to: -1 ..< 3))
+
+    // The counted variant forwards to the same implementation.
+    expectTrue(BitSet.Counted().isEqualSet(to: -5 ..< -5))
+    expectFalse(BitSet.Counted([0, 1, 2]).isEqualSet(to: -5 ..< 3))
   }
 
   func test_isEqual_to_counted_BitSet() {
