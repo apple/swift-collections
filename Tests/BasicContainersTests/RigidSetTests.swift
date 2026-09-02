@@ -59,6 +59,12 @@ func expectConsistentSet<Element: ~Copyable>(
 }
 
 class RigidSetTests: CollectionTestCase {
+  func test_memory_layout() {
+    let word = MemoryLayout<Int>.size
+    expectEqual(MemoryLayout<RigidSet<Int>>.stride, 6 * word)
+    expectEqual(MemoryLayout<RigidSet<Int>?>.stride, 6 * word)
+  }
+  
   func test_empty() {
     let s = RigidSet<Int>()
     expectEqual(s.count, 0)

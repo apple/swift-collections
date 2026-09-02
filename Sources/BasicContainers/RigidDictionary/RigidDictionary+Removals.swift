@@ -40,7 +40,6 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
     self._keys._table.createHole(at: bucket)
     let seed = self._keys._seed
     let keys = self._keys._members.unsafelyUnwrapped
-    let values = self._values.unsafelyUnwrapped
     self._keys._table.resolveHole(
       at: bucket,
       hashGenerator: {
@@ -48,7 +47,7 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
       },
       mover: {
         (keys + $1.offset).initialize(to: (keys + $0.offset).move())
-        (values + $1.offset).initialize(to: (values + $0.offset).move())
+        (_values + $1.offset).initialize(to: (_values + $0.offset).move())
       })
   }
 
@@ -65,12 +64,11 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
 
     let oldValue = self._valuePtr(at: bucket).move()
     let keys = self._keys._members.unsafelyUnwrapped
-    let values = self._values.unsafelyUnwrapped
     self._keys._table.finalizeHole(
       at: bucket,
       mover: {
         (keys + $1.offset).initialize(to: (keys + $0.offset).move())
-        (values + $1.offset).initialize(to: (values + $0.offset).move())
+        (_values + $1.offset).initialize(to: (_values + $0.offset).move())
       })
     return oldValue
   }

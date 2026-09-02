@@ -22,6 +22,12 @@ import BasicContainers
 
 #if compiler(>=6.4) && UnstableHashedContainers
 class UniqueSetTests: CollectionTestCase {
+  func test_memory_layout() {
+    let word = MemoryLayout<Int>.size
+    expectEqual(MemoryLayout<UniqueSet<Int>>.stride, 6 * word)
+    expectEqual(MemoryLayout<UniqueSet<Int>?>.stride, 6 * word)
+  }
+  
   func test_empty() {
     let s = UniqueSet<Int>()
     expectEqual(s.count, 0)
