@@ -10,11 +10,7 @@ SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
 #]]
 
 add_library(Collections
-    "BitCollections reexports.swift"
-    "DequeModule reexports.swift"
-    "HashTreeCollections reexports.swift"
-    "HeapModule reexports.swift"
-    "OrderedCollections reexports.swift")
+  "Collections.swift")
 target_link_libraries(Collections PRIVATE
   BitCollections
   DequeModule

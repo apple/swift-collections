@@ -12,8 +12,9 @@
 //===----------------------------------------------------------------------===//
 
 #if !COLLECTIONS_SINGLE_MODULE
-import HashTreeCollections
-
-public typealias TreeSet<Element: Hashable> = HashTreeCollections.TreeSet<Element>
-public typealias TreeDictionary<Key: Hashable, Value> = HashTreeCollections.TreeDictionary<Key, Value>
+@_exported import BitCollections
+@_exported import DequeModule
+@_exported import HashTreeCollections
+@_exported import HeapModule
+@_exported import OrderedCollections
 #endif
