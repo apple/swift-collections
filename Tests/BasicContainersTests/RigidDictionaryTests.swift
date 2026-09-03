@@ -23,6 +23,12 @@ import ContainersPreview
 #if compiler(>=6.4) && UnstableHashedContainers
 
 class RigidDictionaryTests: CollectionTestCase {
+  func test_memory_layout() {
+    let word = MemoryLayout<Int>.size
+    expectEqual(MemoryLayout<RigidDictionary<String, Int>>.stride, 7 * word)
+    expectEqual(MemoryLayout<RigidDictionary<String, Int>?>.stride, 7 * word)
+  }
+  
   func test_empty() {
     let s = RigidDictionary<Int, String>()
     expectEqual(s.count, 0)

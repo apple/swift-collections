@@ -11,6 +11,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
+import InternalCollectionsUtilities
+#endif
+
 #if compiler(>=6.4) && UnstableHashedContainers
 
 @available(SwiftStdlib 5.0, *)
@@ -23,9 +27,9 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
   @inlinable
   package init(_table: consuming _HTable) {
     let keys = RigidSet<Key>(_table: _table)
-    let values: UnsafeMutablePointer<Value>?
+    let values: UnsafeMutablePointer<Value>
     if keys.capacity == 0 {
-      values = nil
+      values = ._dangling()
     } else {
       values = .allocate(capacity: keys._storageCapacity)
     }

@@ -23,6 +23,12 @@ import ContainersPreview
 #if compiler(>=6.4) && UnstableHashedContainers
 
 class UniqueDictionaryTests: CollectionTestCase {
+  func test_memory_layout() {
+    let word = MemoryLayout<Int>.size
+    expectEqual(MemoryLayout<UniqueDictionary<String, Int>>.stride, 7 * word)
+    expectEqual(MemoryLayout<UniqueDictionary<String, Int>?>.stride, 7 * word)
+  }
+  
   func test_empty() {
     let s = UniqueDictionary<Int, String>()
     expectEqual(s.count, 0)

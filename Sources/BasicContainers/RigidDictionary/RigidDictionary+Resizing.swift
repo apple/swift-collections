@@ -52,9 +52,9 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
     }
 
     let sourceKeys = old._keys._members.unsafelyUnwrapped
-    let sourceValues = old._values.unsafelyUnwrapped
+    let sourceValues = old._values
     let targetKeys = self._keys._members.unsafelyUnwrapped
-    let targetValues = self._values.unsafelyUnwrapped
+    let targetValues = self._values
     if self._keys._table.isSmall {
       self._keys._table.migrateItems_Small(from: &old._keys._table) { src, dst in
         (targetKeys + dst.offset).initialize(to: (sourceKeys + src.offset).move())

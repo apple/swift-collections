@@ -42,15 +42,15 @@ public struct RigidDictionary<
   package var _keys: RigidSet<Key>
 
   @_alwaysEmitIntoClient
-  package var _values: UnsafeMutablePointer<Value>?
+  package var _values: UnsafeMutablePointer<Value>
   
   @_alwaysEmitIntoClient
   @_transparent
   package init(
     _keys: consuming RigidSet<Key>,
-    values: UnsafeMutablePointer<Value>?
+    values: UnsafeMutablePointer<Value>
   ) {
-    assert((values != nil) == (_keys._members != nil))
+    assert((values != ._dangling()) == (_keys._members != nil))
     self._keys = _keys
     self._values = values
   }
@@ -62,8 +62,8 @@ public struct RigidDictionary<
     // here.
     if !isEmpty {
       _deinitializeValues()
+      _values.deallocate()
     }
-    _values?.deallocate()
   }
   
   @_alwaysEmitIntoClient
@@ -135,7 +135,7 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
     at bucket: _HTable.Bucket
   ) -> UnsafeMutablePointer<Value> {
     assert(_keys._table.isValid(bucket))
-    return _values.unsafelyUnwrapped.advanced(by: bucket.offset)
+    return _values.advanced(by: bucket.offset)
   }
   
   @_alwaysEmitIntoClient
