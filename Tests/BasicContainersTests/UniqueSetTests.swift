@@ -21,6 +21,23 @@ import BasicContainers
 #endif
 
 #if compiler(>=6.4) && UnstableHashedContainers
+fileprivate struct Employee: ~Copyable {
+  let id: Int
+  var name: String?
+  var age: Int?
+}
+
+extension Employee: Equatable {
+  fileprivate static func ==(lhs: borrowing Self, rhs: borrowing Self) -> Bool {
+    lhs.id == rhs.id
+  }
+}
+extension Employee: Hashable {
+  fileprivate func hash(into hasher: inout Hasher) {
+    hasher.combine(id)
+  }
+}
+
 class UniqueSetTests: CollectionTestCase {
   func test_memory_layout() {
     let word = MemoryLayout<Int>.size
@@ -96,6 +113,30 @@ class UniqueSetTests: CollectionTestCase {
     expectEqual(actual.sorted(), expected)
   }
 
+  @available(SwiftStdlib 6.4, *)
+  func test_get() {
+    withLifetimeTracking { tracker in
+      var s = UniqueSet<LifetimeTracked<Employee>>()
+      let alex = Employee(id: 0, name: "Alex", age: 25)
+      let first = tracker.instance(for: alex)
+      expectNil(s.insert(first))
+      
+      let employeeZero = Employee(id: 0)
+      let second = tracker.instance(for: employeeZero)
+      let maybeEmployeeZeroRef = s.get(second)
+      expectNotNil(maybeEmployeeZeroRef) { employeeZeroRef in
+        expectEqual(employeeZeroRef.value.payload.id, 0)
+        expectEqual(employeeZeroRef.value.payload.name, "Alex")
+        expectEqual(employeeZeroRef.value.payload.age, 25)
+      }
+      
+      let employeeOne = Employee(id: 1)
+      let third = tracker.instance(for: employeeOne)
+      let maybeEmployeeOneRef = s.get(third)
+      expectNil(maybeEmployeeOneRef)
+    }
+  }
+  
   func test_insert_many() {
     let c = 1000
     withLifetimeTracking { tracker in
