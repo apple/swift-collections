@@ -264,4 +264,45 @@ private func _checkSetAlgebraBinaryLaws<S: SetAPIChecker & Sequence>(
   expectEqual(x.isSubset(of: y), x.subtracting(y).isEmpty,
               "isSubset disagrees with an empty difference",
               file: file, line: line)
+
+  // The mutating twins must agree with the non-mutating originals -- including
+  // when the value is shared, which is where copy-on-write bugs live.
+  withEvery("isShared", in: [false, true]) { isShared in
+    func checkMutation(
+      _ label: String,
+      _ mutate: (inout S) -> Void,
+      _ expected: Set<S.Element>
+    ) {
+      var copy = x
+      withHiddenCopies(if: isShared, of: &copy) { copy in
+        mutate(&copy)
+        expectEqual(Set(copy), expected, "\(label): wrong elements",
+                    file: file, line: line)
+        expectEqual(copy.count, expected.count, "\(label): wrong count",
+                    file: file, line: line)
+      }
+      // The original must be untouched.
+      expectEqual(Set(x), xm, "\(label): mutated the original",
+                  file: file, line: line)
+    }
+
+    checkMutation("formUnion", { $0.formUnion(y) }, xm.union(ym))
+    checkMutation("formIntersection", { $0.formIntersection(y) },
+                  xm.intersection(ym))
+    checkMutation("subtract", { $0.subtract(y) }, xm.subtracting(ym))
+    checkMutation("formSymmetricDifference",
+                  { $0.formSymmetricDifference(y) },
+                  xm.symmetricDifference(ym))
+
+    // The Sequence-taking overloads of the same four.
+    checkMutation("formUnion(Sequence)", { $0.formUnion(Array(ym)) },
+                  xm.union(ym))
+    checkMutation("formIntersection(Sequence)",
+                  { $0.formIntersection(Array(ym)) }, xm.intersection(ym))
+    checkMutation("subtract(Sequence)", { $0.subtract(Array(ym)) },
+                  xm.subtracting(ym))
+    checkMutation("formSymmetricDifference(Sequence)",
+                  { $0.formSymmetricDifference(Array(ym)) },
+                  xm.symmetricDifference(ym))
+  }
 }
