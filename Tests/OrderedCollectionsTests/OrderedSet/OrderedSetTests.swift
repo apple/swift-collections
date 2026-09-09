@@ -2134,3 +2134,12 @@ class OrderedSetTests: CollectionTestCase {
     }
   }
 }
+
+extension OrderedSetTests {
+  func test_SetAlgebraConformance() {
+    let models: [Set<Int>] = [
+      [], [0], [1], [0, 1, 2, 3], [5, 17, 42], [3, 5, 17, 42, 99],
+    ]
+    checkSetAlgebra(models.map { OrderedSet($0) }, models: models)
+  }
+}

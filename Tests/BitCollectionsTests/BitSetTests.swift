@@ -1601,3 +1601,18 @@ final class BitSetTest: CollectionTestCase {
     expectEqualElements(d.filter { _ in true }, 0 ..< 1000)
   }
 }
+
+extension BitSetTest {
+  func test_SetAlgebraConformance() {
+    let models: [Set<Int>] = [
+      [],
+      [0],
+      [1],
+      [0, 1, 2, 3],
+      [5, 17, 42],
+      [0, 63, 64, 65, 127, 128],
+      [3, 5, 17, 42, 99],
+    ]
+    checkSetAlgebra(models.map { BitSet($0) }, models: models)
+  }
+}

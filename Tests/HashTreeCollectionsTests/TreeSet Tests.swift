@@ -814,3 +814,12 @@ class TreeSetTests: CollectionTestCase {
     expectEqualElements(mirror.children.map { $0.value as? Int }, s.map { $0 })
   }
 }
+
+extension TreeSetTests {
+  func test_SetAlgebraConformance() {
+    let models: [Set<Int>] = [
+      [], [0], [1], [0, 1, 2, 3], [5, 17, 42], [3, 5, 17, 42, 99],
+    ]
+    checkSetAlgebra(models.map { TreeSet($0) }, models: models)
+  }
+}
