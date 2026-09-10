@@ -117,6 +117,19 @@ final class UniqueDequeTests: CollectionTestCase {
     init(_ value: Int) { self.value = value }
   }
   
+#if compiler(>=6.4) && UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
+  func test_validate_Container() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withLifetimeTracking { tracker in
+        let data = tracker.uniqueDeque(with: layout)
+        expectEqual(tracker.instances, layout.count)
+        checkContainer(data.deque, expectedContents: data.contents)
+      }
+    }
+  }
+#endif
+
   func test_basicProperties() {
     var deque = UniqueDeque<Int>()
     

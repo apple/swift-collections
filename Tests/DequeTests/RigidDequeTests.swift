@@ -134,6 +134,19 @@ final class RigidDequeTests: CollectionTestCase {
     }
   }
 
+#if compiler(>=6.4) && UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
+  func test_validate_Container() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withLifetimeTracking { tracker in
+        let data = tracker.rigidDeque(with: layout)
+        expectEqual(tracker.instances, layout.count)
+        checkContainer(data.deque, expectedContents: data.contents)
+      }
+    }
+  }
+#endif
+
   func test_basicProperties() {
     var deque = RigidDeque<Int>(capacity: 10)
 
