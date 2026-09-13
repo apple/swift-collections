@@ -125,7 +125,28 @@ final class RangeReplaceableCollectionTests: CollectionTestCase {
   }
 
   func test_reserveCapacity() {
-    // FIXME: Implement
+    withEveryDeque("deque", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEvery("minimumCapacity", in: 0 ..< 13) { minimumCapacity in
+        withEvery("isShared", in: [false, true]) { isShared in
+          withLifetimeTracking { tracker in
+            var deque: Deque<LifetimeTracked<Int>>
+            let contents: [LifetimeTracked<Int>]
+            (deque, contents) = tracker.deque(with: layout)
+            withHiddenCopies(if: isShared, of: &deque) { deque in
+              deque.reserveCapacity(minimumCapacity)
+              // Reservations never shrink storage, and they grow it linearly,
+              // to exactly the requested capacity.
+              expectEqual(deque._capacity, Swift.max(layout.capacity, minimumCapacity))
+              if !isShared && minimumCapacity <= layout.capacity {
+                // Unique storage that already has enough room is left in place.
+                expectEqual(deque._startSlot, layout.startSlot)
+              }
+              expectEqualElements(deque, contents)
+            }
+          }
+        }
+      }
+    }
   }
 
   func test_repeatingInitializer() {
