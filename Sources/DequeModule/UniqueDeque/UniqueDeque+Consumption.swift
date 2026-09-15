@@ -39,11 +39,11 @@ extension UniqueDeque where Element: ~Copyable {
   /// - Complexity: O(`self.count`)
   @_alwaysEmitIntoClient
   @inline(__always)
-  public mutating func consume(
+  public mutating func consumeSubrange(
     _ subrange: Range<Index>,
     consumingWith consumer: (inout InputSpan<Element>) -> Void
   ) {
-    _storage.consume(subrange, consumingWith: consumer)
+    _storage.consumeSubrange(subrange, consumingWith: consumer)
   }
 
   /// Remove the specified subrange of items from this deque,
@@ -64,11 +64,11 @@ extension UniqueDeque where Element: ~Copyable {
   /// - Complexity: O(`self.count`)
   @_alwaysEmitIntoClient
   @inline(__always)
-  public mutating func consume<R: RangeExpression<Index>>(
+  public mutating func consumeSubrange<R: RangeExpression<Index>>(
     _ subrange: R,
     consumingWith consumer: (inout InputSpan<Element>) -> Void
   ) {
-    consume(subrange.relative(to: indices), consumingWith: consumer)
+    consumeSubrange(subrange.relative(to: indices), consumingWith: consumer)
   }
   
   /// Remove all items currently in this deque, passing a series of input
@@ -89,7 +89,7 @@ extension UniqueDeque where Element: ~Copyable {
   public mutating func consumeAll(
     consumingWith consumer: (inout InputSpan<Element>) -> Void
   ) {
-    consume(indices, consumingWith: consumer)
+    consumeSubrange(indices, consumingWith: consumer)
   }
   
   /// Remove the specified number of items from the end of this deque,
@@ -155,10 +155,10 @@ extension UniqueDeque where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @inline(__always)
   @_lifetime(&self)
-  public mutating func consume(
+  public mutating func consumeSubrange(
     _ subrange: Range<Index>
   ) -> SubrangeConsumer {
-    _storage.consume(subrange)
+    _storage.consumeSubrange(subrange)
   }
 }
 #endif

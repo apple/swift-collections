@@ -35,18 +35,20 @@ extension RigidDeque where Element: ~Copyable {
   /// - Parameter subrange: The subrange of items to consume from this deque.
   /// - Parameter consumer: A function taking an input span of removed items,
   ///    allowing them to be consumed straight out of the deque's storage.
-  ///
+  /// - Returns: A valid index addressing the position following the consumed
+  ///    range.
   /// - Complexity: O(`self.count`)
   @_alwaysEmitIntoClient
-  @inline(__always)
-  public mutating func consume(
+  @discardableResult
+  public mutating func consumeSubrange(
     _ subrange: Range<Index>,
     consumingWith consumer: (inout InputSpan<Element>) -> Void
-  ) {
+  ) -> Index {
     _checkValidBounds(subrange)
     let segments = self._handle.mutableSegments(forOffsets: subrange)
     
-    var span = InputSpan(buffer: segments.first, initializedCount: segments.first.count)
+    var span = InputSpan(
+      buffer: segments.first, initializedCount: segments.first.count)
     consumer(&span)
     _ = consume span
     
@@ -56,6 +58,7 @@ extension RigidDeque where Element: ~Copyable {
       _ = consume span
     }
     _handle.closeGap(offsets: subrange)
+    return subrange.lowerBound
   }
 
   /// Remove the specified subrange of items from this deque,
@@ -72,15 +75,17 @@ extension RigidDeque where Element: ~Copyable {
   /// - Parameter subrange: The subrange of items to consume from this deque.
   /// - Parameter consumer: A function taking an input span of the removed items,
   ///    allowing them to be consumed straight out of the deque's storage.
-  ///
+  /// - Returns: A valid index addressing the position following the consumed
+  ///    range.
   /// - Complexity: O(`self.count`)
   @_alwaysEmitIntoClient
   @inline(__always)
-  public mutating func consume<R: RangeExpression<Index>>(
+  @discardableResult
+  public mutating func consumeSubrange<R: RangeExpression<Index>>(
     _ subrange: R,
     consumingWith consumer: (inout InputSpan<Element>) -> Void
-  ) {
-    consume(subrange.relative(to: indices), consumingWith: consumer)
+  ) -> Index {
+    consumeSubrange(subrange.relative(to: indices), consumingWith: consumer)
   }
   
   /// Remove all items currently in this deque, passing a series of input
@@ -101,7 +106,7 @@ extension RigidDeque where Element: ~Copyable {
   public mutating func consumeAll(
     consumingWith consumer: (inout InputSpan<Element>) -> Void
   ) {
-    consume(indices, consumingWith: consumer)
+    consumeSubrange(indices, consumingWith: consumer)
   }
   
   /// Remove the specified number of items from the end of this deque,
@@ -130,7 +135,7 @@ extension RigidDeque where Element: ~Copyable {
     precondition(
       n >= 0 && n <= self.count,
       "Count of elements to consume is out of bounds")
-    consume(self.count &- n ..< self.count, consumingWith: consumer)
+    consumeSubrange(self.count &- n ..< self.count, consumingWith: consumer)
   }
 
   /// Remove the specified number of items from the front of this deque,
@@ -159,7 +164,7 @@ extension RigidDeque where Element: ~Copyable {
     precondition(
       n >= 0 && n <= self.count,
       "Count of elements to consume is out of bounds")
-    consume(0 ..< n, consumingWith: consumer)
+    consumeSubrange(0 ..< n, consumingWith: consumer)
   }
 #endif
 }
@@ -171,7 +176,9 @@ extension RigidDeque where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @inline(__always)
   @_lifetime(&self)
-  public mutating func consume(_ subrange: Range<Index>) -> SubrangeConsumer {
+  public mutating func consumeSubrange(
+    _ subrange: Range<Index>
+  ) -> SubrangeConsumer {
     SubrangeConsumer(_base: &self, offsetRange: subrange)
   }
 }
@@ -223,6 +230,8 @@ extension RigidDeque where Element: ~Copyable {
 
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque.SubrangeConsumer where Element: ~Copyable {
+  public typealias Index = Int
+
   @inlinable
   public var count: Int {
     _buffer1.count + _buffer2.count
@@ -242,6 +251,11 @@ extension RigidDeque.SubrangeConsumer where Element: ~Copyable {
     return _overrideLifetime(
       InputSpan(buffer: buffer, initializedCount: buffer.count),
       mutating: &self)
+  }
+
+  @inlinable
+  public consuming func finalize() -> Int {
+    _offsetRange.lowerBound
   }
 }
 #endif

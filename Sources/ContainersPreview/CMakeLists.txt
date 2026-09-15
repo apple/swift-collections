@@ -55,6 +55,7 @@ target_sources(${module_name} PRIVATE
   "Protocols/Container/RangeExpression2.swift"
   "Protocols/Container/RangeReplaceableContainer.swift"
   "Protocols/Container/Strideable+Limits.swift"
+  "Protocols/Drain/ContainerDrain.swift"
   "Protocols/Drain/Drain.swift"
   "Protocols/Drain/Drain+Map.swift"
   "Protocols/Drain/Drain+Reduce.swift"

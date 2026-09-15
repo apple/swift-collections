@@ -27,6 +27,26 @@ extension RigidDeque where Element: ~Copyable {
   ///
   /// - Parameter index: The position of the element to remove. `index` must be
   ///   a valid index of the deque that is not equal to the end index.
+  ///   On return, `index` is updated to address the position following the
+  ///   removed element.
+  /// - Returns: The removed element.
+  ///
+  /// - Complexity: O(`count`)
+  @discardableResult
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  public mutating func remove(at index: inout Int) -> Element {
+    remove(at: index)
+  }
+
+  /// Removes and returns the element at the specified position.
+  ///
+  /// Existing elements in the deque's storage are moved as needed to close the
+  /// gap left by the removed item. (The direction of the move depends on the
+  /// location of the removal, minimizing the cost.)
+  ///
+  /// - Parameter index: The position of the element to remove. `index` must be
+  ///   a valid index of the deque that is not equal to the end index.
   /// - Returns: The removed element.
   ///
   /// - Complexity: O(`count`)
@@ -36,7 +56,7 @@ extension RigidDeque where Element: ~Copyable {
     _checkItemIndex(index)
     return _handle.uncheckedRemove(at: index)
   }
-  
+
   /// Removes all elements from the deque, preserving its allocated capacity.
   ///
   /// - Complexity: O(`count`)
@@ -127,14 +147,16 @@ extension RigidDeque where Element: ~Copyable {
   ///
   /// - Parameter bounds: The subrange to remove. The bounds of the
   ///   range must be valid indices of the deque.
-  ///
+  /// - Returns: A valid index addressing the position following the removed
+  ///    subrange.
   /// - Complexity: O(`count`)
   @_alwaysEmitIntoClient
-  public mutating func removeSubrange(_ bounds: Range<Int>) {
+  @discardableResult
+  public mutating func removeSubrange(_ bounds: Range<Int>) -> Int {
     precondition(
       bounds.lowerBound >= 0 && bounds.upperBound <= count,
       "Subrange out of bounds")
-    _handle.uncheckedRemove(offsets: bounds)
+    return _handle.uncheckedRemove(offsets: bounds)
   }
 }
 

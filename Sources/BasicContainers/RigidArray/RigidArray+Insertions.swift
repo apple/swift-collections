@@ -35,10 +35,11 @@ extension RigidArray where Element: ~Copyable {
   /// - Parameter item: The new element to insert into the array.
   /// - Parameter index: The position at which to insert the new element.
   ///   `index` must be a valid index in the array.
-  ///
+  /// - Returns: A valid index to the newly inserted item.
   /// - Complexity: O(`self.count`)
   @inlinable
-  public mutating func insert(_ item: consuming Element, at index: Int) {
+  @discardableResult
+  public mutating func insert(_ item: consuming Element, at index: Int) -> Int {
     _checkValidIndex(index)
     precondition(!isFull, "RigidArray capacity overflow")
     if index < count {
@@ -49,6 +50,7 @@ extension RigidArray where Element: ~Copyable {
     }
     unsafe _storage.initializeElement(at: index, to: item)
     _count += 1
+    return index
   }
 }
 
@@ -91,16 +93,17 @@ extension RigidArray where Element: ~Copyable {
   ///    - initializer: A callback that gets called at most once to directly
   ///       populate newly reserved storage within the array. The function
   ///      is always called with an empty output span.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`self.count` + `newItemCount`) in addition to the complexity
   ///    of the callback invocations.
   @_alwaysEmitIntoClient
   @inline(__always)
+  @discardableResult
   public mutating func insert<E: Error>(
     addingCount newItemCount: Int,
     at index: Int,
     initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
-  ) throws(E) {
+  ) throws(E) -> Range<Int> {
     _checkValidIndex(index)
     precondition(newItemCount >= 0, "Cannot add a negative number of items")
     precondition(newItemCount <= freeCapacity, "RigidArray capacity overflow")
@@ -116,6 +119,7 @@ extension RigidArray where Element: ~Copyable {
       span = OutputSpan()
     }
     try initializer(&span)
+    return index ..< (index + span.count)
   }
 }
 
@@ -136,13 +140,14 @@ extension RigidArray where Element: ~Copyable {
   ///        the array.
   ///    - index: The position at which to insert the new items.
   ///       `index` must be a valid index in the array.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`self.count` + `items.count`)
   @_alwaysEmitIntoClient
+  @discardableResult
   public mutating func insert(
     moving items: UnsafeMutableBufferPointer<Element>,
     at index: Int
-  ) {
+  ) -> Range<Int> {
     insert(addingCount: items.count, at: index) { target in
       target._append(moving: items)
     }
@@ -163,18 +168,19 @@ extension RigidArray where Element: ~Copyable {
   ///        the array.
   ///    - index: The position at which to insert the new items.
   ///       `index` must be a valid index in the array.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`self.count` + `items.count`)
   @_alwaysEmitIntoClient
+  @discardableResult
   public mutating func insert(
     moving items: inout InputSpan<Element>,
     at index: Int
-  ) {
+  ) -> Range<Int> {
     // FIXME: Remove when InputSpan starts conforming to RangeReplaceableContainer
     items.withUnsafeMutableBufferPointer { buffer, count in
       let source = buffer._extracting(last: count)
-      unsafe self.insert(moving: source, at: index)
       count = 0
+      return unsafe self.insert(moving: source, at: index)
     }
   }
 #endif
@@ -193,18 +199,19 @@ extension RigidArray where Element: ~Copyable {
   ///        the array.
   ///    - index: The position at which to insert the new items.
   ///       `index` must be a valid index in the array.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`self.count` + `items.count`)
   @_alwaysEmitIntoClient
+  @discardableResult
   public mutating func insert(
     moving items: inout OutputSpan<Element>,
     at index: Int
-  ) {
+  ) -> Range<Int> {
     // FIXME: Remove when OutputSpan starts conforming to RangeReplaceableContainer
     items.withUnsafeMutableBufferPointer { buffer, count in
       let source = buffer._extracting(first: count)
-      unsafe self.insert(moving: source, at: index)
       count = 0
+      return unsafe self.insert(moving: source, at: index)
     }
   }
 
@@ -223,16 +230,20 @@ extension RigidArray where Element: ~Copyable {
   ///    - items: An array whose contents to move into `self`.
   ///    - index: The position at which to insert the new items.
   ///       `index` must be a valid index in the array.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`count` + `items.count`)
   @_alwaysEmitIntoClient
+  @discardableResult
   public mutating func insert(
     moving items: inout RigidArray<Element>,
     at index: Int
-  ) {
+  ) -> Range<Int> {
     // FIXME: Remove this in favor of a generic algorithm over consumable containers
-    guard !items.isEmpty else { return }
-    items.edit { source in
+    guard !items.isEmpty else {
+      _checkValidIndex(index)
+      return index ..< index
+    }
+    return items.edit { source in
       self.insert(moving: &source, at: index)
     }
   }
@@ -258,14 +269,18 @@ extension RigidArray {
   ///       must be fully initialized.
   ///    - index: The position at which to insert the new elements. It must be
   ///       a valid index of the array.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`count` + `newElements.count`)
   @inlinable
+  @discardableResult
   public mutating func insert(
     copying newElements: UnsafeBufferPointer<Element>, at index: Int
-  ) {
-    guard newElements.count > 0 else { return }
-    self.insert(addingCount: newElements.count, at: index) { target in
+  ) -> Range<Int> {
+    guard newElements.count > 0 else {
+      _checkValidIndex(index)
+      return index ..< index
+    }
+    return self.insert(addingCount: newElements.count, at: index) { target in
       target._append(copying: newElements)
     }
   }
@@ -288,14 +303,15 @@ extension RigidArray {
   ///       must be fully initialized.
   ///    - index: The position at which to insert the new elements. It must be
   ///       a valid index of the array.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`count` + `newElements.count`)
   @inlinable
   @inline(__always)
+  @discardableResult
   public mutating func insert(
     copying newElements: UnsafeMutableBufferPointer<Element>,
     at index: Int
-  ) {
+  ) -> Range<Int> {
     unsafe self.insert(copying: UnsafeBufferPointer(newElements), at: index)
   }
 
@@ -315,34 +331,39 @@ extension RigidArray {
   ///    - newElements: The new elements to insert into the array.
   ///    - index: The position at which to insert the new elements. It must be
   ///        a valid index of the array.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`count` + `newElements.count`)
   @inlinable
   @inline(__always)
+  @discardableResult
   public mutating func insert(
     copying newElements: Span<Element>, at index: Int
-  ) {
-    guard newElements.count > 0 else { return }
-    self.insert(addingCount: newElements.count, at: index) { target in
+  ) -> Range<Int> {
+    guard newElements.count > 0 else {
+      _checkValidIndex(index)
+      return index ..< index
+    }
+    return self.insert(addingCount: newElements.count, at: index) { target in
       target._append(copying: newElements)
     }
   }
 
   @_alwaysEmitIntoClient
+  @discardableResult
   package mutating func _insertCollection(
     addingCount newCount: Int,
     copying items: some Collection<Element>,
     at index: Index
-  ) {
+  ) -> Range<Int> {
     // FIXME: Remove this -- RangeReplaceContainer already has this algorithm,
     // albeit with stricter availability.
-    let done: Void? = items.withContiguousStorageIfAvailable { buffer in
+    let res: Range<Int>? = items.withContiguousStorageIfAvailable { buffer in
       precondition(buffer.count == newCount, "Broken Collection: mismatching count")
-      self.insert(addingCount: buffer.count, at: index) { target in
+      return self.insert(addingCount: buffer.count, at: index) { target in
         target._append(copying: buffer)
       }
     }
-    if done != nil { return }
+    if let res { return res }
     var it = items.makeIterator()
     self.insert(addingCount: newCount, at: index) { target in
       while !target.isFull {
@@ -351,6 +372,7 @@ extension RigidArray {
       }
     }
     precondition(it.next() == nil, "Broken Collection")
+    return index ..< (index + newCount)
   }
 
   /// Copies the elements of a collection into this array at the specified
@@ -370,13 +392,14 @@ extension RigidArray {
   ///    - items: The new elements to insert into the array.
   ///    - index: The position at which to insert the new elements. It must be
   ///        a valid index of the array.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`count` + `newElements.count`)
   @_alwaysEmitIntoClient
   @inline(__always)
+  @discardableResult
   public mutating func insert(
     copying items: some Collection<Element>, at index: Int
-  ) {
+  ) -> Range<Int> {
     _insertCollection(addingCount: items.count, copying: items, at: index)
   }
 }

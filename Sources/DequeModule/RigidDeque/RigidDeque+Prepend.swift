@@ -43,7 +43,6 @@ extension RigidDeque where Element: ~Copyable {
   ///
   /// - Parameter item: The element to prepend to the deque.
   /// - Returns: `item` if the deque is full; otherwise nil.
-  ///
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   @_transparent
@@ -102,18 +101,20 @@ extension RigidDeque where Element: ~Copyable {
   ///    - newItemCount: The maximum number of items to prepend to the deque.
   ///    - body: A callback that gets called at most twice to directly
   ///       populate newly reserved storage within the deque.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`newItemCount`) in addition to the complexity of the callback
   ///    invocations.
   @_alwaysEmitIntoClient
+  @discardableResult
   public mutating func prepend<E: Error>(
     addingCount newItemCount: Int,
     initializingWith body: (inout OutputSpan<Element>) throws(E) -> Void
-  ) throws(E) -> Void {
+  ) throws(E) -> Range<Int> {
     precondition(newItemCount >= 0, "Cannot prepend a negative number of items")
-    guard newItemCount > 0 else { return }
+    guard newItemCount > 0 else { return 0 ..< 0 }
     precondition(freeCapacity >= newItemCount, "RigidDeque capacity overflow")
-    try _handle.uncheckedPrepend(addingCount: newItemCount, initializingWith: body)
+    return try _handle.uncheckedPrepend(
+      addingCount: newItemCount, initializingWith: body)
   }
 }
 
@@ -128,15 +129,16 @@ extension RigidDeque where Element: ~Copyable {
   /// - Parameters:
   ///    - items: A fully initialized buffer whose contents to move into
   ///        the deque.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`items.count`)
   @_alwaysEmitIntoClient
   @inline(__always)
+  @discardableResult
   public mutating func prepend(
     moving items: UnsafeMutableBufferPointer<Element>
-  ) {
+  ) -> Range<Int> {
     precondition(items.count <= freeCapacity, "RigidDeque capacity overflow")
-    _handle.uncheckedPrepend(moving: items)
+    return _handle.uncheckedPrepend(moving: items)
   }
   
 #if UnstableContainersPreview
@@ -148,16 +150,17 @@ extension RigidDeque where Element: ~Copyable {
   ///
   /// - Parameters:
   ///    - items: An input span whose contents need to be prepended to this deque.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`items.count`)
   @_alwaysEmitIntoClient
+  @discardableResult
   public mutating func prepend(
     moving items: inout InputSpan<Element>
-  ) {
+  ) -> Range<Int> {
     items.withUnsafeMutableBufferPointer { buffer, count in
       let source = buffer._extracting(last: count)
-      unsafe self.prepend(moving: source)
       count = 0
+      return unsafe self.prepend(moving: source)
     }
   }
 #endif
@@ -170,16 +173,17 @@ extension RigidDeque where Element: ~Copyable {
   ///
   /// - Parameters:
   ///    - items: An output span whose contents need to be prepended to this deque.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`items.count`)
   @_alwaysEmitIntoClient
+  @discardableResult
   public mutating func prepend(
     moving items: inout OutputSpan<Element>
-  ) {
+  ) -> Range<Int> {
     items.withUnsafeMutableBufferPointer { buffer, count in
       let source = buffer._extracting(first: count)
-      unsafe self.prepend(moving: source)
       count = 0
+      return unsafe self.prepend(moving: source)
     }
   }
 }
@@ -195,17 +199,18 @@ extension RigidDeque /*where Element: Copyable*/ {
   /// - Parameters:
   ///    - items: A fully initialized buffer whose contents to copy into
   ///       the deque.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`items.count`)
   @inlinable
   @_alwaysEmitIntoClient
+  @discardableResult
   public mutating func prepend(
     copying items: UnsafeBufferPointer<Element>
-  ) {
+  ) -> Range<Int> {
     precondition(
       items.count <= freeCapacity,
       "RigidDeque capacity overflow")
-    _handle.uncheckedPrepend(copying: items)
+    return _handle.uncheckedPrepend(copying: items)
   }
   
   /// Copies the elements of a buffer and prepend them to the front of this
@@ -217,13 +222,14 @@ extension RigidDeque /*where Element: Copyable*/ {
   /// - Parameters:
   ///    - items: A fully initialized buffer whose contents to copy into
   ///        the deque.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`items.count`)
   @inlinable
   @_alwaysEmitIntoClient
+  @discardableResult
   public mutating func prepend(
     copying items: UnsafeMutableBufferPointer<Element>
-  ) {
+  ) -> Range<Int> {
     unsafe self.prepend(copying: UnsafeBufferPointer(items))
   }
   
@@ -234,11 +240,12 @@ extension RigidDeque /*where Element: Copyable*/ {
   ///
   /// - Parameters:
   ///    - items: A span whose contents to copy into the deque.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`items.count`)
   @inlinable
   @_alwaysEmitIntoClient
-  public mutating func prepend(copying items: Span<Element>) {
+  @discardableResult
+  public mutating func prepend(copying items: Span<Element>) -> Range<Int> {
     items.withUnsafeBufferPointer { source in
       unsafe self.prepend(copying: source)
     }
@@ -272,10 +279,10 @@ extension RigidDeque /*where Element: Copyable*/ {
   >(
     copying items: borrowing S,
     exactCount: Int
-  ) throws(S.Failure)
+  ) throws(S.Failure) -> Range<Int>
   where S.Element == Element {
     var it = items.makeBorrowingIterator()
-    try self.prepend(addingCount: exactCount) { (target) throws(S.Failure) in
+    return try self.prepend(addingCount: exactCount) { (target) throws(S.Failure) in
       let span = try it.nextSpan(maxCount: target.freeCapacity)
       target._append(copying: span)
     }
@@ -360,18 +367,18 @@ extension RigidDeque /*where Element: Copyable*/ {
   /// - Complexity: O(`items.count`)
   @inlinable
   @_alwaysEmitIntoClient
+  @discardableResult
   public mutating func prepend(
     copying items: some Collection<Element>
-  ) {
-    let done: Void? = items.withContiguousStorageIfAvailable { source in
-      unsafe self.prepend(copying: source)
-      return
+  ) -> Range<Int> {
+    let res: Range<Int>? = items.withContiguousStorageIfAvailable { source in
+      return unsafe self.prepend(copying: source)
     }
-    guard done == nil else { return }
+    if let res { return res }
     let c = items.count
-    guard c > 0 else { return }
+    guard c > 0 else { return 0 ..< 0 }
     precondition(c <= freeCapacity, "RigidDeque capacity overflow")
-    _handle.uncheckedPrepend(copying: items, exactCount: c)
+    return _handle.uncheckedPrepend(copying: items, exactCount: c)
   }
   
 #if compiler(>=6.4)
@@ -404,9 +411,10 @@ extension RigidDeque /*where Element: Copyable*/ {
   /// - Complexity: O(*m*), where *m* is the length of `items`.
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
+  @discardableResult
   public mutating func prepend<S: Iterable & Collection<Element>>(
     copying items: borrowing S
-  ) throws(S.Failure)
+  ) throws(S.Failure) -> Range<Int>
   where S.Element == Element {
     try self._prepend(copying: items, exactCount: items.count)
   }

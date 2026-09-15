@@ -271,8 +271,8 @@ extension UniqueDeque where Element: ~Copyable {
   ///
   /// - Complexity: O(`count`)
   @inlinable
-  public mutating func reallocate(capacity: Int) {
-    _storage.reallocate(capacity: capacity)
+  public mutating func setCapacity(_ newCapacity: Int) {
+    _storage.setCapacity(newCapacity)
   }
 
   /// Ensure that the array has capacity to store the specified number of
@@ -307,7 +307,7 @@ extension UniqueDeque where Element: ~Copyable {
   @inlinable
   internal mutating func _ensureFreeCapacitySlow(_ freeCapacity: Int) {
     let newCapacity = _grow(freeCapacity: freeCapacity)
-    reallocate(capacity: newCapacity)
+    setCapacity(newCapacity)
   }
 }
 

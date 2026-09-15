@@ -19,6 +19,34 @@ import InternalCollectionsUtilities
 
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
+  /// Removes all elements from the array, preserving its allocated capacity.
+  ///
+  /// - Complexity: O(*n*), where *n* is the original count of the array.
+  @inlinable
+  public mutating func removeAll() {
+    unsafe _items.deinitialize()
+    _count = 0
+  }
+
+  /// Removes and returns the element at the specified position.
+  ///
+  /// All the elements following the specified position are moved to close the
+  /// gap.
+  ///
+  /// - Parameter index: The position of the element to remove. `index` must be
+  ///   a valid index of the array that is not equal to the end index.
+  ///   On return, `index` is updated to address the position following the
+  ///   removed element.
+  /// - Returns: The removed element.
+  ///
+  /// - Complexity: O(`count`)
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  @discardableResult
+  public mutating func remove(at index: inout Int) -> Element {
+    remove(at: index)
+  }
+
   /// Removes and returns the element at the specified position.
   ///
   /// All the elements following the specified position are moved to close the
@@ -37,15 +65,6 @@ extension RigidArray where Element: ~Copyable {
     _closeGap(at: index, count: 1)
     _count -= 1
     return old
-  }
-
-  /// Removes all elements from the array, preserving its allocated capacity.
-  ///
-  /// - Complexity: O(*n*), where *n* is the original count of the array.
-  @inlinable
-  public mutating func removeAll() {
-    unsafe _items.deinitialize()
-    _count = 0
   }
 
   /// Removes and returns the last element of the array.
@@ -93,27 +112,32 @@ extension RigidArray where Element: ~Copyable {
   /// resulting gap.
   ///
   /// - Parameter bounds: The subrange of the array to remove. The bounds
-  ///   of the range must be valid indices of the array.
-  ///
+  ///    of the range must be valid indices of the array.
+  /// - Returns: A valid index addressing the position following the removed
+  ///    subrange.
   /// - Complexity: O(`count`)
   @inlinable
-  public mutating func removeSubrange(_  bounds: Range<Int>) {
+  @discardableResult
+  public mutating func removeSubrange(_  bounds: Range<Int>) -> Int {
     _checkValidBounds(bounds)
-    guard !bounds.isEmpty else { return }
+    guard !bounds.isEmpty else { return bounds.lowerBound }
     unsafe _storage.extracting(bounds).deinitialize()
     _closeGap(at: bounds.lowerBound, count: bounds.count)
     _count -= bounds.count
+    return bounds.lowerBound
   }
 
   /// Removes the specified subrange of elements from the array.
   ///
   /// - Parameter bounds: The subrange of the array to remove. The bounds of the
   ///   range must be valid indices of the array.
-  ///
+  /// - Returns: A valid index addressing the position following the removed
+  ///    subrange.
   /// - Complexity: O(`count`)
   @_alwaysEmitIntoClient
-  public mutating func removeSubrange(_  bounds: some RangeExpression<Int>) {
-    // FIXME: Remove this in favor of the RangeReplaceableContainer algorithm.
+  @discardableResult
+  public mutating func removeSubrange(_  bounds: some RangeExpression<Int>) -> Int {
+    // FIXME: Remove this in favor of the DrainableContainer algorithm.
     removeSubrange(bounds.relative(to: indices))
   }
 }
@@ -128,7 +152,7 @@ extension RigidArray where Element: ~Copyable {
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   public mutating func popLast() -> Element? {
-    // FIXME: Remove this in favor of the RangeReplaceableContainer algorithm.
+    // FIXME: Remove this in favor of the DrainableContainer algorithm.
     if isEmpty { return nil }
     return removeLast()
   }

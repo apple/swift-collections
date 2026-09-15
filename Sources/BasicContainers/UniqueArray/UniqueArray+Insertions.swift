@@ -36,14 +36,15 @@ extension UniqueArray where Element: ~Copyable {
   /// - Parameter item: The new element to insert into the array.
   /// - Parameter index: The position at which to insert the new element.
   ///   `index` must be a valid index in the array.
-  ///
+  /// - Returns: A valid index to the newly inserted item.
   /// - Complexity: O(`self.count`)
   @inlinable
-  public mutating func insert(_ item: consuming Element, at index: Int) {
+  @discardableResult
+  public mutating func insert(_ item: consuming Element, at index: Int) -> Int {
     precondition(index >= 0 && index <= count)
     // FIXME: Avoid moving the subsequent elements twice.
     _ensureFreeCapacity(1)
-    _storage.insert(item, at: index)
+    return _storage.insert(item, at: index)
   }
 }
 
@@ -79,17 +80,18 @@ extension UniqueArray where Element: ~Copyable {
   ///       populate newly reserved storage within the array. The function
   ///       is called with an empty output span of capacity matching the
   ///       supplied count, and it must fully populate it before returning.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`self.count` + `count`)
   @_alwaysEmitIntoClient
   @inline(__always)
+  @discardableResult
   public mutating func insert<E: Error>(
     addingCount newItemCount: Int,
     at index: Int,
     initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
-  ) throws(E) {
+  ) throws(E) -> Range<Int> {
     _ensureFreeCapacity(newItemCount)
-    try _storage.insert(
+    return try _storage.insert(
       addingCount: newItemCount,
       at: index,
       initializingWith: initializer)
@@ -109,16 +111,17 @@ extension UniqueArray where Element: ~Copyable {
   /// - Parameters:
   ///    - items: A fully initialized buffer whose contents to move into
   ///        the array.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`self.count` + `items.count`)
   @_alwaysEmitIntoClient
+  @discardableResult
   public mutating func insert(
     moving items: UnsafeMutableBufferPointer<Element>,
     at index: Int
-  ) {
+  ) -> Range<Int> {
     // FIXME: Avoid moving the subsequent elements twice.
     _ensureFreeCapacity(items.count)
-    _storage.insert(moving: items, at: index)
+    return _storage.insert(moving: items, at: index)
   }
 
 #if UnstableContainersPreview
@@ -137,16 +140,17 @@ extension UniqueArray where Element: ~Copyable {
   ///        the array.
   ///    - index: The position at which to insert the new items.
   ///       `index` must be a valid index in the array.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`self.count` + `items.count`)
   @_alwaysEmitIntoClient
+  @discardableResult
   public mutating func insert(
     moving items: inout InputSpan<Element>,
     at index: Int
-  ) {
+  ) -> Range<Int> {
     // FIXME: Remove when InputSpan starts conforming to RangeReplaceableContainer
     _ensureFreeCapacity(items.count)
-    _storage.insert(moving: &items, at: index)
+    return _storage.insert(moving: &items, at: index)
   }
 #endif
 
@@ -165,16 +169,17 @@ extension UniqueArray where Element: ~Copyable {
   ///        the array.
   ///    - index: The position at which to insert the new items.
   ///       `index` must be a valid index in the array.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`self.count` + `items.count`)
   @_alwaysEmitIntoClient
+  @discardableResult
   public mutating func insert(
     moving items: inout OutputSpan<Element>,
     at index: Int
-  ) {
+  ) -> Range<Int> {
     // FIXME: Remove when OutputSpan starts conforming to RangeReplaceableContainer
     _ensureFreeCapacity(items.count)
-    _storage.insert(moving: &items, at: index)
+    return _storage.insert(moving: &items, at: index)
   }
 
   /// Inserts the elements of a given array into the given position in this
@@ -189,16 +194,17 @@ extension UniqueArray where Element: ~Copyable {
   /// - Parameters:
   ///    - items: An array whose contents to move into `self`.
   ///    - index: The position in `self` at which to insert the new items.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`self.count` + `items.count`)
   @_alwaysEmitIntoClient
+  @discardableResult
   public mutating func insert(
     moving items: inout RigidArray<Element>,
     at index: Int
-  ) {
+  ) -> Range<Int> {
     // FIXME: Avoid moving the subsequent elements twice.
     _ensureFreeCapacity(items.count)
-    _storage.insert(moving: &items, at: index)
+    return _storage.insert(moving: &items, at: index)
   }
 }
 
@@ -223,15 +229,16 @@ extension UniqueArray {
   ///       must be fully initialized.
   ///    - index: The position at which to insert the new elements. It must be
   ///       a valid index of the array.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`self.count` + `newElements.count`)
   @inlinable
+  @discardableResult
   public mutating func insert(
     copying newElements: UnsafeBufferPointer<Element>, at index: Int
-  ) {
+  ) -> Range<Int> {
     // FIXME: Avoid moving the subsequent elements twice.
     _ensureFreeCapacity(newElements.count)
-    unsafe _storage.insert(copying: newElements, at: index)
+    return unsafe _storage.insert(copying: newElements, at: index)
   }
 
   /// Copies the elements of a fully initialized buffer pointer into this
@@ -253,13 +260,14 @@ extension UniqueArray {
   ///       must be fully initialized.
   ///    - index: The position at which to insert the new elements. It must be
   ///       a valid index of the array.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`self.count` + `newElements.count`)
   @inlinable
+  @discardableResult
   public mutating func insert(
     copying newElements: UnsafeMutableBufferPointer<Element>,
     at index: Int
-  ) {
+  ) -> Range<Int> {
     unsafe self.insert(copying: UnsafeBufferPointer(newElements), at: index)
   }
 
@@ -280,15 +288,16 @@ extension UniqueArray {
   ///    - newElements: The new elements to insert into the array.
   ///    - index: The position at which to insert the new elements. It must be
   ///        a valid index of the array.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`self.count` + `newElements.count`)
   @inlinable
+  @discardableResult
   public mutating func insert(
     copying newElements: Span<Element>, at index: Int
-  ) {
+  ) -> Range<Int> {
     // FIXME: Avoid moving the subsequent elements twice.
     _ensureFreeCapacity(newElements.count)
-    _storage.insert(copying: newElements, at: index)
+    return _storage.insert(copying: newElements, at: index)
   }
 
   /// Copies the elements of a collection into this array at the specified
@@ -309,19 +318,20 @@ extension UniqueArray {
   ///    - newElements: The new elements to insert into the array.
   ///    - index: The position at which to insert the new elements. It must be
   ///        a valid index of the array.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`self.count` + `newElements.count`)
   @inlinable
+  @discardableResult
   public mutating func insert(
     copying newElements: some Collection<Element>, at index: Int
-  ) {
+  ) -> Range<Int> {
     // FIXME: Remove this -- RangeReplaceContainer already has this algorithm.
     // (Note that this would be source breaking while RRC lives in the separate
     // ContainersPreview module.)
     // FIXME: Avoid moving the subsequent elements twice.
     let newCount = newElements.count
     _ensureFreeCapacity(newCount)
-    _storage._insertCollection(
+    return _storage._insertCollection(
       addingCount: newCount, copying: newElements, at: index)
   }
 }

@@ -37,15 +37,16 @@ extension UniqueDeque where Element: ~Copyable {
   /// - Parameter item: The new element to insert into the deque.
   /// - Parameter index: The position at which to insert the new element.
   ///   `index` must be a valid index in the deque.
-  ///
+  /// - Returns: A valid index addressing the newly inserted element.
   /// - Complexity: O(`self.count`) when amortized over many similar
   ///     invocations on the same deque.
   @_alwaysEmitIntoClient
   @_transparent
-  public mutating func insert(_ item: consuming Element, at index: Int) {
+  @discardableResult
+  public mutating func insert(_ item: consuming Element, at index: Int) -> Int {
     _storage._checkValidIndex(index)
     _ensureFreeCapacity(1)
-    _storage._handle.uncheckedInsert(item, at: index)
+    return _storage._handle.uncheckedInsert(item, at: index)
   }
 }
 
@@ -93,22 +94,23 @@ extension UniqueDeque where Element: ~Copyable {
   ///    - initializer: A callback that gets called at most twice to directly
   ///       populate newly reserved storage within the deque. The function
   ///      is always called with an empty output span.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`self.count` + `newItemCount`) in addition to the complexity
   ///    of the callback invocations when amortized over many similar
   ///     invocations on the same deque.
   @_alwaysEmitIntoClient
   @inline(__always)
+  @discardableResult
   public mutating func insert<E: Error>(
     addingCount newItemCount: Int,
     at index: Int,
     initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
-  ) throws(E) {
+  ) throws(E) -> Range<Int> {
     _storage._checkValidIndex(index)
     precondition(newItemCount >= 0, "Cannot add a negative number of items")
-    guard newItemCount > 0 else { return }
+    guard newItemCount > 0 else { return index ..< index }
     _ensureFreeCapacity(newItemCount)
-    try _storage._handle.uncheckedInsert(
+    return try _storage._handle.uncheckedInsert(
       addingCount: newItemCount, at: index, initializingWith: initializer)
   }
 }
@@ -132,17 +134,18 @@ extension UniqueDeque where Element: ~Copyable {
   ///        the deque.
   ///    - index: The position at which to insert the new items.
   ///       `index` must be a valid index in the array.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`self.count` + `items.count`) when amortized over many
   ///     similar invocations on the same deque.
   @_alwaysEmitIntoClient
+  @discardableResult
   public mutating func insert(
     moving items: UnsafeMutableBufferPointer<Element>,
     at index: Int
-  ) {
-    guard !items.isEmpty else { return }
+  ) -> Range<Int> {
+    guard !items.isEmpty else { return index ..< index }
     var remainder = items
-    insert(addingCount: items.count, at: index) { target in
+    let range = insert(addingCount: items.count, at: index) { target in
       target.withUnsafeMutableBufferPointer { buffer, count in
         buffer.moveInitializeAll(
           fromContentsOf: remainder._trim(first: buffer.count))
@@ -150,6 +153,7 @@ extension UniqueDeque where Element: ~Copyable {
       }
     }
     assert(remainder.isEmpty)
+    return range
   }
 
 #if UnstableContainersPreview
@@ -169,18 +173,19 @@ extension UniqueDeque where Element: ~Copyable {
   ///        the deque.
   ///    - index: The position at which to insert the new items.
   ///       `index` must be a valid index in the deque.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`self.count` + `items.count`) when amortized over many
   ///     similar invocations on the same deque.
   @_alwaysEmitIntoClient
+  @discardableResult
   public mutating func insert(
     moving items: inout InputSpan<Element>,
     at index: Int
-  ) {
+  ) -> Range<Int> {
     items.withUnsafeMutableBufferPointer { buffer, count in
       let source = buffer._extracting(last: count)
-      unsafe self.insert(moving: source, at: index)
       count = 0
+      return unsafe self.insert(moving: source, at: index)
     }
   }
 #endif
@@ -201,18 +206,19 @@ extension UniqueDeque where Element: ~Copyable {
   ///        the deque.
   ///    - index: The position at which to insert the new items.
   ///       `index` must be a valid index in the deque.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`self.count` + `items.count`) when amortized over many
   ///     similar invocations on the same deque.
   @_alwaysEmitIntoClient
+  @discardableResult
   public mutating func insert(
     moving items: inout OutputSpan<Element>,
     at index: Int
-  ) {
+  ) -> Range<Int> {
     items.withUnsafeMutableBufferPointer { buffer, count in
       let source = buffer._extracting(first: count)
-      unsafe self.insert(moving: source, at: index)
       count = 0
+      return unsafe self.insert(moving: source, at: index)
     }
   }
 }
@@ -239,16 +245,17 @@ extension UniqueDeque /* where Element: Copyable */ {
   ///       must be fully initialized.
   ///    - index: The position at which to insert the new elements. It must be
   ///       a valid index of `self`.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`count` + `newElements.count`) when amortized over many
   ///     similar invocations on the same deque.
-  @inlinable
+  @_alwaysEmitIntoClient
+  @discardableResult
   public mutating func insert(
     copying items: UnsafeBufferPointer<Element>, at index: Int
-  ) {
-    guard items.count > 0 else { return }
+  ) -> Range<Int> {
+    guard items.count > 0 else { return index ..< index }
     var remainder = items
-    insert(addingCount: remainder.count, at: index) { target in
+    let range = insert(addingCount: remainder.count, at: index) { target in
       target.withUnsafeMutableBufferPointer { buffer, count in
         buffer.initializeAll(
           fromContentsOf: remainder._extracting(first: buffer.count))
@@ -257,6 +264,7 @@ extension UniqueDeque /* where Element: Copyable */ {
       }
     }
     assert(remainder.isEmpty)
+    return range
   }
 
   /// Copies the elements of a fully initialized buffer pointer into this
@@ -279,14 +287,15 @@ extension UniqueDeque /* where Element: Copyable */ {
   ///       must be fully initialized.
   ///    - index: The position at which to insert the new elements. It must be
   ///       a valid index of `self`.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`count` + `newElements.count`) when amortized over many
   ///     similar invocations on the same deque.
-  @inlinable
+  @_alwaysEmitIntoClient
+  @discardableResult
   public mutating func insert(
     copying items: UnsafeMutableBufferPointer<Element>,
     at index: Int
-  ) {
+  ) -> Range<Int> {
     unsafe self.insert(copying: UnsafeBufferPointer(items), at: index)
   }
 
@@ -308,31 +317,32 @@ extension UniqueDeque /* where Element: Copyable */ {
   ///    - items: The new elements to insert into the deque.
   ///    - index: The position at which to insert the new elements. It must be
   ///        a valid index of the deque.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`count` + `items.count`) when amortized over many similar
   ///     invocations on the same deque.
-  @inlinable
+  @_alwaysEmitIntoClient
+  @discardableResult
   public mutating func insert(
     copying items: Span<Element>, at index: Int
-  ) {
+  ) -> Range<Int> {
     items.withUnsafeBufferPointer {
       unsafe self.insert(copying: $0, at: index)
     }
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   package mutating func _insertCollection(
     at index: Int,
     copying items: some Collection<Element>,
     newCount: Int
-  ) {
-    let done: Void? = items.withContiguousStorageIfAvailable { src in
+  ) -> Range<Int> {
+    let done: Range<Int>? = items.withContiguousStorageIfAvailable { src in
       self.insert(copying: src, at: index)
     }
-    if done != nil { return }
+    if let done { return done }
 
     var i = items.startIndex
-    self.insert(addingCount: newCount, at: index) { target in
+    let range = self.insert(addingCount: newCount, at: index) { target in
       while !target.isFull {
         target.append(items[i])
         items.formIndex(after: &i)
@@ -341,6 +351,7 @@ extension UniqueDeque /* where Element: Copyable */ {
     precondition(
       i == items.endIndex,
       "Broken Collection: count doesn't match contents")
+    return range
   }
 
   /// Copies the elements of a collection into this deque at the specified
@@ -365,11 +376,12 @@ extension UniqueDeque /* where Element: Copyable */ {
   ///
   /// - Complexity: O(`count` + `newElements.count`) when amortized over many
   ///     similar invocations on the same deque.
-  @inlinable
+  @_alwaysEmitIntoClient
   @inline(__always)
+  @discardableResult
   public mutating func insert(
     copying items: some Collection<Element>, at index: Int
-  ) {
+  ) -> Range<Int> {
     _insertCollection(
       at: index, copying: items, newCount: items.count)
   }

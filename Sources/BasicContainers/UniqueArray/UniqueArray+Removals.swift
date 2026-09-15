@@ -19,19 +19,51 @@ import InternalCollectionsUtilities
 
 @available(SwiftStdlib 5.0, *)
 extension UniqueArray where Element: ~Copyable {
-  /// Removes all elements from the array, optionally preserving its
+  /// Removes all elements from the array, preserving its
   /// allocated capacity.
   ///
   /// - Complexity: O(*n*), where *n* is the original count of the array.
   @inlinable
   @inline(__always)
-  public mutating func removeAll(keepingCapacity keepCapacity: Bool = false) {
-    if keepCapacity {
-      _storage.removeAll()
-    } else {
-      _storage = RigidArray(capacity: 0)
-    }
+  public mutating func removeAll() {
+    _storage.removeAll()
   }
+
+  /// Removes and returns the element at the specified position.
+  ///
+  /// All the elements following the specified position are moved to close the
+  /// gap.
+  ///
+  /// - Parameter index: The position of the element to remove. `index` must be
+  ///   a valid index of the array that is not equal to the end index.
+  ///   On return, `index` is updated to address the position following the
+  ///   removed element.
+  /// - Returns: The removed element.
+  ///
+  /// - Complexity: O(`self.count`)
+  @inlinable
+  @inline(__always)
+  @discardableResult
+  public mutating func remove(at index: inout Int) -> Element {
+    _storage.remove(at: &index)
+  }
+
+  /// Removes and returns the element at the specified position.
+  ///
+  /// All the elements following the specified position are moved to close the
+  /// gap.
+  ///
+  /// - Parameter index: The position of the element to remove. `index` must be
+  ///   a valid index of the array that is not equal to the end index.
+  /// - Returns: The removed element.
+  ///
+  /// - Complexity: O(`count`)
+  @inlinable
+  @discardableResult
+  public mutating func remove(at index: Int) -> Element {
+    _storage.remove(at: index)
+  }
+
 
   /// Removes and returns the last element of the array.
   ///
@@ -63,23 +95,6 @@ extension UniqueArray where Element: ~Copyable {
     _storage.removeLast(k)
   }
 
-  /// Removes and returns the element at the specified position.
-  ///
-  /// All the elements following the specified position are moved to close the
-  /// gap.
-  ///
-  /// - Parameter index: The position of the element to remove. `index` must be
-  ///   a valid index of the array that is not equal to the end index.
-  /// - Returns: The removed element.
-  ///
-  /// - Complexity: O(`self.count`)
-  @inlinable
-  @inline(__always)
-  @discardableResult
-  public mutating func remove(at index: Int) -> Element {
-    _storage.remove(at: index)
-  }
-
   /// Removes the specified subrange of elements from the array.
   ///
   /// All the elements following the specified subrange are moved to close the
@@ -90,7 +105,8 @@ extension UniqueArray where Element: ~Copyable {
   ///
   /// - Complexity: O(`self.count`)
   @inlinable
-  public mutating func removeSubrange(_  bounds: Range<Int>) {
+  @discardableResult
+  public mutating func removeSubrange(_  bounds: Range<Int>) -> Int {
     _storage.removeSubrange(bounds)
   }
 
@@ -101,8 +117,11 @@ extension UniqueArray where Element: ~Copyable {
   ///
   /// - Complexity: O(`self.count`)
   @_alwaysEmitIntoClient
-  public mutating func removeSubrange(_  bounds: some RangeExpression<Int>) {
-    // FIXME: Remove this in favor of the RangeReplaceableContainer algorithm.
+  @discardableResult
+  public mutating func removeSubrange(
+    _  bounds: some RangeExpression<Int>
+  ) -> Int {
+    // FIXME: Remove this in favor of the DrainableContainer algorithm.
     removeSubrange(bounds.relative(to: indices))
   }
 }
@@ -117,7 +136,7 @@ extension UniqueArray where Element: ~Copyable {
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   public mutating func popLast() -> Element? {
-    // FIXME: Remove this in favor of the RangeReplaceableContainer algorithm.
+    // FIXME: Remove this in favor of the DrainableContainer algorithm.
     if isEmpty { return nil }
     return removeLast()
   }

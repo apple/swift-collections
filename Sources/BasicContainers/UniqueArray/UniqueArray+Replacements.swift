@@ -58,21 +58,22 @@ extension UniqueArray where Element: ~Copyable {
   ///   - initializer: A callback that gets called at most once to directly
   ///      populate newly reserved storage within the array. The function
   ///      is always called with an empty output span.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`self.count` + `newItemCount`) in addition to the complexity
   ///    of the callback invocations.
-  @inlinable
-  public mutating func replace<E: Error>(
-    removing subrange: Range<Int>,
+  @_alwaysEmitIntoClient
+  @discardableResult
+  public mutating func replaceSubrange<E: Error>(
+    _ subrange: Range<Int>,
     addingCount newItemCount: Int,
     initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
-  ) throws(E) -> Void {
+  ) throws(E) -> Range<Int> {
     _storage._checkValidBounds(subrange)
     precondition(newItemCount >= 0, "Cannot add a negative number of items")
     // FIXME: Avoid moving the subsequent elements twice on resize.
     _ensureFreeCapacity(newItemCount - subrange.count)
-    try _storage._uncheckedReplace(
-      removing: subrange,
+    return try _storage._uncheckedReplaceSubrange(
+      subrange,
       addingCount: newItemCount,
       initializingWith: initializer)
   }
@@ -126,21 +127,22 @@ extension UniqueArray where Element: ~Copyable {
   ///   - initializer: A callback that gets called at most once to directly
   ///      populate newly reserved storage within the deque. The function
   ///      is always called with an empty output span.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`self.count` + `newItemCount`) in addition to the
   ///    complexity of the callback invocations.
-  @inlinable
-  public mutating func replace<E: Error>(
-    removing subrange: Range<Int>,
+  @_alwaysEmitIntoClient
+  @discardableResult
+  public mutating func replaceSubrange<E: Error>(
+    _ subrange: Range<Int>,
     consumingWith consumer: (inout InputSpan<Element>) -> Void,
     addingCount newItemCount: Int,
     initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
-  ) throws(E) -> Void {
+  ) throws(E) -> Range<Int> {
     _storage._checkValidBounds(subrange)
     precondition(newItemCount >= 0, "Cannot add a negative number of items")
     _ensureFreeCapacity(newItemCount - subrange.count)
-    try _storage._uncheckedReplace(
-      removing: subrange,
+    return try _storage._uncheckedReplaceSubrange(
+      subrange,
       consumingWith: consumer,
       addingCount: newItemCount,
       initializingWith: initializer)
@@ -177,16 +179,17 @@ extension UniqueArray where Element: ~Copyable {
   ///     the range must be valid indices in the array.
   ///   - newElements: A fully initialized buffer whose contents to move into
   ///     the array.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`self.count` + `newElements.count`)
   @_alwaysEmitIntoClient
-  public mutating func replace(
-    removing subrange: Range<Int>,
+  @discardableResult
+  public mutating func replaceSubrange(
+    _ subrange: Range<Int>,
     moving newElements: UnsafeMutableBufferPointer<Element>,
-  ) {
+  ) -> Range<Int> {
     // FIXME: Avoid moving the subsequent elements twice.
     _ensureFreeCapacity(newElements.count - subrange.count)
-    _storage.replace(removing: subrange, moving: newElements)
+    return _storage.replaceSubrange(subrange, moving: newElements)
   }
 
 #if UnstableContainersPreview
@@ -215,16 +218,17 @@ extension UniqueArray where Element: ~Copyable {
   ///   - subrange: The subrange of the array to replace. The bounds of
   ///     the range must be valid indices in the array.
   ///   - items: An input span whose contents are to be moved into the array.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`self.count` + `items.count`)
   @_alwaysEmitIntoClient
-  public mutating func replace(
-    removing subrange: Range<Int>,
+  @discardableResult
+  public mutating func replaceSubrange(
+    _ subrange: Range<Int>,
     moving items: inout InputSpan<Element>
-  ) {
+  ) -> Range<Int> {
     // FIXME: Avoid moving the subsequent elements twice.
     _ensureFreeCapacity(items.count - subrange.count)
-    _storage.replace(removing: subrange, moving: &items)
+    return _storage.replaceSubrange(subrange, moving: &items)
   }
 #endif
 
@@ -253,16 +257,17 @@ extension UniqueArray where Element: ~Copyable {
   ///   - subrange: The subrange of the array to replace. The bounds of
   ///     the range must be valid indices in the array.
   ///   - items: An output span whose contents are to be moved into the array.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`self.count` + `items.count`)
   @_alwaysEmitIntoClient
-  public mutating func replace(
-    removing subrange: Range<Int>,
+  @discardableResult
+  public mutating func replaceSubrange(
+    _ subrange: Range<Int>,
     moving items: inout OutputSpan<Element>
-  ) {
+  ) -> Range<Int> {
     // FIXME: Avoid moving the subsequent elements twice.
     _ensureFreeCapacity(items.count - subrange.count)
-    _storage.replace(removing: subrange, moving: &items)
+    return _storage.replaceSubrange(subrange, moving: &items)
   }
 
   /// Replaces the specified range of elements by moving the elements of a
@@ -292,16 +297,17 @@ extension UniqueArray where Element: ~Copyable {
   ///   - subrange: The subrange of the array to replace. The bounds of
   ///     the range must be valid indices in the array.
   ///   - newElements: An array whose contents to move into `self`.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`self.count` + `newElements.count`)
   @_alwaysEmitIntoClient
-  public mutating func replace(
-    removing subrange: Range<Int>,
+  @discardableResult
+  public mutating func replaceSubrange(
+    _ subrange: Range<Int>,
     moving newElements: inout RigidArray<Element>,
-  ) {
+  ) -> Range<Int> {
     // FIXME: Avoid moving the subsequent elements twice.
     _ensureFreeCapacity(newElements.count - subrange.count)
-    _storage.replace(removing: subrange, moving: &newElements)
+    return _storage.replaceSubrange(subrange, moving: &newElements)
   }
 }
 
@@ -332,14 +338,15 @@ extension UniqueArray where Element: ~Copyable {
   ///   - subrange: The subrange of the array to replace. The bounds of
   ///     the range must be valid indices in the array.
   ///   - newElements: An array whose contents to move into `self`.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`self.count` + `newElements.count`)
   @_alwaysEmitIntoClient
-  public mutating func replace(
-    removing subrange: Range<Int>,
+  @discardableResult
+  public mutating func replaceSubrange(
+    _ subrange: Range<Int>,
     consuming newElements: consuming RigidArray<Element>,
-  ) {
-    replace(removing: subrange, moving: &newElements)
+  ) -> Range<Int> {
+    replaceSubrange(subrange, moving: &newElements)
   }
 }
 
@@ -370,18 +377,19 @@ extension UniqueArray {
   ///   - subrange: The subrange of the array to replace. The bounds of
   ///     the range must be valid indices in the array.
   ///   - newElements: The new elements to copy into the collection.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(*n* + *m*), where *n* is count of this array and
   ///   *m* is the count of `newElements`.
-  @inlinable
+  @_alwaysEmitIntoClient
   @inline(__always)
-  public mutating func replace(
-    removing subrange: Range<Int>,
+  @discardableResult
+  public mutating func replaceSubrange(
+    _ subrange: Range<Int>,
     copying newElements: UnsafeBufferPointer<Element>
-  ) {
+  ) -> Range<Int> {
     // FIXME: Avoid moving the subsequent elements twice.
     _ensureFreeCapacity(newElements.count - subrange.count)
-    unsafe _storage.replace(removing: subrange, copying: newElements)
+    return unsafe _storage.replaceSubrange(subrange, copying: newElements)
   }
 
   /// Replaces the specified subrange of elements by copying the elements of
@@ -409,18 +417,17 @@ extension UniqueArray {
   ///   - subrange: The subrange of the array to replace. The bounds of
   ///     the range must be valid indices in the array.
   ///   - newElements: The new elements to copy into the collection.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(*n* + *m*), where *n* is count of this array and
   ///   *m* is the count of `newElements`.
-  @inlinable
+  @_alwaysEmitIntoClient
   @inline(__always)
-  public mutating func replace(
-    removing subrange: Range<Int>,
+  public mutating func replaceSubrange(
+    _ subrange: Range<Int>,
     copying newElements: UnsafeMutableBufferPointer<Element>
   ) {
-    unsafe self.replace(
-      removing: subrange,
-      copying: UnsafeBufferPointer(newElements))
+    unsafe self.replaceSubrange(
+      subrange, copying: UnsafeBufferPointer(newElements))
   }
 
   /// Replaces the specified subrange of elements by copying the elements of
@@ -448,17 +455,18 @@ extension UniqueArray {
   ///   - subrange: The subrange of the array to replace. The bounds of
   ///     the range must be valid indices in the array.
   ///   - newElements: The new elements to copy into the collection.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(*n* + *m*), where *n* is count of this array and
   ///   *m* is the count of `newElements`.
-  @inlinable
-  public mutating func replace(
-    removing subrange: Range<Int>,
+  @_alwaysEmitIntoClient
+  @discardableResult
+  public mutating func replaceSubrange(
+    _ subrange: Range<Int>,
     copying newElements: Span<Element>
-  ) {
+  ) -> Range<Int> {
     // FIXME: Avoid moving the subsequent elements twice.
     _ensureFreeCapacity(newElements.count - subrange.count)
-    _storage.replace(removing: subrange, copying: newElements)
+    return _storage.replaceSubrange(subrange, copying: newElements)
   }
   
   /// Replaces the specified subrange of elements by copying the elements of
@@ -486,20 +494,21 @@ extension UniqueArray {
   ///   - subrange: The subrange of the array to replace. The bounds of
   ///     the range must be valid indices in the array.
   ///   - newElements: The new elements to copy into the collection.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(*n* + *m*), where *n* is count of this array and
   ///   *m* is the count of `newElements`.
-  @inlinable
+  @_alwaysEmitIntoClient
   @inline(__always)
-  public mutating func replace(
-    removing subrange: Range<Int>,
+  @discardableResult
+  public mutating func replaceSubrange(
+    _ subrange: Range<Int>,
     copying newElements: __owned some Collection<Element>
-  ) {
+  ) -> Range<Int> {
     // FIXME: Avoid moving the subsequent elements twice.
     let c = newElements.count
     _ensureFreeCapacity(c - subrange.count)
-    _storage._replace(
-      removing: subrange,
+    return _storage._replaceSubrange(
+      subrange,
       copyingCollection: newElements,
       newCount: c)
   }

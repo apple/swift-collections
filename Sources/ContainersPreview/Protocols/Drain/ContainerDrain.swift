@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2026 Apple Inc. and the Swift project authors
+// Copyright (c) 2024 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -12,26 +12,17 @@
 //===----------------------------------------------------------------------===//
 
 #if !COLLECTIONS_SINGLE_MODULE
-import InternalCollectionsUtilities
+import SpanPreview
 #endif
 
-#if compiler(>=6.2)
+#if compiler(>=6.4) && UnstableContainersPreview
 
-#if false // FIXME
+@available(SwiftStdlib 5.0, *)
+public protocol ContainerDrain<Element>: Drain, ~Copyable, ~Escapable
+where Element: ~Copyable
+{
+  associatedtype Index
 
-@_alwaysEmitIntoClient
-@_transparent
-@_lifetime(borrow self)
-public func borrowElement(at index: Int) -> Ref<Element> {
-  _storage.borrowElement(at: index)
+  consuming func finalize() -> Index
 }
-
-@_alwaysEmitIntoClient
-@_transparent
-@_lifetime(&self)
-public mutating func mutateElement(at index: Int) -> MutableRef<Element> {
-  _storage.mutateElement(at: index)
-}
-
-#endif
 #endif
