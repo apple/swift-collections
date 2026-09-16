@@ -42,13 +42,12 @@ extension UniqueArray: RandomAccessContainer where Element: ~Copyable {}
 extension UniqueArray: MutableContainer where Element: ~Copyable {}
 
 @available(SwiftStdlib 6.4, *)
+extension UniqueArray: DrainableContainer where Element: ~Copyable {}
+
+@available(SwiftStdlib 6.4, *)
 extension UniqueArray: RangeReplaceableContainer where Element: ~Copyable {}
 
 @available(SwiftStdlib 6.4, *)
 extension UniqueArray: DynamicContainer where Element: ~Copyable {}
-
-@available(SwiftStdlib 5.0, *)
-extension UniqueArray where Element: Copyable {
-}
 
 #endif

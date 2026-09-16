@@ -160,8 +160,6 @@ extension RigidArray /*where Element: Copyable*/ {
   }
 #endif
   
-  // FIXME: Add a version that's generic over `Container`, with an optional capacity
-  
   /// Creates a new array with the specified capacity, holding a copy
   /// of the contents of a given collection.
   ///
@@ -198,7 +196,5 @@ extension RigidArray /*where Element: Copyable*/ {
     self.append(copying: span)
   }
 }
-
-// FIXME: Add init(moving:), init(consuming:)
 
 #endif

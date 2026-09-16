@@ -18,7 +18,7 @@ import SpanPreview
 
 #if compiler(>=6.4) && UnstableContainersPreview && UnstableHashedContainers
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension UniqueSet: Container where Element: ~Copyable {
   @_alwaysEmitIntoClient
   public func currentIndex(of iterator: inout BorrowingIterator) -> Index {
@@ -47,7 +47,7 @@ extension UniqueSet: DrainableContainer where Element: ~Copyable {
 }
 #endif
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension UniqueSet where Element: ~Copyable {
   @_alwaysEmitIntoClient
   public init<

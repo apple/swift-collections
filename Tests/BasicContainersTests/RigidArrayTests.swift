@@ -1252,7 +1252,7 @@ class RigidArrayTests: CollectionTestCase {
           withLifetimeTracking { tracker in
             var a = tracker.rigidArray(layout: layout)
 
-            a.replace(removing: subrange, addingCount: c) { target in
+            a.replaceSubrange(subrange, addingCount: c) { target in
               expectEqual(target.freeCapacity, c)
               for i in 0 ..< c {
                 target.append(tracker.instance(for: layout.count + i))
@@ -1284,7 +1284,7 @@ class RigidArrayTests: CollectionTestCase {
             withLifetimeTracking { tracker in
               var a = tracker.rigidArray(layout: layout)
 
-              a.replace(removing: subrange, addingCount: c) { target in
+              a.replaceSubrange(subrange, addingCount: c) { target in
                 expectTrue(target.isEmpty)
                 expectEqual(target.freeCapacity, c)
                 for i in 0 ..< n {
@@ -1318,8 +1318,8 @@ class RigidArrayTests: CollectionTestCase {
           withLifetimeTracking { tracker in
             var a = tracker.rigidArray(layout: layout)
 
-            a.replace(
-              removing: subrange,
+            a.replaceSubrange(
+              subrange,
               consumingWith: { span in
                 for i in 0 ..< subrange.count {
                   expectEqual(span[i].payload, subrange.lowerBound + i)
@@ -1358,8 +1358,8 @@ class RigidArrayTests: CollectionTestCase {
             withLifetimeTracking { tracker in
               var a = tracker.rigidArray(layout: layout)
 
-              a.replace(
-                removing: subrange,
+              a.replaceSubrange(
+                subrange,
                 consumingWith: { span in
                   for i in 0 ..< subrange.count {
                     expectEqual(span[i].payload, subrange.lowerBound + i)
@@ -1408,7 +1408,7 @@ class RigidArrayTests: CollectionTestCase {
                 addition.map { tracker.instance(for: $0) },
                 isContiguous: isContiguous)
               var a = tracker.rigidArray(layout: layout)
-              a.replace(removing: range, copying: trackedAddition)
+              a.replaceSubrange(range, copying: trackedAddition)
 
               expectRigidArrayContents(
                 a,
@@ -1433,7 +1433,7 @@ class RigidArrayTests: CollectionTestCase {
 
             var a = tracker.rigidArray(layout: layout)
             let trackedAddition = RigidArray(copying: addition.map { tracker.instance(for: $0) })
-            a.replace(removing: range, copying: trackedAddition.span)
+            a.replaceSubrange(range, copying: trackedAddition.span)
 
             expectRigidArrayContents(
               a,
@@ -1463,7 +1463,7 @@ class RigidArrayTests: CollectionTestCase {
               let trackedAddition = StaccatoContainer(
                 contents: RigidArray(copying: addition.map { tracker.instance(for: $0) }),
                 spanCounts: [spanCount])
-              a.replace(removing: range, copying: trackedAddition)
+              a.replaceSubrange(range, copying: trackedAddition)
 
               expectRigidArrayContents(
                 a,
@@ -1518,7 +1518,7 @@ class RigidArrayTests: CollectionTestCase {
         a.append(tracker.instance(for: i))
       }
 
-      var consumer = a.consume(0 ..< 2)
+      var consumer = a.consumeSubrange(0 ..< 2)
       let span = consumer.drainNext(maxCount: .max)
 
       expectEqual(span.count, 2)

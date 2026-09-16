@@ -97,19 +97,22 @@ extension RigidDeque where Element: ~Copyable {
   ///    - newItemCount: The maximum number of items to append to the deque.
   ///    - body: A callback that gets called at most twice to directly
   ///       populate newly reserved storage within the deque.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`newItemCount`) in addition to the complexity of the callback
   ///    invocations.
   @_alwaysEmitIntoClient
   @inline(__always)
+  @discardableResult
   public mutating func append<E: Error>(
     addingCount newItemCount: Int,
     initializingWith body: (inout OutputSpan<Element>) throws(E) -> Void
-  ) throws(E) -> Void {
+  ) throws(E) -> Range<Int> {
     precondition(newItemCount >= 0, "Cannot append a negative number of items")
-    guard newItemCount > 0 else { return }
+    guard newItemCount > 0 else {
+      return Range(uncheckedBounds: (count, count))
+    }
     precondition(freeCapacity >= newItemCount, "RigidDeque capacity overflow")
-    try _handle.uncheckedAppend(addingCount: newItemCount, initializingWith: body)
+    return try _handle.uncheckedAppend(addingCount: newItemCount, initializingWith: body)
   }
 }
 
@@ -124,14 +127,15 @@ extension RigidDeque where Element: ~Copyable {
   /// - Parameters:
   ///    - items: A fully initialized buffer whose contents to move into
   ///        the deque.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`items.count`)
   @_alwaysEmitIntoClient
+  @discardableResult
   public mutating func append(
     moving items: UnsafeMutableBufferPointer<Element>
-  ) {
+  ) -> Range<Int> {
     precondition(items.count <= freeCapacity, "RigidDeque capacity overflow")
-    _handle.uncheckedAppend(moving: items)
+    return _handle.uncheckedAppend(moving: items)
   }
   
 #if UnstableContainersPreview
@@ -143,16 +147,17 @@ extension RigidDeque where Element: ~Copyable {
   ///
   /// - Parameters:
   ///    - items: An input span whose contents need to be appended to this deque.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`items.count`)
   @_alwaysEmitIntoClient
+  @discardableResult
   public mutating func append(
     moving items: inout InputSpan<Element>
-  ) {
+  ) -> Range<Int> {
     items.withUnsafeMutableBufferPointer { buffer, count in
       let source = buffer._extracting(last: count)
-      unsafe self.append(moving: source)
       count = 0
+      return unsafe self.append(moving: source)
     }
   }
 #endif
@@ -165,16 +170,17 @@ extension RigidDeque where Element: ~Copyable {
   ///
   /// - Parameters:
   ///    - items: An output span whose contents need to be appended to this deque.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`items.count`)
   @_alwaysEmitIntoClient
+  @discardableResult
   public mutating func append(
     moving items: inout OutputSpan<Element>
-  ) {
+  ) -> Range<Int> {
     items.withUnsafeMutableBufferPointer { buffer, count in
       let source = buffer._extracting(first: count)
-      unsafe self.append(moving: source)
       count = 0
+      return unsafe self.append(moving: source)
     }
   }
 }
@@ -190,16 +196,17 @@ extension RigidDeque /*where Element: Copyable*/ {
   /// - Parameters:
   ///    - items: A fully initialized buffer whose contents to copy into
   ///       the deque.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`items.count`)
   @_alwaysEmitIntoClient
+  @discardableResult
   public mutating func append(
     copying items: UnsafeBufferPointer<Element>
-  ) {
+  ) -> Range<Int> {
     precondition(
       items.count <= freeCapacity,
       "RigidDeque capacity overflow")
-    _handle.uncheckedAppend(copying: items)
+    return _handle.uncheckedAppend(copying: items)
   }
   
   /// Copies the elements of a buffer and append them to the end of this
@@ -211,12 +218,13 @@ extension RigidDeque /*where Element: Copyable*/ {
   /// - Parameters:
   ///    - items: A fully initialized buffer whose contents to copy into
   ///        the deque.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`items.count`)
   @_alwaysEmitIntoClient
+  @discardableResult
   public mutating func append(
     copying items: UnsafeMutableBufferPointer<Element>
-  ) {
+  ) -> Range<Int> {
     unsafe self.append(copying: UnsafeBufferPointer(items))
   }
   
@@ -227,10 +235,11 @@ extension RigidDeque /*where Element: Copyable*/ {
   ///
   /// - Parameters:
   ///    - items: A span whose contents to copy into the deque.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`items.count`)
   @_alwaysEmitIntoClient
-  public mutating func append(copying items: Span<Element>) {
+  @discardableResult
+  public mutating func append(copying items: Span<Element>) -> Range<Int> {
     items.withUnsafeBufferPointer { source in
       unsafe self.append(copying: source)
     }

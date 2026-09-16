@@ -334,8 +334,8 @@ extension RigidDeque where Element: ~Copyable {
   ///    greater than or equal to the current count.
   ///
   /// - Complexity: O(`count`)
-  @_alwaysEmitIntoClient
-  public mutating func reallocate(capacity newCapacity: Int) {
+  @inlinable
+  public mutating func setCapacity(_ newCapacity: Int) {
     _handle.reallocate(capacity: newCapacity)
   }
 
@@ -350,7 +350,7 @@ extension RigidDeque where Element: ~Copyable {
   @inlinable
   public mutating func reserveCapacity(_ n: Int) {
     guard capacity < n else { return }
-    reallocate(capacity: n)
+    setCapacity(n)
   }
 }
 

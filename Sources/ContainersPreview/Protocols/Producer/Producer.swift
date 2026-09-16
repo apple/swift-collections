@@ -337,7 +337,7 @@ extension Producer where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   ) throws(Failure) {
     var c = 1
     try skip(by: &c)
-    precondition(c == 0, message)
+    precondition(c == 1, message)
   }
 }
 

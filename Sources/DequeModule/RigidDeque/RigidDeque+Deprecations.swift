@@ -11,45 +11,39 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
+import InternalCollectionsUtilities
+import SpanPreview
+#endif
+
 #if compiler(>=6.2)
 
 @available(SwiftStdlib 5.0, *)
-extension UniqueDeque where Element: ~Copyable {
-  /// Creates an empty unique deque with the specified capacity.
-  @available(*, deprecated, renamed: "init(minimumCapacity:)")
-  @_alwaysEmitIntoClient
-  @_transparent
-  public init(capacity: Int) {
-    _storage = .init(capacity: capacity)
-  }
-
-  /// Grow or shrink the capacity of this deque instance without discarding
+extension RigidDeque where Element: ~Copyable {
+  /// Grow or shrink the capacity of a rigid deque instance without discarding
   /// its contents.
   ///
   /// This operation replaces the deque's storage buffer with a newly allocated
   /// buffer of the specified capacity, moving all existing elements
   /// to its new storage. The old storage is then deallocated.
   ///
-  /// - Parameter capacity: The desired new capacity. `capacity` must be
+  /// - Parameter newCapacity: The desired new capacity. `newCapacity` must be
   ///    greater than or equal to the current count.
   ///
   /// - Complexity: O(`count`)
   @available(*, deprecated, renamed: "setCapacity(_:)")
-  @inlinable
-  public mutating func reallocate(capacity: Int) {
-    _storage.setCapacity(capacity)
+  @_alwaysEmitIntoClient
+  public mutating func reallocate(capacity newCapacity: Int) {
+    _handle.reallocate(capacity: newCapacity)
   }
 
   /// Replaces the specified range of elements by a given count of new items,
   /// using a callback to directly initialize deque storage by populating
   /// a series of output spans.
   ///
-  /// The number of new elements need not match the number of elements being
-  /// removed.
-  ///
   /// This method has the same overall effect as calling
   ///
-  ///     try deque.consume(subrange, consumingWith: consumer)
+  ///     try deque.removeSubrange(subrange)
   ///     try deque.insert(
   ///       addingCount: newItemCount,
   ///       at: subrange.lowerBound,
@@ -58,27 +52,15 @@ extension UniqueDeque where Element: ~Copyable {
   /// Except it performs faster (by a constant factor), by avoiding moving
   /// some items in the deque twice.
   ///
-  /// If the deque doesn't have sufficient capacity to accommodate the new
-  /// elements, then this method reallocates the deque's storage to grow it,
-  /// using a geometric growth rate.
+  /// If the capacity of the deque isn't sufficient to accommodate the new
+  /// elements, then this method triggers a runtime error.
   ///
-  /// Neither the removed nor the newly inserted items are guaranteed to form a
-  /// single contiguous storage region. Therefore, the supplied callbacks may be
-  /// invoked multiple times to consume, then initialize successive chunks of
-  /// storage. Calls to `consumer` do not get interleaved with calls to
-  /// `initializer`: no new item is inserted until every replaced item has been
-  /// fully consumed.
-  ///
-  /// The `consumer` callback is not required to fully depopulate its input
-  /// span. Any items the callback leaves in the span still get removed and
-  /// discarded from the deque before insertions begin. If there are more
-  /// spans to consume, the callback will get called again after such a partial
-  /// consumption.
-  ///
-  /// The `initializer` callback is not required to fully populate its
-  /// output span, and it is allowed to throw an error. In such cases, the
-  /// replacement operation ends, and the deque keeps all items that were
-  /// successfully initialized before the callback terminated.
+  /// The newly inserted items are not guaranteed to form a single contiguous
+  /// storage region. Therefore, the supplied callback may be invoked multiple
+  /// times to initialize each successive chunk of storage. However, invocations
+  /// cease if the callback fails to fully populate its output span or if
+  /// it throws an error. In such cases, the deque keeps all items that were
+  /// successfully initialized before the callback terminated the replacement.
   ///
   /// Partial insertions create a gap in ring buffer storage that needs to be
   /// closed by moving newly inserted items to their correct positions given
@@ -93,7 +75,8 @@ extension UniqueDeque where Element: ~Copyable {
   ///      populate newly reserved storage within the deque. The function
   ///      is always called with an empty output span.
   ///
-  /// - Complexity: O(`self.count` + `newCount`)
+  /// - Complexity: O(`self.count` + `newItemCount`) in addition to the complexity
+  ///    of the callback invocations.
   @available(*, deprecated, renamed: "replaceSubrange(_:addingCount:initializingWith:)")
   @inlinable
   public mutating func replace<E: Error>(
@@ -114,9 +97,8 @@ extension UniqueDeque where Element: ~Copyable {
   /// location. The number of new elements need not match the number of elements
   /// being removed.
   ///
-  /// If the deque doesn't have sufficient capacity to accommodate the new
-  /// elements, then this method reallocates the deque's storage to grow it,
-  /// using a geometric growth rate.
+  /// If the capacity of the deque isn't sufficient to accommodate the new
+  /// elements, then this method triggers a runtime error.
   ///
   /// If you pass a zero-length range as the `subrange` parameter, this method
   /// inserts the elements of `items` at `subrange.lowerBound`. This case
@@ -151,9 +133,8 @@ extension UniqueDeque where Element: ~Copyable {
   /// location. The number of new elements need not match the number of elements
   /// being removed.
   ///
-  /// If the deque doesn't have sufficient capacity to accommodate the new
-  /// elements, then this method reallocates the deque's storage to grow it,
-  /// using a geometric growth rate.
+  /// If the capacity of the deque isn't sufficient to accommodate the new
+  /// elements, then this method triggers a runtime error.
   ///
   /// If you pass a zero-length range as the `subrange` parameter, this method
   /// inserts the elements of `items` at `subrange.lowerBound`. This case
@@ -176,12 +157,11 @@ extension UniqueDeque where Element: ~Copyable {
     removing subrange: Range<Int>,
     moving items: inout OutputSpan<Element>
   ) {
-    replaceSubrange(subrange, moving: &items)
   }
 }
 
 @available(SwiftStdlib 5.0, *)
-extension UniqueDeque /* where Element: Copyable */ {
+extension RigidDeque /* where Element: Copyable */ {
   /// Replaces the specified subrange of elements by copying the elements of
   /// the given buffer pointer, which must be fully initialized.
   ///
@@ -190,9 +170,8 @@ extension UniqueDeque /* where Element: Copyable */ {
   /// location. The number of new elements need not match the number of elements
   /// being removed.
   ///
-  /// If the deque doesn't have sufficient capacity to accommodate the new
-  /// elements, then this method reallocates the deque's storage to grow it,
-  /// using a geometric growth rate.
+  /// If the capacity of the deque isn't sufficient to accommodate the new
+  /// elements, then this method triggers a runtime error.
   ///
   /// If you pass a zero-length range as the `subrange` parameter, this method
   /// inserts the elements of `items` at `subrange.lowerBound`. This case
@@ -226,9 +205,8 @@ extension UniqueDeque /* where Element: Copyable */ {
   /// location. The number of new elements need not match the number of elements
   /// being removed.
   ///
-  /// If the deque doesn't have sufficient capacity to accommodate the new
-  /// elements, then this method reallocates the deque's storage to grow it,
-  /// using a geometric growth rate.
+  /// If the capacity of the deque isn't sufficient to accommodate the new
+  /// elements, then this method triggers a runtime error.
   ///
   /// If you pass a zero-length range as the `subrange` parameter, this method
   /// inserts the elements of `items` at `subrange.lowerBound`. This case
@@ -262,9 +240,8 @@ extension UniqueDeque /* where Element: Copyable */ {
   /// location. The number of new elements need not match the number of elements
   /// being removed.
   ///
-  /// If the deque doesn't have sufficient capacity to accommodate the new
-  /// elements, then this method reallocates the deque's storage to grow it,
-  /// using a geometric growth rate.
+  /// If the capacity of the deque isn't sufficient to accommodate the new
+  /// elements, then this method triggers a runtime error.
   ///
   /// If you pass a zero-length range as the `subrange` parameter, this method
   /// inserts the elements of `items` at `subrange.lowerBound`. This case
@@ -298,9 +275,8 @@ extension UniqueDeque /* where Element: Copyable */ {
   /// location. The number of new elements need not match the number of elements
   /// being removed.
   ///
-  /// If the deque doesn't have sufficient capacity to accommodate the new
-  /// elements, then this method reallocates the deque's storage to grow it,
-  /// using a geometric growth rate.
+  /// If the capacity of the deque isn't sufficient to accommodate the new
+  /// elements, then this method triggers a runtime error.
   ///
   /// If you pass a zero-length range as the `subrange` parameter, this method
   /// inserts the elements of `items` at `subrange.lowerBound`. This case
@@ -326,7 +302,6 @@ extension UniqueDeque /* where Element: Copyable */ {
   ) {
     replaceSubrange(subrange, copying: items)
   }
-
 }
 
 #endif

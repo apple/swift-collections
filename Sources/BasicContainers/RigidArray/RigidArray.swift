@@ -367,9 +367,10 @@ extension RigidArray where Element: ~Copyable {
   /// - Complexity: O(`count`)
   @inlinable
   public mutating func setCapacity(_ newCapacity: Int) {
+    let newCapacity = Swift.max(newCapacity, count)
     guard newCapacity != capacity else { return }
     let newStorage: UnsafeMutableBufferPointer<Element> = .allocate(
-      capacity: Swift.max(newCapacity, count))
+      capacity: newCapacity)
     let i = unsafe newStorage.moveInitialize(fromContentsOf: self._items)
     assert(i == count)
 

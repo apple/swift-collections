@@ -534,12 +534,13 @@ class UniqueArrayTests: CollectionTestCase {
         var a = tracker.uniqueArray(layout: layout)
         a.removeAll()
         expectTrue(a.isEmpty)
-        expectEqual(a.capacity, 0)
+        expectEqual(a.capacity, layout.capacity)
         expectEqual(tracker.instances, 0)
       }
     }
   }
 
+  @available(*, deprecated)
   func test_removeAll_keepingCapacity() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withLifetimeTracking { tracker in
@@ -940,7 +941,7 @@ class UniqueArrayTests: CollectionTestCase {
 
             var a = tracker.uniqueArray(layout: layout)
             let trackedAddition = addition.map { tracker.instance(for: $0) }
-            a.replace(removing: range, copying: trackedAddition)
+            a.replaceSubrange(range, copying: trackedAddition)
 
             expectUniqueArrayContents(
               a,
@@ -970,7 +971,7 @@ class UniqueArrayTests: CollectionTestCase {
             var a = tracker.uniqueArray(layout: layout)
             let trackedAddition = RigidArray(
               copying: addition.map { tracker.instance(for: $0) })
-            a.replace(removing: range, copying: trackedAddition.span)
+            a.replaceSubrange(range, copying: trackedAddition.span)
 
             expectUniqueArrayContents(
               a,
@@ -1002,7 +1003,7 @@ class UniqueArrayTests: CollectionTestCase {
 
             var a = tracker.uniqueArray(layout: layout)
             trackedAddition.span.withUnsafeBufferPointer { buffer in
-              a.replace(removing: range, copying: buffer)
+              _ = a.replaceSubrange(range, copying: buffer)
             }
 
             expectUniqueArrayContents(

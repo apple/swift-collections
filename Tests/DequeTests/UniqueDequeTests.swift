@@ -203,7 +203,7 @@ final class UniqueDequeTests: CollectionTestCase {
               var data = tracker.uniqueDeque(with: layout)
               let newItems = tracker.instances(for: 100 ..< 100 + newCount)
               var src = newItems.makeIterator()
-              data.deque.replace(removing: from ..< to, addingCount: newCount) { target in
+              data.deque.replaceSubrange(from ..< to, addingCount: newCount) { target in
                 while !target.isFull, let item = src.next() {
                   target.append(item)
                 }

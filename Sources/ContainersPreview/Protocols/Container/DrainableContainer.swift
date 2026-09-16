@@ -29,24 +29,48 @@ where
 {
   // MARK: Core requirements
 
-  associatedtype SubrangeConsumer: Drain<Element> & ~Copyable & ~Escapable
+  associatedtype SubrangeConsumer:
+    ContainerDrain<Element> & ~Copyable & ~Escapable
+  where SubrangeConsumer.Index == Index
 
   @_lifetime(&self)
-  mutating func consume(_ subrange: Range<Index>) -> SubrangeConsumer
+  mutating func consumeSubrange(_ subrange: Range<Index>) -> SubrangeConsumer
 
+  // FIXME: `consumeAll(where:)`
   // FIXME: `removeAll(where:)`
-  // FIXME: `consumeAll(where:)`?
   // These should ideally be using SubrangeConsumer, but that requires Drain
   // to support partial consumption -- a large complication.
 
   // MARK: Requirements with default implementations
 
-  mutating func remove(at index: Index) -> Element
-  mutating func removeSubrange(_ bounds: Range<Index>)
+  /// Removes and returns the element at the specified position.
+  ///
+  /// - Parameter index: The position of the element to remove. `index` must be
+  ///   a valid index that is not equal to the end index.
+  ///   On return, `index` is updated to address the position following the
+  ///   removed element.
+  /// - Returns: The removed element.
+  @discardableResult
+  mutating func remove(at index: inout Index) -> Element
+
+  @discardableResult
+  mutating func consumeSubrange(
+    _ bounds: Range<Index>,
+    consumingWith consumer: (inout InputSpan<Element>) -> Void
+  ) -> Index
+
+  @discardableResult
+  mutating func removeSubrange(_ bounds: Range<Index>) -> Index
+
   mutating func removeAll()
-  mutating func removeFirst() -> Element
+
   mutating func removeFirst(_ n: Int)
+
   mutating func _customRemoveLast() -> Element?
+
+  @_lifetime(&self)
+  mutating func _customConsumeLast(_ n: Int) -> SubrangeConsumer?
+
   mutating func _customRemoveLast(_ n: Int) -> Bool
 }
 
@@ -57,10 +81,10 @@ extension DrainableContainer
 where Self: ~Copyable & ~Escapable, Element: ~Copyable
 {
   @_alwaysEmitIntoClient
-  public mutating func remove(at index: Index) -> Element {
+  public mutating func remove(at index: inout Index) -> Element {
     let range = Range(uncheckedBounds: (index, self.index(after: index)))
     var result: Element?
-    self.consume(range) {
+    index = self.consumeSubrange(range) {
       result = $0.removeFirst()
     }
     guard let result else {
@@ -70,16 +94,14 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
   }
 
   @_alwaysEmitIntoClient
-  public mutating func removeSubrange(_ bounds: Range<Index>) {
-    _ = consume(bounds)
+  @discardableResult
+  public mutating func removeSubrange(_ bounds: Range<Index>) -> Index {
+    consumeSubrange(bounds) { _ in }
   }
 
   @_alwaysEmitIntoClient
-  public mutating func removeFirst() -> Element {
-    precondition(
-      !isEmpty,
-      "Can't remove first element from an empty container")
-    return self.remove(at: self.startIndex)
+  public mutating func removeAll() {
+    removeSubrange(startIndex ..< endIndex)
   }
 
   @_alwaysEmitIntoClient
@@ -87,9 +109,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
     if n == 0 { return }
     precondition(n >= 0, "Number of elements to remove should be non-negative")
     let start = self.startIndex
-    guard
-      let end = self.index(start, offsetBy: n, limitedBy: endIndex)
-        else {
+    guard let end = self.index(start, offsetBy: n, limitedBy: endIndex) else {
       preconditionFailure(
         "Can't remove more items from a container than it has")
     }
@@ -98,6 +118,12 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
 
   @_alwaysEmitIntoClient
   public mutating func _customRemoveLast() -> Element? {
+    nil
+  }
+
+  @_alwaysEmitIntoClient
+  @_lifetime(&self)
+  public mutating func _customConsumeLast(_ n: Int) -> SubrangeConsumer? {
     nil
   }
 
@@ -114,30 +140,17 @@ extension DrainableContainer
 where Self: ~Copyable & ~Escapable, Element: ~Copyable
 {
   @_alwaysEmitIntoClient
-  public mutating func consume(
-    _ subrange: Range<Index>,
-    consumingWith consumer: (inout InputSpan<Element>) -> Void
-  ) {
-    var drain = self.consume(subrange)
-    while true {
-      var chunk = drain.drainNext()
-      guard !chunk.isEmpty else { break }
-      consumer(&chunk)
-    }
-  }
-
-  @_alwaysEmitIntoClient
   @_lifetime(&self)
   public mutating func consumeAll() -> SubrangeConsumer {
-    consume(startIndex ..< endIndex)
+    consumeSubrange(startIndex ..< endIndex)
   }
 
   @_alwaysEmitIntoClient
   @_lifetime(&self)
-  public mutating func consume(
+  public mutating func consumeSubrange(
     _ subrange: some RangeExpression2<Index>
   ) -> SubrangeConsumer {
-    consume(subrange.relative(to: self))
+    consumeSubrange(subrange.relative(to: self))
   }
 
   // This unavailable default implementation of the protocol requirement
@@ -146,16 +159,18 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
   @available(*, unavailable)
   @_alwaysEmitIntoClient
   @_lifetime(&self)
-  public mutating func consume(_ subrange: Range<Index>) -> SubrangeConsumer {
+  public mutating func consumeSubrange(
+    _ subrange: Range<Index>
+  ) -> SubrangeConsumer {
     fatalError()
   }
 
   @_alwaysEmitIntoClient
   @_lifetime(&self)
-  public mutating func consume(
+  public mutating func consumeSubrange(
     _ subrange: UnboundedRange
   ) -> SubrangeConsumer {
-    consume(startIndex ..< endIndex)
+    consumeAll()
   }
 
   @_alwaysEmitIntoClient
@@ -167,7 +182,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
     var n = n
     self.formIndex(&i, offsetBy: &n, limitedBy: self.endIndex)
     precondition(n == 0, "Count of elements to consume is out of bounds")
-    return consume(start ..< i)
+    return consumeSubrange(start ..< i)
   }
 }
 
@@ -181,13 +196,68 @@ where
   @_alwaysEmitIntoClient
   @_lifetime(&self)
   public mutating func consumeLast(_ n: Int) -> SubrangeConsumer {
+    if let drain = self._customConsumeLast(n) {
+      return drain
+    }
     precondition(n >= 0, "Count of elements to consume is out of bounds")
     let end = self.endIndex
     var i = end
     var distance = -n
     self.formIndex(&i, offsetBy: &distance, limitedBy: self.startIndex)
     precondition(distance == 0, "Count of elements to consume is out of bounds")
-    return consume(i ..< end)
+    return consumeSubrange(i ..< end)
+  }
+}
+
+@available(SwiftStdlib 6.4, *)
+extension DrainableContainer
+where Self: ~Copyable & ~Escapable, Element: ~Copyable
+{
+  /// - Returns: A valid index addressing the position following the consumed
+  ///    subrange.
+  @_alwaysEmitIntoClient
+  @discardableResult
+  public mutating func consumeSubrange(
+    _ bounds: Range<Index>,
+    consumingWith consumer: (inout InputSpan<Element>) -> Void
+  ) -> Index {
+    var drain = self.consumeSubrange(bounds)
+    while true {
+      var span = drain.drainNext()
+      guard !span.isEmpty else { break }
+      consumer(&span)
+    }
+    return drain.finalize()
+  }
+
+  @_alwaysEmitIntoClient
+  public mutating func consumeAll(
+    consumingWith consumer: (inout InputSpan<Element>) -> Void
+  ) {
+    consumeSubrange(startIndex ..< endIndex, consumingWith: consumer)
+  }
+
+  /// - Returns: A valid index addressing the position following the consumed
+  ///    subrange.
+  @_alwaysEmitIntoClient
+  @discardableResult
+  public mutating func consumeSubrange(
+    _ subrange: some RangeExpression2<Index>,
+    consumingWith consumer: (inout InputSpan<Element>) -> Void
+  ) -> Index {
+    consumeSubrange(subrange.relative(to: self), consumingWith: consumer)
+  }
+
+  /// - Returns: A valid index addressing the position following the consumed
+  ///    subrange.
+  @_alwaysEmitIntoClient
+  @discardableResult
+  public mutating func consumeSubrange(
+    _ subrange: UnboundedRange,
+    consumingWith consumer: (inout InputSpan<Element>) -> Void
+  ) -> Index {
+    consumeAll(consumingWith: consumer)
+    return self.endIndex
   }
 }
 
@@ -196,22 +266,42 @@ extension DrainableContainer
 where Self: ~Copyable & ~Escapable, Element: ~Copyable
 {
   @_alwaysEmitIntoClient
-  public mutating func removeAll() {
-    removeSubrange(startIndex ..< endIndex)
+  @inline(always)
+  @discardableResult
+  public mutating func remove(at index: Index) -> Element {
+    var index = index
+    return remove(at: &index)
   }
 
   @_alwaysEmitIntoClient
-  public mutating func removeSubrange(
-    _ bounds: some RangeExpression2<Index>
-  ) {
-    removeSubrange(bounds.relative(to: self))
+  public mutating func removeFirst() -> Element {
+    precondition(
+      !isEmpty,
+      "Can't remove first element from an empty container")
+    return self.remove(at: self.startIndex)
   }
 
+  /// - Returns: A valid index addressing the position following the removed
+  ///    subrange.
   @_alwaysEmitIntoClient
+  @inline(always)
+  @discardableResult
   public mutating func removeSubrange(
-    _ bounds: UnboundedRange
-  ) {
-    removeAll()
+    _ subrange: some RangeExpression2<Index>
+  ) -> Index {
+    self.removeSubrange(subrange.relative(to: self))
+  }
+
+  /// - Returns: A valid index addressing the position following the removed
+  ///    subrange.
+  @_alwaysEmitIntoClient
+  @inline(always)
+  @discardableResult
+  public mutating func removeSubrange(
+    _ subrange: UnboundedRange
+  ) -> Index {
+    self.removeAll()
+    return self.startIndex
   }
 }
 
@@ -256,6 +346,5 @@ where Self: BidirectionalContainer & ~Copyable & ~Escapable, Element: ~Copyable
     return self.remove(at: self.index(before: self.endIndex))
   }
 }
-
 
 #endif

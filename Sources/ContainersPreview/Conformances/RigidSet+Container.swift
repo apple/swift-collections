@@ -17,7 +17,7 @@ import BasicContainers
 
 #if compiler(>=6.4) && UnstableContainersPreview && UnstableHashedContainers
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension RigidSet: Container where Element: ~Copyable {
   @_alwaysEmitIntoClient
   public func currentIndex(of iterator: inout BorrowingIterator) -> Index {

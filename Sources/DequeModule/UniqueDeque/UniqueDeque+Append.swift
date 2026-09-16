@@ -80,19 +80,20 @@ extension UniqueDeque where Element: ~Copyable {
   ///    - newItemCount: The maximum number of items to append to the deque.
   ///    - body: A callback that gets called at most twice to directly
   ///       populate newly reserved storage within the deque.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`newItemCount`) in addition to the complexity of the callback
   ///    invocations, when amortized over many similar invocations on the same
   ///    deque.
   @_alwaysEmitIntoClient
   @inline(__always)
+  @discardableResult
   public mutating func append<E: Error>(
     addingCount newItemCount: Int,
     initializingWith body: (inout OutputSpan<Element>) throws(E) -> Void
-  ) throws(E) -> Void {
-    guard newItemCount > 0 else { return }
+  ) throws(E) -> Range<Int> {
+    guard newItemCount > 0 else { return count ..< count }
     _ensureFreeCapacity(newItemCount)
-    try _storage._handle.uncheckedAppend(
+    return try _storage._handle.uncheckedAppend(
       addingCount: newItemCount, initializingWith: body)
   }
 }
@@ -109,15 +110,16 @@ extension UniqueDeque where Element: ~Copyable {
   /// - Parameters:
   ///    - items: A fully initialized buffer whose contents to move into
   ///        the deque.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`items.count`) when amortized over many similar
   ///     invocations on the same deque.
   @_alwaysEmitIntoClient
+  @discardableResult
   public mutating func append(
     moving items: UnsafeMutableBufferPointer<Element>
-  ) {
+  ) -> Range<Int> {
     _ensureFreeCapacity(items.count)
-    _storage._handle.uncheckedAppend(moving: items)
+    return _storage._handle.uncheckedAppend(moving: items)
   }
   
 #if UnstableContainersPreview
@@ -130,17 +132,18 @@ extension UniqueDeque where Element: ~Copyable {
   ///
   /// - Parameters:
   ///    - items: An input span whose contents need to be appended to this deque.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`items.count`) when amortized over many similar
   ///     invocations on the same deque.
   @_alwaysEmitIntoClient
+  @discardableResult
   public mutating func append(
     moving items: inout InputSpan<Element>
-  ) {
+  ) -> Range<Int> {
     items.withUnsafeMutableBufferPointer { buffer, count in
       let source = buffer._extracting(last: count)
-      unsafe self.append(moving: source)
       count = 0
+      return unsafe self.append(moving: source)
     }
   }
 #endif
@@ -154,17 +157,18 @@ extension UniqueDeque where Element: ~Copyable {
   ///
   /// - Parameters:
   ///    - items: An output span whose contents need to be appended to this deque.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`items.count`) when amortized over many similar
   ///     invocations on the same deque.
   @_alwaysEmitIntoClient
+  @discardableResult
   public mutating func append(
     moving items: inout OutputSpan<Element>
-  ) {
+  ) -> Range<Int> {
     items.withUnsafeMutableBufferPointer { buffer, count in
       let source = buffer._extracting(first: count)
-      unsafe self.append(moving: source)
       count = 0
+      return unsafe self.append(moving: source)
     }
   }
 }
@@ -182,15 +186,16 @@ extension UniqueDeque /*where Element: Copyable*/ {
   /// - Parameters:
   ///    - items: A fully initialized buffer whose contents to copy into
   ///       the deque.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`items.count`) when amortized over many similar
   ///     invocations on the same deque.
   @_alwaysEmitIntoClient
+  @discardableResult
   public mutating func append(
     copying items: UnsafeBufferPointer<Element>
-  ) {
+  ) -> Range<Int> {
     _ensureFreeCapacity(items.count)
-    unsafe _storage.append(copying: items)
+    return unsafe _storage.append(copying: items)
   }
 
   /// Copies the elements of a buffer to the end of this deque.
@@ -202,13 +207,14 @@ extension UniqueDeque /*where Element: Copyable*/ {
   /// - Parameters:
   ///    - items: A fully initialized buffer whose contents to copy into
   ///       the deque.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`items.count`) when amortized over many similar
   ///     invocations on the same deque.
   @_alwaysEmitIntoClient
+  @discardableResult
   public mutating func append(
     copying items: UnsafeMutableBufferPointer<Element>
-  ) {
+  ) -> Range<Int> {
     unsafe self.append(copying: UnsafeBufferPointer(items))
   }
 
@@ -220,13 +226,14 @@ extension UniqueDeque /*where Element: Copyable*/ {
   ///
   /// - Parameters:
   ///    - items: A span whose contents to copy into the deque.
-  ///
+  /// - Returns: A valid index range addressing the newly inserted items.
   /// - Complexity: O(`items.count`) when amortized over many similar
   ///     invocations on the same deque.
   @_alwaysEmitIntoClient
-  public mutating func append(copying items: Span<Element>) {
+  @discardableResult
+  public mutating func append(copying items: Span<Element>) -> Range<Int> {
     _ensureFreeCapacity(items.count)
-    _storage.append(copying: items)
+    return _storage.append(copying: items)
   }
 
 #if compiler(>=6.4)
