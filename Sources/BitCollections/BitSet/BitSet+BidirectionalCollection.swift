@@ -174,7 +174,7 @@ extension BitSet: Collection, BidirectionalCollection {
   
   /// Returns the position immediately after the given index.
   ///
-  /// - Parameter `index`: A valid index of the bit set. `index` must be less
+  /// - Parameter index: A valid index of the bit set. `index` must be less
   ///    than `endIndex`.
   ///
   /// - Returns: The valid index immediately after `index`.
@@ -194,7 +194,7 @@ extension BitSet: Collection, BidirectionalCollection {
   
   /// Returns the position immediately before the given index.
   ///
-  /// - Parameter `index`: A valid index of the bit set.
+  /// - Parameter index: A valid index of the bit set.
   ///    `index` must be greater than `startIndex`.
   ///
   /// - Returns: The preceding valid index immediately before `index`.
