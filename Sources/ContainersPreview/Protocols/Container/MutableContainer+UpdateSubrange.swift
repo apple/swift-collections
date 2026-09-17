@@ -164,4 +164,65 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
   }
 }
 
+@available(SwiftStdlib 6.4, *)
+extension MutableContainer
+where Self: ~Copyable & ~Escapable, Element: Copyable
+{
+  @_alwaysEmitIntoClient
+  public mutating func updateElements<
+    Failure: Error,
+    Source: BorrowingIteratorProtocol<Element, Failure> & ~Copyable & ~Escapable
+  >(
+    after index: inout Index,
+    copying source: inout Source
+  ) throws(Failure) {
+  outer:
+    while true {
+      var next = index
+      var dst = self.nextMutableSpan(after: &next)
+      guard !dst.isEmpty else { break }
+      var offset = 0
+      defer {
+        if offset > 0 {
+          index = self.index(index, offsetBy: offset)
+        }
+      }
+      while offset < dst.count {
+        let src = try source.nextSpan(maxCount: dst.count)
+        if src.isEmpty { break outer }
+        dst._updateSubrange(
+          Range(uncheckedBounds: (offset, offset + src.count)),
+          copying: src)
+
+      }
+      index = next
+      offset = 0
+    }
+  }
+
+  @_alwaysEmitIntoClient
+  public mutating func updateSubrange(
+    _ subrange: Range<Index>,
+    from source: borrowing some Container<Element> & ~Copyable & ~Escapable
+  ) {
+    var it = source.makeBorrowingIterator()
+    var index = subrange.lowerBound
+    while true {
+      var dst = self.nextMutableSpan(after: &index, limitedBy: subrange.upperBound)
+      guard !dst.isEmpty else { break }
+      var offset = 0
+      while offset < dst.count {
+        let src = it.nextSpan(maxCount: dst.count)
+        precondition(!src.isEmpty, "updateSubrange source length does not match target range")
+        let end = offset + src.count
+        dst._updateSubrange(Range(uncheckedBounds: (offset, end)), copying: src)
+        offset = end
+      }
+    }
+    precondition(
+      it.nextSpan().isEmpty,
+      "updateSubrange source length does not match target range")
+  }
+}
+
 #endif
