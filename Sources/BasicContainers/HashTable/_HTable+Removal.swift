@@ -15,7 +15,7 @@
 
 extension _HTable {
   /// Create a hole at the specified occupied bucket without marking it as
-  /// unoccupied ot restoring the hash table's other invariants. After a hole
+  /// unoccupied or restoring the hash table's other invariants. After a hole
   /// is created, the table remains in an inconsistent state until one of
   /// `resolveHole` or `finalizeHole` is called on the same bucket.
   @usableFromInline

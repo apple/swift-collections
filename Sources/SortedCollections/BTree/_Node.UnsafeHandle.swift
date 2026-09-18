@@ -73,7 +73,7 @@ extension _Node {
       #endif
     }
     
-    // MARK: Mutablility Checks
+    // MARK: Mutability Checks
     #if COLLECTIONS_INTERNAL_CHECKS
     @usableFromInline
     internal let _isMutable: Bool
@@ -440,7 +440,7 @@ extension _Node.UnsafeHandle {
   ///   - target: The destination handle to write to which could be the same
   ///       as the source to move within a handle.
   ///   - sourceSlot: The offset of the source handle to move from.
-  ///   - destinationSlot: The offset of the destintion handle to write to.
+  ///   - destinationSlot: The offset of the destination handle to write to.
   ///   - count: The amount of values to move
   /// - Warning: This does not adjust the buffer counts.
   /// - Warning: This will trap if either the source and destination handles are leaves.

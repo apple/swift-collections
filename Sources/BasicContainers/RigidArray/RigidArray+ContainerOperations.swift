@@ -159,7 +159,7 @@ extension RigidArray where Element: ~Copyable {
   /// endIndex. Passing the same index as both `i` and `j` has no effect.
   ///
   /// - Parameter i: The index of the first value to swap.
-  /// - Parameter j: The index of the second valud to swap.
+  /// - Parameter j: The index of the second value to swap.
   ///
   /// - Complexity: O(1)
   @inlinable
@@ -236,7 +236,7 @@ extension RigidArray where Element: ~Copyable {
   /// array.
   ///
   /// - Note: To improve performance, this method does not validate that the
-  ///    given index is valid before offseting it. Index validation is
+  ///    given index is valid before offsetting it. Index validation is
   ///    deferred until the resulting index is used to access an element.
   ///    This optimization may be removed in future versions; do not rely on it.
   ///
@@ -256,7 +256,7 @@ extension RigidArray where Element: ~Copyable {
   /// Returns the distance between two indices.
   ///
   /// - Note: To improve performance, this method does not validate that the
-  ///    given index is valid before offseting it. Index validation is
+  ///    given index is valid before offsetting it. Index validation is
   ///    deferred until the resulting index is used to access an element.
   ///    This optimization may be removed in future versions; do not rely on it.
   ///
@@ -287,7 +287,7 @@ extension RigidArray where Element: ~Copyable {
   /// those bounds.
   ///
   /// - Note: To improve performance, this method does not validate that the
-  ///    given index is valid before offseting it. Index validation is
+  ///    given index is valid before offsetting it. Index validation is
   ///    deferred until the resulting index is used to access an element.
   ///    This optimization may be removed in future versions; do not rely on it.
   ///

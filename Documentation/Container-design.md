@@ -456,7 +456,7 @@ Notably, we replace `Collection`'s classic `index(_:offsetBy:limitedBy:)` requir
 
 <span id="limiting-index-semantics">
 
-The `limit` argument here (and also elsewhere throughout the `Container` interface surface) means a **limiting index**, intended to cause the operation to stop if it encounters the limit during its execution. A limit of this sort only triggers a stop if the operation needs to actively iterate over it. A limit that the operation never needs to visit has no effect, whether it happens to address a position before or after the visited range. For example, if we're trying to find the index by offseting position 10 by 5 places forward, a limiting index at position 3 has no effect -- to offset the original position, we only need to visit positions 10, 11, 12, 13, 14, and 15.
+The `limit` argument here (and also elsewhere throughout the `Container` interface surface) means a **limiting index**, intended to cause the operation to stop if it encounters the limit during its execution. A limit of this sort only triggers a stop if the operation needs to actively iterate over it. A limit that the operation never needs to visit has no effect, whether it happens to address a position before or after the visited range. For example, if we're trying to find the index by offsetting position 10 by 5 places forward, a limiting index at position 3 has no effect -- to offset the original position, we only need to visit positions 10, 11, 12, 13, 14, and 15.
 
 These curious semantics allow types that cannot provide comparable indices to still correctly conform to the protocol. (For example, linked lists usually cannot determine relative ordering between their indices without actively iterating through the list in linear time. If `limit` was required to be observed even if it lied behind the starting position, then linked lists would need to painstakingly figure out if this was the case, by iterating through items we wouldn't expect the operation to ever visit.)
 
@@ -1113,7 +1113,7 @@ Based on our expectations for predictably good container performance, we believe
 
 ## Mutable Containers
 
-It is relatively straightforward to augment our read-only container model with new operations that allow in-place mutations. We'll follow in the footsteps of `MutableCollection` by defining a `MutableContainer` protocol. However, we carve it into two separate levels, by first introducing an intermediate protocol that forcuses on reordering.
+It is relatively straightforward to augment our read-only container model with new operations that allow in-place mutations. We'll follow in the footsteps of `MutableCollection` by defining a `MutableContainer` protocol. However, we carve it into two separate levels, by first introducing an intermediate protocol that focuses on reordering.
 
 ### `protocol PermutableContainer`
 
@@ -1393,7 +1393,7 @@ The ownership of all generated elements is transferred to the caller of this met
 
 </details>
 
-The `generate(into:)` operation may throw an error if it encounters an issue while trying to generate the upcoming next item in the sequence. Failure may happen midway through populating `target`, in which case the output span will still gain new items, despite the error. (Those items have been successfully generated, and do not necessarilly need to be discarded.)
+The `generate(into:)` operation may throw an error if it encounters an issue while trying to generate the upcoming next item in the sequence. Failure may happen midway through populating `target`, in which case the output span will still gain new items, despite the error. (Those items have been successfully generated, and do not necessarily need to be discarded.)
 
 This protocol does not specify the meaning of a failure, or the precise state of the iterator after an error is thrown; however, the error must not trigger runtime traps in subsequent attempts at iteration. (After a failure, conforming types may choose to produce new items, or signal the end of the iteration, or throw another error, which may or may not match the first.)
 
