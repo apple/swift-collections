@@ -168,7 +168,7 @@ extension UniqueBox where Value: Copyable {
     value
   }
 
-  /// Copies the value within the unqiue box and returns it in a new unique
+  /// Copies the value within the unique box and returns it in a new unique
   /// instance.
   @_alwaysEmitIntoClient
   @_transparent

@@ -106,7 +106,7 @@ public struct RigidDeque<Element: ~Copyable>: ~Copyable {
 /// time-constrained applications that cannot accommodate unexpected latency
 /// spikes due to a reallocation getting triggered at an inopportune moment.
 ///
-/// For use cases outside of these narrow domains, we generally recommmend
+/// For use cases outside of these narrow domains, we generally recommend
 /// to use the dynamically resizing ``UniqueDeque`` type rather than
 /// `RigidDeque`. For copyable elements, the copy-on-write `Deque` type is an
 /// even more convenient and expressive choice.
@@ -308,7 +308,7 @@ extension RigidDeque where Element: ~Copyable {
   /// `endIndex`. Passing the same index as both `i` and `j` has no effect.
   ///
   /// - Parameter i: The index of the first value to swap.
-  /// - Parameter j: The index of the second valud to swap.
+  /// - Parameter j: The index of the second value to swap.
   ///
   /// - Complexity: O(1)
   @inlinable

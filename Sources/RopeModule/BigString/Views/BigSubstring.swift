@@ -256,7 +256,7 @@ extension BigSubstring {
       // Substring mutations may change grapheme boundaries across the bounds of the original
       // substring value, and we need to ensure that the substring's bounds remain well-aligned.
       // Unfortunately, there are multiple ways of doing this, none of which are obviously
-      // superior to others. To keep the behavior easier to explan, we emulate substring
+      // superior to others. To keep the behavior easier to explain, we emulate substring
       // initialization and round the start and end indices down to the nearest Character boundary
       // after each mutation.
       let delta = self._base._utf8Count - oldCount

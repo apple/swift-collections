@@ -237,7 +237,7 @@ extension UniqueDeque where Element: ~Copyable {
   /// `endIndex`. Passing the same index as both `i` and `j` has no effect.
   ///
   /// - Parameter i: The index of the first value to swap.
-  /// - Parameter j: The index of the second valud to swap.
+  /// - Parameter j: The index of the second value to swap.
   ///
   /// - Complexity: O(1)
   @_transparent
