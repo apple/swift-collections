@@ -328,6 +328,18 @@ extension Producer where Self: ~Copyable & ~Escapable, Element: ~Copyable {
 
 @available(SwiftStdlib 5.0, *)
 extension Producer where Self: ~Copyable & ~Escapable, Element: ~Copyable {
+  @_alwaysEmitIntoClient
+  @discardableResult
+  public mutating func fill(
+    _ target: inout OutputSpan<Element>
+  ) throws(Failure) -> Bool {
+    var result = false
+    while !target.isFull, try self.generate(into: &target) {
+      result = true
+    }
+    return result
+  }
+
   /// Triggers a runtime trap if the producer is not at its end, consuming it in
   /// the process. This is implemented by checking if it is possible to
   /// skip one item.

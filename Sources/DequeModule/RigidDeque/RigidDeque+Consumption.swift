@@ -185,6 +185,9 @@ extension RigidDeque where Element: ~Copyable {
 
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque where Element: ~Copyable {
+  // FIXME: This works around a Swift 6.5 name resolution issue; see usages below.
+  @usableFromInline internal typealias _Element = Element
+
   @available(SwiftStdlib 5.0, *)
   @frozen
   public struct SubrangeConsumer: ~Copyable, ~Escapable {
@@ -195,13 +198,18 @@ extension RigidDeque where Element: ~Copyable {
 
     @usableFromInline
     internal var _offsetRange: Range<Int>
-    
+
+    // FIXME: This ought to be using `Element` directly, but when the package is
+    // built using the Xcode project, some Swift 6.5 nightlies appear to
+    // resolve it to a less available `Element` definition, causing a build
+    // failure. The availability indicates it may be `Iterable.Element` via
+    // the `Container` conformance; this is super confusing though.
     @usableFromInline
-    internal var _buffer1: UnsafeMutableBufferPointer<Element>
+    internal var _buffer1: UnsafeMutableBufferPointer<_Element>
 
     @usableFromInline
-    internal var _buffer2: UnsafeMutableBufferPointer<Element>
-    
+    internal var _buffer2: UnsafeMutableBufferPointer<_Element>
+
     @_alwaysEmitIntoClient
     @inline(__always)
     @_lifetime(&_base)

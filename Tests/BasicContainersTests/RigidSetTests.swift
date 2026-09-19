@@ -402,14 +402,12 @@ class RigidSetTests: CollectionTestCase {
           withLifetimeTracking { tracker in
             var s = RigidSet<LifetimeTracked<Int>>(capacity: capacity)
 
-            var i = 0
             var p = CustomProducer<LifetimeTracked<Int>, Never>(
               underestimatedCount: 0,
               chunkSize: chunkSize
-            ) {
-              guard i < count else { return nil }
-              defer { i += 1 }
-              return tracker.instance(for: i)
+            ) { offset in
+              guard offset < count else { return nil }
+              return tracker.instance(for: offset)
             }
             s.insert(from: &p)
             expectConsistentSet(s)
