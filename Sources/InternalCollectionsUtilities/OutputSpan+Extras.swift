@@ -115,6 +115,7 @@ extension OutputSpan where Element: ~Copyable {
     from index: Int,
     where shouldBeRemoved: (borrowing Element) -> Bool
   ) {
+    // FIXME: This needs to be in the stdlib.
     precondition(index >= 0 && index <= count, "Index out of bounds")
     self.withUnsafeMutableBufferPointer { buffer, count in
       var i = index
@@ -133,6 +134,36 @@ extension OutputSpan where Element: ~Copyable {
         }
       }
       count = i
+    }
+  }
+}
+
+@available(SwiftStdlib 5.0, *)
+extension OutputSpan where Element: ~Copyable {
+  @_alwaysEmitIntoClient
+  @discardableResult
+  package mutating func _append<E: Error, R: ~Copyable>(
+    addingCount newItemCount: Int,
+    initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> R
+  ) throws(E) -> R {
+    // FIXME: This needs to be in the stdlib.
+    // Note: This is the wrong shape for append, as it doesn't generalize
+    // to piecewise contiguous containers and doesn't return indices.
+    // However, it feels like we need to _also_ provide a simple append
+    // implementation for flat containers, as the ability return things out of
+    // the closure is quite important for usability. We can't name them both
+    // `append(addingCount:initializingWith:)` though!
+    precondition(newItemCount >= 0, "Cannot add a negative number of items")
+    return try withUnsafeMutableBufferPointer { buf, c throws(E) in
+      precondition(newItemCount <= buf.count - c, "OutputSpan capacity overflow")
+      let dst = buf._extracting(unchecked: Range(
+        uncheckedBounds: (c, c &+ newItemCount)))
+      var span = OutputSpan(buffer: dst, initializedCount: 0)
+      defer {
+        c &+= span.finalize(for: dst)
+        span = OutputSpan()
+      }
+      return try initializer(&span)
     }
   }
 }

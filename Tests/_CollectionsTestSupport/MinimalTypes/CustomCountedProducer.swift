@@ -21,18 +21,24 @@ import ContainersPreview
 #if compiler(>=6.4) && UnstableContainersPreview
 
 @available(SwiftStdlib 5.0, *)
-package struct CustomProducer<Element: ~Copyable, Failure: Error>: ~Copyable {
+package struct CustomCountedProducer<Element: ~Copyable, Failure: Error>: ~Copyable {
+  package let count: Int
   package let underestimatedCount: Int
   package let _chunkSize: Int
-  package let _generator: (Int) throws(Failure) -> Element?
+  package let _generator: (Int) throws(Failure) -> Element
   package var _offset: Int
 
   package init(
-    underestimatedCount: Int = 0,
+    count: Int = 0,
+    underestimatedCount: Int? = nil,
     chunkSize: Int = Int.max,
-    generatingWith generator: borrowing @escaping (Int) throws(Failure) -> Element?
+    generatingWith generator: borrowing @escaping (Int) throws(Failure) -> Element
   ) {
-    self.underestimatedCount = underestimatedCount
+    precondition(count >= 0)
+    self.count = count
+    self.underestimatedCount = underestimatedCount ?? count
+    precondition(self.underestimatedCount >= 0 && self.underestimatedCount <= count)
+    precondition(count == 0 || chunkSize > 0)
     self._chunkSize = chunkSize
     self._generator = copy generator
     self._offset = 0
@@ -42,18 +48,17 @@ package struct CustomProducer<Element: ~Copyable, Failure: Error>: ~Copyable {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension CustomProducer: Producer where Element: ~Copyable {
+extension CustomCountedProducer: CountedProducer where Element: ~Copyable {
   package mutating func generate(
     into target: inout OutputSpan<Element>
   ) throws(Failure) -> Bool {
-    var i = 0
-    while !target.isFull, i < _chunkSize {
-      guard let next = try _generator(_offset) else { return i > 0 }
-      target.append(next)
+    var success = false
+    while !target.isFull, _offset < count {
+      target.append(try _generator(_offset))
       _offset += 1
-      i += 1
+      success = true
     }
-    return i > 0
+    return success
   }
 }
 

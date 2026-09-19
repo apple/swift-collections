@@ -11,6 +11,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
+import InternalCollectionsUtilities
+#endif
+
 #if compiler(>=6.2) && UnstableContainersPreview
 extension MutableSpan where Element: ~Copyable {
   // FIXME: Replace with stdlib implementation when it becomes available
@@ -25,13 +29,24 @@ extension MutableSpan where Element: ~Copyable {
     precondition(
       subrange.count == source.count,
       "updateSubrange source count doesn't match target")
+    guard !subrange.isEmpty else { return }
     self.withUnsafeMutableBufferPointer { dst in
       source.withUnsafeMutableBufferPointer { src, c in
         // FIXME: Make sure this calls memcpy when Element is bitwise movable.
+#if false // FIXME: UMBP.moveUpdate(fromContentsOf:) is broken as of 2026-09-17 (rdar://187733648)
         let i = dst
-          .extracting(unchecked: subrange)
-          .moveUpdate(fromContentsOf: src.extracting(last: c))
+          ._extracting(unchecked: subrange)
+          .moveUpdate(fromContentsOf: src._extracting(last: c))
         precondition(i == subrange.count)
+#else
+        var d = dst._ptr(at: subrange.lowerBound)
+        var s = src._ptr(at: src.count - c)
+        for i in 0 ..< c {
+          d.pointee = s.move()
+          d += 1
+          s += 1
+        }
+#endif
         c = 0
       }
     }
@@ -46,11 +61,22 @@ extension MutableSpan where Element: ~Copyable {
     precondition(
       source.count == count,
       "updateSubrange source count doesn't match target")
+    guard !self.isEmpty else { return }
     self.withUnsafeMutableBufferPointer { dst in
       source.withUnsafeMutableBufferPointer { src, c in
         // FIXME: Make sure this calls memcpy when Element is bitwise movable.
-        let i = dst.moveUpdate(fromContentsOf: src.extracting(last: c))
+#if false // FIXME: UMBP.moveUpdate(fromContentsOf:) is broken as of 2026-09-17 (rdar://187733648)
+        let i = dst.moveUpdate(fromContentsOf: src._extracting(last: c))
         assert(i == count)
+#else
+        var d = dst._ptr(at: 0)
+        var s = src._ptr(at: src.count - c)
+        for i in 0 ..< c {
+          d.pointee = s.move()
+          d += 1
+          s += 1
+        }
+#endif
         c = 0
       }
     }
