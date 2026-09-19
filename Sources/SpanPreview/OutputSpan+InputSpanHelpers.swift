@@ -18,10 +18,10 @@ import InternalCollectionsUtilities
 #if compiler(>=6.2) && UnstableContainersPreview
 @available(SwiftStdlib 5.0, *)
 extension OutputSpan where Element: ~Copyable {
-  @_lifetime(source: copy source)
   @inlinable
   @inline(__always)
   @_lifetime(self: copy self)
+  @_lifetime(source: copy source)
   package mutating func _append(moving source: inout InputSpan<Element>) {
     // FIXME: This needs to be in the stdlib.
     source.withUnsafeMutableBufferPointer { src, srcCount in

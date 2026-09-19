@@ -364,19 +364,16 @@ final class RigidDequeTests: CollectionTestCase {
       withEvery("capacity", in: [count, count + 1, 2 * count] as Set) { capacity in
         withLifetimeTracking { tracker in
           var invocations = 0
-          let producer = CustomProducer<LifetimeTrackedStruct<Int>, Never> {
-            if invocations >= count {
-              return nil
-            }
-            defer { invocations += 1 }
-            return tracker.structInstance(for: invocations)
+          let producer = CustomProducer<LifetimeTrackedStruct<Int>, Never> { offset in
+            guard offset < count else { return nil }
+            invocations += 1
+            return tracker.structInstance(for: offset)
           }
 
           let deque = RigidDeque(capacity: capacity, from: producer)
           expectEqual(invocations, count)
           expectEqual(deque.count, count)
           expectEqual(tracker.instances, count)
-          expectEqual(invocations, count)
 
           for i in 0 ..< count {
             expectEqual(deque[i].payload, i)
@@ -393,12 +390,12 @@ final class RigidDequeTests: CollectionTestCase {
         var invocations = 0
         expectThrows { () throws(TestError) in
           let producer = CustomProducer<LifetimeTrackedStruct<Int>, TestError>
-          { () throws(TestError) in
-            if invocations >= count {
+          { offset throws(TestError) in
+            if offset >= count {
               throw TestError(42)
             }
-            defer { invocations += 1 }
-            return tracker.structInstance(for: invocations)
+            invocations += 1
+            return tracker.structInstance(for: offset)
           }
 
           let _ = try RigidDeque(capacity: count + 10, from: producer)
@@ -794,7 +791,7 @@ final class RigidDequeTests: CollectionTestCase {
 
           data.contents.insert(contentsOf: extras.prefix(layout.freeCapacity), at: 0)
 
-          var producer = CustomProducer<LifetimeTracked<Int>, Never> {
+          var producer = CustomProducer<LifetimeTracked<Int>, Never> { offset in
             guard !extras.isEmpty else { return nil }
             return extras.removeFirst()
           }
@@ -820,7 +817,7 @@ final class RigidDequeTests: CollectionTestCase {
 
           data.contents.append(contentsOf: extras)
 
-          var producer = CustomProducer<LifetimeTracked<Int>, Never> {
+          var producer = CustomProducer<LifetimeTracked<Int>, Never> { offset in
             guard !extras.isEmpty else { return nil }
             return extras.removeFirst()
           }
@@ -847,7 +844,7 @@ final class RigidDequeTests: CollectionTestCase {
 
           data.contents.insert(contentsOf: extras.reversed(), at: 0)
 
-          var producer = CustomProducer<LifetimeTracked<Int>, TestError> { () throws(TestError) in
+          var producer = CustomProducer<LifetimeTracked<Int>, TestError> { offset throws(TestError) in
             guard !extras.isEmpty else { throw TestError(23) }
             return extras.removeLast()
           }
@@ -878,7 +875,7 @@ final class RigidDequeTests: CollectionTestCase {
 
           data.contents.append(contentsOf: extras.reversed())
 
-          var producer = CustomProducer<LifetimeTracked<Int>, TestError> { () throws(TestError) in
+          var producer = CustomProducer<LifetimeTracked<Int>, TestError> { offset throws(TestError) in
             guard !extras.isEmpty else { throw TestError(23) }
             return extras.removeLast()
           }
@@ -1207,7 +1204,7 @@ final class RigidDequeTests: CollectionTestCase {
               contentsOf: extras.prefix(layout.freeCapacity),
               at: i)
 
-            var producer = CustomProducer<LifetimeTracked<Int>, Never> {
+            var producer = CustomProducer<LifetimeTracked<Int>, Never> { offset in
               guard !extras.isEmpty else { return nil }
               return extras.removeFirst()
             }
@@ -1239,7 +1236,7 @@ final class RigidDequeTests: CollectionTestCase {
 
             data.contents.insert(contentsOf: extras, at: i)
 
-            var producer = CustomProducer<LifetimeTracked<Int>, TestError> { () throws(TestError) in
+            var producer = CustomProducer<LifetimeTracked<Int>, TestError> { offset throws(TestError) in
               guard !extras.isEmpty else { throw TestError(23) }
               return extras.removeFirst()
             }

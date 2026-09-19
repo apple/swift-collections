@@ -39,6 +39,7 @@ target_sources(${module_name} PRIVATE
   "Iterable+CopyContents.swift"
   "Iterable+Equality.swift"
   "LifetimeOverride.swift"
+  "MutableSpan+Extras.swift"
   "MutableRef.swift"
   "Optional+Extras.swift"
   "OutputSpan+Extras.swift"

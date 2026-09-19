@@ -25,4 +25,5 @@ endif()
 
 target_sources(${module_name} PRIVATE
   "InputSpan.swift"
+  "MutableSpan+InputSpanHelpers.swift"
   "OutputSpan+InputSpanHelpers.swift")
