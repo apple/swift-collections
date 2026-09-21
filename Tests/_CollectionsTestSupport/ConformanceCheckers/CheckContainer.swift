@@ -473,7 +473,7 @@ public func validateContainer<
           } else {
             guard index == limit, n == delta - l + i else {
               throw ValidationError(
-                "`formIndex(_:offsetBy:limitedBy:)` must report partial succcess when the limit applies",
+                "`formIndex(_:offsetBy:limitedBy:)` must report partial success when the limit applies",
                 ["input index": allIndices[i],
                  "input delta": delta,
                  "expected index": limit,

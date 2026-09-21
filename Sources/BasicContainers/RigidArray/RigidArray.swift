@@ -79,7 +79,7 @@ public struct RigidArray<Element: ~Copyable>: ~Copyable {
 /// time-constrained applications that cannot accommodate unexpected latency
 /// spikes due to a reallocation getting triggered at an inopportune moment.
 ///
-/// For use cases outside of these narrow domains, we generally recommmend
+/// For use cases outside of these narrow domains, we generally recommend
 /// the use of ``UniqueArray`` rather than `RigidArray`. (For copyable elements,
 /// the standard `Array` is an even more convenient choice.)
 @available(SwiftStdlib 5.0, *)

@@ -366,7 +366,7 @@ extension _Node.UnsafeHandle {
   
   /// Collapses a slot and its children into a single child.
   ///
-  /// This will reuse the left childs node for the new node. As a result, ensure
+  /// This will reuse the left child's node for the new node. As a result, ensure
   /// that the left node is large enough to contain both the parent and the
   /// right child's contents, else this method may trap.
   ///

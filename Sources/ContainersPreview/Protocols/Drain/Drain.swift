@@ -143,7 +143,7 @@ extension Drain where Self: ~Copyable & ~Escapable, Element: ~Copyable  {
   /// the upcoming next item in the sequence. Failure may happen midway through
   /// populating `target`, in which case the output span will still gain
   /// new items despite the error. (Those items are successfully
-  /// generated, and do not necessarilly need to be discarded.)
+  /// generated, and do not necessarily need to be discarded.)
   ///
   /// This protocol does not specify the meaning of a failure, or the
   /// precise state of the iterator after an error is thrown; however, the
