@@ -46,6 +46,7 @@ target_sources(${module_name} PRIVATE
   "Protocols/Container/DrainableContainer.swift"
   "Protocols/Container/DynamicContainer.swift"
   "Protocols/Container/MutableContainer.swift"
+  "Protocols/Container/MutableContainer+UpdateSubrange.swift"
   "Protocols/Container/PermutableContainer.swift"
   "Protocols/Container/PermutableContainer+HeapSort.swift"
   "Protocols/Container/PermutableContainer+MoveSubrange.swift"
