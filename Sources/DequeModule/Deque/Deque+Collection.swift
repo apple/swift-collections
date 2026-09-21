@@ -210,7 +210,7 @@ extension Deque: RandomAccessCollection {
 
   /// Returns the position immediately after the given index.
   ///
-  /// - Parameter `i`: A valid index of the deque. `i` must be less than
+  /// - Parameter i: A valid index of the deque. `i` must be less than
   ///    `endIndex`.
   ///
   /// - Returns: The next valid index immediately after `i`.
@@ -226,7 +226,7 @@ extension Deque: RandomAccessCollection {
 
   /// Replaces the given index with its successor.
   ///
-  /// - Parameter `i`: A valid index of the deque. `i` must be less than
+  /// - Parameter i: A valid index of the deque. `i` must be less than
   ///    `endIndex`.
   ///
   /// - Complexity: O(1)
@@ -241,7 +241,7 @@ extension Deque: RandomAccessCollection {
 
   /// Returns the position immediately before the given index.
   ///
-  /// - Parameter `i`: A valid index of the deque. `i` must be greater than
+  /// - Parameter i: A valid index of the deque. `i` must be greater than
   ///    `startIndex`.
   ///
   /// - Returns: The preceding valid index immediately before `i`.
@@ -257,7 +257,7 @@ extension Deque: RandomAccessCollection {
 
   /// Replaces the given index with its predecessor.
   ///
-  /// - Parameter `i`: A valid index of the deque. `i` must be greater than `startIndex`.
+  /// - Parameter i: A valid index of the deque. `i` must be greater than `startIndex`.
   ///
   /// - Complexity: O(1)
   @inlinable
