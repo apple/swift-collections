@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2)
-
 @available(SwiftStdlib 5.0, *)
 @_alwaysEmitIntoClient
 package func withTemporaryOutputSpan<Element: ~Copyable, E: Error, R: ~Copyable>(
@@ -168,6 +166,3 @@ extension OutputSpan where Element: ~Copyable {
     }
   }
 }
-
-#endif
-

@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2) && !$Embedded
+#if !$Embedded
 
 @available(SwiftStdlib 6.2, *)
 extension BigSubstring {
@@ -323,4 +323,4 @@ extension BigSubstring.UnicodeScalarView: RangeReplaceableCollection {
   }
 }
 
-#endif // compiler(>=6.2) && !$Embedded
+#endif // !$Embedded

@@ -16,8 +16,6 @@ import InternalCollectionsUtilities
 import SpanPreview
 #endif
 
-#if compiler(>=6.2)
-
 @available(SwiftStdlib 5.0, *)
 extension UniqueDeque where Element: ~Copyable {
   /// Adds an element to the end of the deque.
@@ -121,7 +119,7 @@ extension UniqueDeque where Element: ~Copyable {
     _ensureFreeCapacity(items.count)
     return _storage._handle.uncheckedAppend(moving: items)
   }
-  
+
 #if UnstableContainersPreview
   /// Moves the elements of an input span by appending them to the end of
   /// this deque, leaving the span empty.
@@ -147,7 +145,7 @@ extension UniqueDeque where Element: ~Copyable {
     }
   }
 #endif
-  
+
   /// Moves the elements of an output span by appending them to the end of
   /// this deque, leaving the span empty.
   ///
@@ -302,7 +300,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
       _storage.append(item)
     }
   }
-  
+
 #if compiler(>=6.4)
   /// Copies the elements of a borrowing sequence to the end of this deque.
   ///
@@ -325,5 +323,3 @@ extension UniqueDeque /*where Element: Copyable*/ {
   }
 #endif
 }
-
-#endif

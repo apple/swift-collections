@@ -15,7 +15,6 @@
 import InternalCollectionsUtilities
 #endif
 
-#if compiler(>=6.2)
 extension _HTable {
   @usableFromInline
   @_lifetime(borrow self)
@@ -53,7 +52,7 @@ extension _HTable {
 
     @_alwaysEmitIntoClient
     package var _bucket: Bucket
-    
+
     /// Remaining bits not yet processed from the last word read.
     @_alwaysEmitIntoClient
     package var _nextBits: Word
@@ -98,13 +97,13 @@ extension _HTable.BucketIterator {
   package var currentBucket: Bucket {
     _bucket
   }
-  
+
   @usableFromInline
   @_transparent
   package var isAtEnd: Bool {
     _bucket >= _endBucket
   }
-  
+
   @usableFromInline
   @_transparent
   package var isOccupied: Bool {
@@ -112,7 +111,7 @@ extension _HTable.BucketIterator {
     if _words == nil { return true }
     return _nextBits.contains(0)
   }
-  
+
   @_transparent
   @_lifetime(self: copy self)
   package mutating func restart() {
@@ -123,7 +122,7 @@ extension _HTable.BucketIterator {
       _nextBitCount = UInt8(Swift.min(Word._capacity, _endBucket._offset))
     }
   }
-  
+
   @_transparent
   @_lifetime(self: copy self)
   package mutating func _wrap() {
@@ -266,7 +265,7 @@ extension _HTable.BucketIterator {
     }
     return true
   }
-  
+
   @usableFromInline
   @_lifetime(self: copy self)
   package mutating func wrapToOccupied() {
@@ -392,4 +391,3 @@ extension _HTable.BucketIterator {
     return Range(uncheckedBounds: (start, end))
   }
 }
-#endif

@@ -21,7 +21,6 @@ import _CollectionsTestSupport
 import ContainersPreview
 #endif
 
-#if compiler(>=6.2)
 final class UniqueBoxTests: CollectionTestCase {
   struct NoncopyablePayload: ~Copyable {
     var value: Int
@@ -297,6 +296,4 @@ final class UniqueBoxTests: CollectionTestCase {
   }
 #endif
 }
-#endif
-
 #endif

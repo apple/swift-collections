@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2) && UnstableContainersPreview
+#if UnstableContainersPreview
 
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities

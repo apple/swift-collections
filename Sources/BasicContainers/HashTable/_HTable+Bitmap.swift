@@ -15,7 +15,6 @@
 import InternalCollectionsUtilities
 #endif
 
-#if compiler(>=6.2)
 extension _HTable {
   @usableFromInline
   @frozen
@@ -70,7 +69,7 @@ extension _HTable.Bitmap {
   package func clearAll() {
     _words.update(repeating: .empty)
   }
-  
+
   @_alwaysEmitIntoClient
   package func occupiedCount() -> Int {
     var c = 0
@@ -197,4 +196,3 @@ extension _HTable.Bitmap {
     return result
   }
 }
-#endif

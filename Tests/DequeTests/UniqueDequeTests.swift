@@ -21,7 +21,6 @@ import BasicContainers
 import ContainersPreview
 #endif
 
-#if compiler(>=6.2)
 /// Check if `left` and `right` contain equal elements in the same order.
 @available(SwiftStdlib 5.0, *)
 internal func expectUniqueDequeContents<
@@ -116,7 +115,7 @@ final class UniqueDequeTests: CollectionTestCase {
     let value: Int
     init(_ value: Int) { self.value = value }
   }
-  
+
 #if compiler(>=6.4) && UnstableContainersPreview
   @available(SwiftStdlib 6.4, *)
   func test_validate_Container() {
@@ -132,7 +131,7 @@ final class UniqueDequeTests: CollectionTestCase {
 
   func test_basicProperties() {
     var deque = UniqueDeque<Int>()
-    
+
     // Empty deque
     expectEqual(deque.isEmpty, true)
     expectEqual(deque._isFull, true)
@@ -142,11 +141,11 @@ final class UniqueDequeTests: CollectionTestCase {
     expectEqual(deque.startIndex, 0)
     expectEqual(deque.endIndex, 0)
     expectEqual(deque.indices, 0 ..< 0)
-    
+
     deque.append(1)
     deque.append(2)
     deque.append(3)
-    
+
     expectEqual(deque.isEmpty, false)
     expectEqual(deque._isFull, true)
     expectEqual(deque.count, 3)
@@ -155,18 +154,18 @@ final class UniqueDequeTests: CollectionTestCase {
     expectEqual(deque.startIndex, 0)
     expectEqual(deque.endIndex, 3)
     expectEqual(deque.indices, 0 ..< 3)
-    
+
     for i in 4...10 {
       deque.prepend(i)
     }
-    
+
     expectEqual(deque.isEmpty, false)
     expectEqual(deque.count, 10)
     expectEqual(deque.capacity, 12)
     expectEqual(deque.freeCapacity, 2)
     expectEqual(deque.indices, 0 ..< 10)
   }
-  
+
   func test_subscriptBorrow() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withLifetimeTracking { tracker in
@@ -177,7 +176,7 @@ final class UniqueDequeTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_subscriptMutate() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withEvery("i", in: 0 ..< layout.count) { i in
@@ -191,7 +190,7 @@ final class UniqueDequeTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_swapAt() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5]) { layout in
       withEvery("i", in: 0 ..< layout.count) { i in
@@ -244,5 +243,3 @@ final class UniqueDequeTests: CollectionTestCase {
     expectEqualElements(actualCapacities.sorted(), expectedCapacities)
   }
 }
-
-#endif

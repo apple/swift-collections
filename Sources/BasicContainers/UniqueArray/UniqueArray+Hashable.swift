@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2)
-
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
 #endif
@@ -37,6 +35,4 @@ extension UniqueArray where Element: Hashable {
     self._storage.hash(into: &hasher)
   }
 }
-#endif
-
 #endif

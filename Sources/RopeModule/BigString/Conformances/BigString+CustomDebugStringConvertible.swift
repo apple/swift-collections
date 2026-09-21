@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2) && !$Embedded
+#if !$Embedded
 
 @available(SwiftStdlib 6.2, *)
 extension BigString: CustomDebugStringConvertible {
@@ -20,4 +20,4 @@ extension BigString: CustomDebugStringConvertible {
   }
 }
 
-#endif // compiler(>=6.2) && !$Embedded
+#endif // !$Embedded

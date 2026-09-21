@@ -16,8 +16,6 @@ import InternalCollectionsUtilities
 import SpanPreview
 #endif
 
-#if compiler(>=6.2)
-
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
   /// Inserts a new element into the array at the specified position.
@@ -403,5 +401,3 @@ extension RigidArray {
     _insertCollection(addingCount: items.count, copying: items, at: index)
   }
 }
-
-#endif

@@ -16,8 +16,6 @@ import InternalCollectionsUtilities
 import SpanPreview
 #endif
 
-#if compiler(>=6.2)
-
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
   /// Replaces the specified range of elements by a given count of new items,
@@ -251,7 +249,7 @@ extension RigidArray where Element: ~Copyable {
       }
     }
   }
-  
+
 #if UnstableContainersPreview
   /// Replaces the specified range of elements by moving the contents of an
   /// input span into their place. On return, the span is left empty.
@@ -595,5 +593,3 @@ extension RigidArray {
       newCount: newElements.count)
   }
 }
-
-#endif

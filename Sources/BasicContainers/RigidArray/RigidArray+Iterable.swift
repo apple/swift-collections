@@ -16,8 +16,6 @@ import InternalCollectionsUtilities
 import SpanPreview
 #endif
 
-#if compiler(>=6.2)
-
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
   @inlinable
@@ -35,6 +33,4 @@ extension RigidArray: Iterable where Element: ~Copyable {
     self.span._makeBorrowingIterator(from: 0, to: count)
   }
 }
-#endif
-
 #endif

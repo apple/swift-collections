@@ -15,7 +15,7 @@
 import InternalCollectionsUtilities
 #endif
 
-#if compiler(>=6.2) && !$Embedded
+#if !$Embedded
 
 @available(SwiftStdlib 6.2, *)
 extension BigString._Chunk: CustomStringConvertible {
@@ -70,4 +70,4 @@ extension BigString._Chunk: CustomStringConvertible {
   }
 }
 
-#endif // compiler(>=6.2) && !$Embedded
+#endif // !$Embedded

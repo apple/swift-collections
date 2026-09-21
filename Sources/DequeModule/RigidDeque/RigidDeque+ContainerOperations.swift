@@ -15,8 +15,6 @@
 import InternalCollectionsUtilities
 #endif
 
-#if compiler(>=6.2)
-
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque where Element: ~Copyable {
   @_alwaysEmitIntoClient
@@ -127,5 +125,3 @@ extension RigidDeque where Element: ~Copyable {
     return _overrideLifetime(Span(_unsafeElements: segment), borrowing: self)
   }
 }
-
-#endif

@@ -13,7 +13,6 @@
 
 #if COLLECTIONS_SINGLE_MODULE
 
-#if compiler(>=6.2)
 extension _HTable.BucketIterator {
   // FIXME: Remove after 27.0 releases
   @available(*, deprecated, renamed: "advanceToOccupied(maxCount:)")
@@ -58,6 +57,3 @@ extension _HTable.BucketIterator {
   }
 }
 #endif
-
-#endif
-

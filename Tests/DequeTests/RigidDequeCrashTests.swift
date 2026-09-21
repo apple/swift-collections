@@ -19,37 +19,36 @@ import DequeModule
 import ContainersPreview
 #endif
 
-#if compiler(>=6.2)
 #if !os(Android) // Exit tests are not available on this platform
 @Suite("RigidDeque Crash Tests")
 struct RigidDequeCrashTests {
-    
+
   // MARK: - Edge Cases and Error Conditions
-  
+
   @Test("Append to full deque fails")
   func appendToFullDequeFails() async {
     await #expect(processExitsWith: .failure) {
       var deque = RigidDeque<Int>(capacity: 2)
       deque.append(1)
       deque.append(2)
-      
+
       #expect(deque.isFull == true)
       deque.append(3) // Traps with "RigidDeque is full"
     }
   }
-  
+
   @Test("Prepend to full deque fails")
   func prependToFullDequeFails() async {
     await #expect(processExitsWith: .failure) {
       var deque = RigidDeque<Int>(capacity: 2)
       deque.append(1)
       deque.append(2)
-      
+
       #expect(deque.isFull == true)
       deque.prepend(0) // Traps with "RigidDeque is full"
     }
   }
-  
+
   @Test("Invalid index access")
   func invalidIndexAccess() async {
     await #expect(processExitsWith: .failure) {
@@ -67,7 +66,7 @@ struct RigidDequeCrashTests {
     }
     #endif
   }
-  
+
   @Test("Remove from empty deque")
   func removeFromEmptyDeque() async {
     await #expect(processExitsWith: .failure) {
@@ -108,5 +107,4 @@ struct RigidDequeCrashTests {
     }
   }
 }
-#endif
 #endif

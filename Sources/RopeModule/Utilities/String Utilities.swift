@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2) && !$Embedded
+#if !$Embedded
 
 extension StringProtocol {
   @inline(__always)
@@ -133,4 +133,4 @@ extension String {
   }
 }
 
-#endif // compiler(>=6.2) && !$Embedded
+#endif // !$Embedded

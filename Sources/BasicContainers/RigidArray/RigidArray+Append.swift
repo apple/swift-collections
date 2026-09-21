@@ -16,8 +16,6 @@ import InternalCollectionsUtilities
 import SpanPreview
 #endif
 
-#if compiler(>=6.2)
-
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
   @_alwaysEmitIntoClient
@@ -348,7 +346,7 @@ extension RigidArray {
     var it = self._append(prefixOf: newElements)
     precondition(it.next() == nil, "RigidArray capacity overflow")
   }
-  
+
 #if compiler(>=6.4)
   /// Copies the elements of a borrowing sequence to the end of this array.
   ///
@@ -372,4 +370,3 @@ extension RigidArray {
   }
 #endif
 }
-#endif

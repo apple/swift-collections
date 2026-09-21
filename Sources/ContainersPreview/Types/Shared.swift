@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2) && UnstableContainersPreview
-
 #if false // TODO
 import Builtin // For Shared.isIdentical
 
@@ -162,5 +160,4 @@ extension Shared where Storage: ~Copyable {
     }
   }
 }
-#endif
 #endif

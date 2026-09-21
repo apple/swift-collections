@@ -16,8 +16,6 @@ import InternalCollectionsUtilities
 import SpanPreview
 #endif
 
-#if compiler(>=6.2)
-
 @available(SwiftStdlib 5.0, *)
 extension UniqueArray where Element: ~Copyable {
   /// Replaces the specified range of elements by a given count of new items,
@@ -468,7 +466,7 @@ extension UniqueArray {
     _ensureFreeCapacity(newElements.count - subrange.count)
     return _storage.replaceSubrange(subrange, copying: newElements)
   }
-  
+
   /// Replaces the specified subrange of elements by copying the elements of
   /// the given collection.
   ///
@@ -513,4 +511,3 @@ extension UniqueArray {
       newCount: c)
   }
 }
-#endif

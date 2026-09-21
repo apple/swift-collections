@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2)
-
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
 #endif
@@ -51,6 +49,4 @@ extension RigidArray /*: Equatable */ where Element: Equatable /* & ~Copyable */
     left.span._elementsEqual(to: right.span)
   }
 }
-#endif
-
 #endif

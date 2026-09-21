@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2)
-
 @available(SwiftStdlib 5.0, *)
 extension UniqueArray /*: CustomStringConvertible */ where Element: ~Copyable {
   public var description: String {
@@ -28,5 +26,3 @@ extension UniqueArray /*: CustomDebugStringConvertible */ where Element: ~Copyab
     "<\(count) items>"
   }
 }
-
-#endif

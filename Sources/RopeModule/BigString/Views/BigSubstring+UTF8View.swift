@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2) && !$Embedded
+#if !$Embedded
 
 @available(SwiftStdlib 6.2, *)
 extension BigSubstring {
@@ -176,4 +176,4 @@ extension BigSubstring.UTF8View {
   }
 }
 
-#endif // compiler(>=6.2) && !$Embedded
+#endif // !$Embedded

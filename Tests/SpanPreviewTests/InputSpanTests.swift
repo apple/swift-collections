@@ -18,11 +18,11 @@ import _CollectionsTestSupport
 import SpanPreview
 #endif
 
-#if compiler(>=6.2) && UnstableContainersPreview
+#if UnstableContainersPreview
 final class InputSpanTests: CollectionTestCase {
   // FIXME
   func test_dummy() {
-    
+
   }
 }
 #endif

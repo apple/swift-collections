@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2)
-
 /// A polyfill of the typed-throws supporting `withUnsafeTemporaryAllocation` in the 6.3 stdlib.
 @_alwaysEmitIntoClient @_transparent
 package func _withUnsafeTemporaryAllocation<
@@ -34,5 +32,3 @@ package func _withUnsafeTemporaryAllocation<
   return try r.get()
 #endif
 }
-
-#endif

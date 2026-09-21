@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2)
-
 extension _HTable {
   /// Create a hole at the specified occupied bucket without marking it as
   /// unoccupied or restoring the hash table's other invariants. After a hole
@@ -25,7 +23,7 @@ extension _HTable {
     assert(isOccupied(bucket))
     _count &-= 1
   }
-  
+
   /// Restore hash table invariants after a hole was created by `createHole`.
   /// This works by swapping items as needed to move the hole forward until we
   /// reach the end of the affected chain of occupied buckets.
@@ -120,5 +118,3 @@ extension _HTable {
     return bucket
   }
 }
-
-#endif

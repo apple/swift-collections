@@ -16,8 +16,6 @@ import InternalCollectionsUtilities
 import SpanPreview
 #endif
 
-#if compiler(>=6.2)
-
 @available(SwiftStdlib 5.0, *)
 extension UniqueDeque where Element: ~Copyable {
 #if UnstableContainersPreview
@@ -70,7 +68,7 @@ extension UniqueDeque where Element: ~Copyable {
   ) {
     consumeSubrange(subrange.relative(to: indices), consumingWith: consumer)
   }
-  
+
   /// Remove all items currently in this deque, passing a series of input
   /// spans to a given callback function to consume them in place.
   ///
@@ -91,7 +89,7 @@ extension UniqueDeque where Element: ~Copyable {
   ) {
     consumeSubrange(indices, consumingWith: consumer)
   }
-  
+
   /// Remove the specified number of items from the end of this deque,
   /// passing an input span to a given callback function to consume them in
   /// place.
@@ -161,6 +159,4 @@ extension UniqueDeque where Element: ~Copyable {
     _storage.consumeSubrange(subrange)
   }
 }
-#endif
-
 #endif

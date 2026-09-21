@@ -16,8 +16,6 @@ import InternalCollectionsUtilities
 import SpanPreview
 #endif
 
-#if compiler(>=6.2)
-
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque where Element: ~Copyable {
   /// Inserts a new element into the deque at the specified position.
@@ -368,5 +366,3 @@ extension RigidDeque /* where Element: Copyable */ {
       at: index, copying: items, newCount: items.count)
   }
 }
-
-#endif

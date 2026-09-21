@@ -15,7 +15,6 @@
 import InternalCollectionsUtilities
 #endif
 
-#if compiler(>=6.2)
 extension _HTable {
   @usableFromInline
   internal func find_Small(
@@ -63,4 +62,3 @@ extension _HTable {
 #endif
   }
 }
-#endif

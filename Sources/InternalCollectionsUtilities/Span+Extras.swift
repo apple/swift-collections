@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2)
-
 @_frozen
 @usableFromInline
 package struct _ShamSpanIterator {
@@ -237,6 +235,4 @@ extension Span where Element: ~Copyable {
     return _overrideLifetime(Span(_unsafeElements: buffer), copying: self)
   }
 }
-#endif
-
 #endif

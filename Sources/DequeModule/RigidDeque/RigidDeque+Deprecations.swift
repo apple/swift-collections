@@ -16,8 +16,6 @@ import InternalCollectionsUtilities
 import SpanPreview
 #endif
 
-#if compiler(>=6.2)
-
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque where Element: ~Copyable {
   /// Grow or shrink the capacity of a rigid deque instance without discarding
@@ -303,5 +301,3 @@ extension RigidDeque /* where Element: Copyable */ {
     replaceSubrange(subrange, copying: items)
   }
 }
-
-#endif

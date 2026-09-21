@@ -15,8 +15,6 @@
 import InternalCollectionsUtilities
 #endif
 
-#if compiler(>=6.2)
-
 @available(SwiftStdlib 5.0, *)
 extension UniqueDeque where Element: ~Copyable {
   /// Initializes a new unique deque with no elements.
@@ -122,7 +120,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
     self.init(minimumCapacity: capacity ?? contents.underestimatedCount)
     self.append(copying: contents)
   }
-  
+
 #if compiler(>=6.4)
   /// Creates a new deque with the specified capacity, holding a copy
   /// of the contents of a given sequence.
@@ -164,5 +162,3 @@ extension UniqueDeque /*where Element: Copyable*/ {
   }
 #endif
 }
-
-#endif

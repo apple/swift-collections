@@ -16,8 +16,6 @@ import InternalCollectionsUtilities
 import SpanPreview
 #endif
 
-#if compiler(>=6.2)
-
 #if UnstableContainersPreview
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
@@ -30,7 +28,7 @@ extension RigidArray where Element: ~Copyable {
       initializedCount: buffer.count)
     return _overrideLifetime(result, mutating: &self)
   }
-  
+
   /// Remove the specified subrange of items from this array,
   /// passing an input span to the given function to consume them in place.
   ///
@@ -57,7 +55,7 @@ extension RigidArray where Element: ~Copyable {
     }
     let buffer = unsafe _storage.extracting(subrange)
     var span = InputSpan(buffer: buffer, initializedCount: buffer.count)
-    
+
     consumer(&span)
     _ = consume span
 
@@ -167,15 +165,15 @@ extension RigidArray where Element: ~Copyable {
 
     @usableFromInline
     internal var _offsetRange: Range<Int>
-    
+
     @usableFromInline
     internal var _remainder: UnsafeMutableBufferPointer<Element>
-    
+
     @_alwaysEmitIntoClient
     @inline(__always)
     @_lifetime(&_base)
     internal init(_base: inout RigidArray, offsetRange: Range<Int>) {
-      
+
       self._remainder = _base._storage._extracting(unchecked: offsetRange)
       self._base = _MutableRef(&_base)
       self._offsetRange = offsetRange
@@ -184,7 +182,7 @@ extension RigidArray where Element: ~Copyable {
     @inlinable
     deinit {
       self._remainder.deinitialize()
-      
+
       // FIXME: This needs to be written as
       //    self._base.value.closeGap(offsets: self._offsetRange)
       // but unfortunately we cannot mutate self in deinit yet.
@@ -224,6 +222,4 @@ extension RigidArray.SubrangeConsumer where Element: ~Copyable {
     _offsetRange.lowerBound
   }
 }
-#endif
-
 #endif

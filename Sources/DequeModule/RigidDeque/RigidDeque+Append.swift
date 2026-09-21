@@ -16,8 +16,6 @@ import InternalCollectionsUtilities
 import SpanPreview
 #endif
 
-#if compiler(>=6.2)
-
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque where Element: ~Copyable {
   /// Adds an element to the end of the deque.
@@ -137,7 +135,7 @@ extension RigidDeque where Element: ~Copyable {
     precondition(items.count <= freeCapacity, "RigidDeque capacity overflow")
     return _handle.uncheckedAppend(moving: items)
   }
-  
+
 #if UnstableContainersPreview
   /// Moves the elements of an input span by appending them to the end of
   /// this deque, leaving the span empty.
@@ -161,7 +159,7 @@ extension RigidDeque where Element: ~Copyable {
     }
   }
 #endif
-  
+
   /// Moves the elements of an output span by appending them to the end of
   /// this deque, leaving the span empty.
   ///
@@ -208,7 +206,7 @@ extension RigidDeque /*where Element: Copyable*/ {
       "RigidDeque capacity overflow")
     return _handle.uncheckedAppend(copying: items)
   }
-  
+
   /// Copies the elements of a buffer and append them to the end of this
   /// deque.
   ///
@@ -227,7 +225,7 @@ extension RigidDeque /*where Element: Copyable*/ {
   ) -> Range<Int> {
     unsafe self.append(copying: UnsafeBufferPointer(items))
   }
-  
+
   /// Copies the elements of a span and append them to the end of this deque.
   ///
   /// If the deque does not have sufficient capacity to hold all items in the
@@ -244,7 +242,7 @@ extension RigidDeque /*where Element: Copyable*/ {
       unsafe self.append(copying: source)
     }
   }
-  
+
 #if compiler(>=6.4)
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
@@ -259,7 +257,7 @@ extension RigidDeque /*where Element: Copyable*/ {
       self.append(copying: span)
     }
   }
-  
+
   /// Copies the elements of a borrowing sequence and append them to the end of
   /// this deque.
   ///
@@ -279,7 +277,7 @@ extension RigidDeque /*where Element: Copyable*/ {
     try self._append(copying: newElements)
   }
 #endif
-  
+
   /// Append the elements of a sequence to the end of this deque by copying
   /// them.
   ///
@@ -297,11 +295,11 @@ extension RigidDeque /*where Element: Copyable*/ {
       return
     }
     if done != nil { return }
-    
+
     var it = _handle.uncheckedAppend(copyingPrefixOf: newElements)
     precondition(it.next() == nil, "RigidDeque capacity overflow")
   }
-  
+
 #if compiler(>=6.4)
   /// Copies the elements of a borrowing sequence to the end of this deque.
   ///
@@ -324,5 +322,3 @@ extension RigidDeque /*where Element: Copyable*/ {
   }
 #endif
 }
-
-#endif

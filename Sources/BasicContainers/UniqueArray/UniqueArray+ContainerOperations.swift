@@ -15,8 +15,6 @@
 import InternalCollectionsUtilities
 #endif
 
-#if compiler(>=6.2)
-
 @available(SwiftStdlib 5.0, *)
 extension UniqueArray where Element: ~Copyable {
   /// A Boolean value indicating whether this array contains no elements.
@@ -380,5 +378,3 @@ extension UniqueArray where Element: ~Copyable {
     _storage.previousSpan(before: &index, maxCount: maxCount)
   }
 }
-
-#endif

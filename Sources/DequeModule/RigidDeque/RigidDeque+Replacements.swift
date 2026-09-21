@@ -16,8 +16,6 @@ import InternalCollectionsUtilities
 import SpanPreview
 #endif
 
-#if compiler(>=6.2)
-
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque where Element: ~Copyable {
   /// Replaces the specified range of elements by a given count of new items,
@@ -77,7 +75,7 @@ extension RigidDeque where Element: ~Copyable {
       addingCount: newItemCount,
       initializingWith: initializer)
   }
-  
+
 #if UnstableContainersPreview
   /// Replaces the specified range of elements by a given count of new items,
   /// using callbacks to consume old items, and to then insert new ones.
@@ -204,7 +202,7 @@ extension RigidDeque where Element: ~Copyable {
     assert(remainder.isEmpty)
     return range
   }
-  
+
 #if UnstableContainersPreview
   /// Replaces the specified range of elements by moving the contents of an
   /// input span into their place. On return, the span is left empty.
@@ -466,5 +464,3 @@ extension RigidDeque /* where Element: Copyable */ {
     _replaceSubrange(subrange, copyingCollection: items, newCount: items.count)
   }
 }
-
-#endif

@@ -214,7 +214,6 @@ extension UnsafeMutableBufferPointer {
     _initializePrefix(copying: UnsafeBufferPointer(source))
   }
 
-#if compiler(>=6.2)
   /// Initialize slots at the start of this buffer by copying data from `source`.
   ///
   /// If `Element` is not bitwise copyable, then the memory region addressed by `self` must be
@@ -228,7 +227,6 @@ extension UnsafeMutableBufferPointer {
   package func _initializePrefix(copying source: Span<Element>) -> Int {
     source.withUnsafeBufferPointer { self._initializePrefix(copying: $0) }
   }
-#endif
 
   /// Initialize slots at the start of this buffer by copying data from `buffer`, then
   /// shrink `self` to drop all initialized items from its front, leaving it addressing the
@@ -244,7 +242,6 @@ extension UnsafeMutableBufferPointer {
     self = self.extracting(i...)
   }
 
-#if compiler(>=6.2)
   /// Initialize slots at the start of this buffer by copying data from `span`, then
   /// shrink `self` to drop all initialized items from its front, leaving it addressing the
   /// uninitialized remainder.
@@ -260,7 +257,6 @@ extension UnsafeMutableBufferPointer {
       self._initializeAndDropPrefix(copying: buffer)
     }
   }
-#endif
 }
 
 extension UnsafeMutableBufferPointer {

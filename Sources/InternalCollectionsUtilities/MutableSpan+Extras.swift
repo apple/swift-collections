@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2)
-
 @available(SwiftStdlib 5.0, *)
 extension MutableSpan where Element: ~Copyable {
   // FIXME: Replace with stdlib implementation when it becomes available
@@ -146,5 +144,3 @@ extension MutableSpan /* where Element: Copyable */ {
     precondition(i == self.count)
   }
 }
-
-#endif

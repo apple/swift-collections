@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2)
-
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
   @available(*, deprecated, renamed: "nextSpan(after:maxCount:)")
@@ -76,7 +74,7 @@ extension RigidArray where Element: ~Copyable {
     }
     return result.take()!
   }
-  
+
   /// Inserts a given number of new items into this array at the specified
   /// position, using a callback to directly initialize array storage by
   /// populating an output span.
@@ -140,8 +138,8 @@ extension RigidArray {
   public func copy() -> Self {
     clone()
   }
-  
-  
+
+
   /// Copy the contents of this array into a newly allocated rigid array
   /// instance with the specified capacity.
   ///
@@ -240,5 +238,3 @@ extension RigidArray {
   }
 
 }
-
-#endif

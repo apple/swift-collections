@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2)
-
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
 #endif
@@ -50,6 +48,4 @@ extension UniqueDeque where Element: Equatable {
     left._storage == right._storage
   }
 }
-#endif
-
 #endif

@@ -18,21 +18,20 @@ import _CollectionsTestSupport
 @_spi(Testing) import DequeModule
 #endif
 
-#if compiler(>=6.2)
 @available(SwiftStdlib 5.0, *)
 internal struct RigidTestData<Element>: ~Copyable {
   var deque: RigidDeque<Element>
   var contents: [Element]
-  
+
   init(_ deque: consuming RigidDeque<Element>, _ contents: [Element]) {
     self.deque = deque
     self.contents = contents
   }
-  
+
   mutating func take() -> RigidDeque<Element> {
     exchange(&self.deque, with: .init())
   }
-  
+
   consuming func consume() -> RigidDeque<Element> {
     exchange(&self.deque, with: .init())
   }
@@ -42,7 +41,7 @@ internal struct RigidTestData<Element>: ~Copyable {
 internal struct UniqueTestData<Element>: ~Copyable {
   var deque: UniqueDeque<Element>
   var contents: [Element]
-  
+
   init(_ deque: consuming RigidDeque<Element>, _ contents: [Element]) {
     self.init(UniqueDeque(consuming: deque), contents)
   }
@@ -52,7 +51,6 @@ internal struct UniqueTestData<Element>: ~Copyable {
     self.contents = contents
   }
 }
-#endif
 
 internal struct DequeLayout: Hashable, CustomStringConvertible {
   let capacity: Int
@@ -91,7 +89,6 @@ extension Deque {
   }
 }
 
-#if compiler(>=6.2)
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque {
   init<C: Collection>(layout: DequeLayout, contents: C) where C.Element == Element {
@@ -99,7 +96,6 @@ extension RigidDeque {
     self.init(_capacity: layout.capacity, startSlot: layout.startSlot, copying: contents)
   }
 }
-#endif
 
 extension LifetimeTracker {
   func deque(
@@ -109,8 +105,7 @@ extension LifetimeTracker {
     let deque = Deque(layout: layout, contents: contents)
     return (deque, contents)
   }
-  
-#if compiler(>=6.2)
+
   @available(SwiftStdlib 5.0, *)
   func rigidDeque(
     with layout: DequeLayout
@@ -119,7 +114,7 @@ extension LifetimeTracker {
     let deque = RigidDeque(layout: layout, contents: contents)
     return RigidTestData(deque, contents)
   }
-  
+
   @available(SwiftStdlib 5.0, *)
   func uniqueDeque(
     with layout: DequeLayout
@@ -128,7 +123,6 @@ extension LifetimeTracker {
     let deque = RigidDeque(layout: layout, contents: contents)
     return UniqueTestData(deque, contents)
   }
-#endif
 }
 
 func withEveryDeque<C: Collection>(

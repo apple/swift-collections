@@ -15,8 +15,6 @@
 import InternalCollectionsUtilities
 #endif
 
-#if compiler(>=6.2)
-
 @available(SwiftStdlib 5.0, *)
 extension UniqueArray where Element: ~Copyable {
   /// Initializes a new unique array with no elements.
@@ -24,7 +22,7 @@ extension UniqueArray where Element: ~Copyable {
   public init() {
     _storage = .init(capacity: 0)
   }
-  
+
   /// Initializes a new unique array with the specified capacity and no elements.
   @inlinable
   public init(minimumCapacity: Int) {
@@ -122,7 +120,7 @@ extension UniqueArray /*where Element: Copyable*/ {
     self.init(minimumCapacity: capacity ?? 0)
     self.append(copying: contents)
   }
-  
+
 #if compiler(>=6.4)
   /// Creates a new array with the specified initial capacity, holding a copy
   /// of the contents of a given container.
@@ -162,5 +160,3 @@ extension UniqueArray /*where Element: Copyable*/ {
     self.append(copying: span)
   }
 }
-
-#endif

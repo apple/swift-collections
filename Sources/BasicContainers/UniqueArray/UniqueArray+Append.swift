@@ -16,8 +16,6 @@ import InternalCollectionsUtilities
 import SpanPreview
 #endif
 
-#if compiler(>=6.2)
-
 @available(SwiftStdlib 5.0, *)
 extension UniqueArray where Element: ~Copyable {
   /// Adds an element to the end of the array.
@@ -93,7 +91,7 @@ extension UniqueArray where Element: ~Copyable {
     _ensureFreeCapacity(items.count)
     return _storage._appendUnchecked(moving: items)
   }
-  
+
 #if UnstableContainersPreview
   /// Moves the elements of a input span to the end of this array, leaving the
   /// span empty.
@@ -309,7 +307,7 @@ extension UniqueArray {
       self.append(item)
     }
   }
-  
+
 #if compiler(>=6.4)
   /// Copies the elements of a container to the end of this array.
   ///
@@ -334,5 +332,3 @@ extension UniqueArray {
   }
 #endif
 }
-
-#endif

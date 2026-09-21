@@ -40,7 +40,7 @@ where Element: ~Copyable
 }
 #endif
 
-#if compiler(>=6.2) && UnstableContainersPreview
+#if UnstableContainersPreview
 @available(SwiftStdlib 5.0, *)
 extension InputSpan where Element: ~Copyable {
   @_alwaysEmitIntoClient

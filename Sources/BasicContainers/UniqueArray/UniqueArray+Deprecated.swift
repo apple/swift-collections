@@ -15,8 +15,6 @@
 import SpanPreview
 #endif
 
-#if compiler(>=6.2)
-
 @available(SwiftStdlib 5.0, *)
 extension UniqueArray where Element: ~Copyable {
   @available(*, deprecated, renamed: "nextSpan(after:maxCount:)")
@@ -99,7 +97,7 @@ extension UniqueArray where Element: ~Copyable {
     }
     return result.take()!
   }
-  
+
   /// Inserts a given number of new items into this array at the specified
   /// position, using a callback to directly initialize array storage by
   /// populating an output span.
@@ -240,7 +238,7 @@ extension UniqueArray {
   public func copy() -> Self {
     self.clone()
   }
-  
+
   /// Copy the contents of this array into a newly allocated unique array
   /// instance with the specified capacity.
   ///
@@ -290,5 +288,3 @@ extension UniqueArray {
     replaceSubrange(subrange, copying: newElements)
   }
 }
-
-#endif

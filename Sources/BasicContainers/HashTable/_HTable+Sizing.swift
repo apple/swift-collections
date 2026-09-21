@@ -15,7 +15,6 @@
 import InternalCollectionsUtilities
 #endif
 
-#if compiler(>=6.2)
 extension _HTable {
   /// The minimum hash table scale.
   @_alwaysEmitIntoClient
@@ -26,7 +25,7 @@ extension _HTable {
       4
     }
   }
-  
+
   /// The maximum hash table scale.
   @_alwaysEmitIntoClient
   package static var maximumScale: UInt8 {
@@ -36,7 +35,7 @@ extension _HTable {
       Swift.min(UInt8(truncatingIfNeeded: Int.bitWidth) &- 1, 56)
     }
   }
-  
+
   /// The maximum number of items for which we do not create a hash table.
   @usableFromInline
   package static var maximumUnhashedCount: Int {
@@ -45,7 +44,7 @@ extension _HTable {
       maximumCapacity(forScale: 0)
     }
   }
-  
+
   @inlinable
   @inline(__always)
   package static func wordCount(forScale scale: UInt8) -> Int {
@@ -72,24 +71,24 @@ extension _HTable {
   // away. This provides hysteresis for storage capacities, preventing hash
   // tables from repeatedly shrinking/growing when only a handful of items are
   // added/removed in a loop.
-  
+
   /// The numerator of the maximum hash table load factor.
   @_transparent
   internal static var _maxLFNum: UInt { 7 }
-  
+
   /// The denominator of the maximum hash table load factor.
   @_transparent
   internal static var _maxLFDenom: UInt { 8 }
-  
+
   /// The numerator of the minimum hash table load factor.
   @_transparent
   internal static var _minLFNum: UInt { 1 }
-  
+
   /// The denominator of minimum hash table load factor.
   @_alwaysEmitIntoClient
   @_transparent
   internal static var _minLFDenom: UInt { 8 }
-  
+
   /// The minimum number of items that can be held in a hash table of the given scale.
   @usableFromInline
   @_effects(readnone)
@@ -99,7 +98,7 @@ extension _HTable {
     let bucketCount: UInt = 1 &<< scale
     return Int(bucketCount * _minLFNum / _minLFDenom)
   }
-  
+
   /// The maximum number of items that can be held in a hash table of the given scale.
   @usableFromInline
   @_effects(readnone)
@@ -108,8 +107,8 @@ extension _HTable {
     let bucketCount: UInt = 1 &<< scale
     return Int(bucketCount * _maxLFNum / _maxLFDenom)
   }
-  
-  
+
+
   /// The minimum hash table scale that can hold the specified number of elements.
   @usableFromInline
   @_effects(readnone)
@@ -151,4 +150,3 @@ extension _HTable {
     return (scale, capacity)
   }
 }
-#endif

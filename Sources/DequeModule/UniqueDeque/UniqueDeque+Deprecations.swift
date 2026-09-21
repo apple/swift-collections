@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2)
-
 @available(SwiftStdlib 5.0, *)
 extension UniqueDeque where Element: ~Copyable {
   /// Creates an empty unique deque with the specified capacity.
@@ -328,5 +326,3 @@ extension UniqueDeque /* where Element: Copyable */ {
   }
 
 }
-
-#endif
