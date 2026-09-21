@@ -26,7 +26,7 @@ public protocol Container<Element>:
 
   /// Indices are expected to implement `==` and `hash(into:)` with
   /// constant complexity.
-  associatedtype Index: Equatable, Hashable
+  associatedtype Index: Equatable, Comparable, Hashable
 
   // FIXME: We need Container to define a default value for BorrowingIterator,
   // but we can only do that once ContainerIterator can support a
@@ -410,56 +410,10 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
 }
 
 @available(SwiftStdlib 6.4, *)
-extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
-  @_alwaysEmitIntoClient
-  public func distance(from start: Index, to end: Index) -> Int {
-#if true
-    // This variant allows start to follow end, but as indices aren't
-    // comparable, we have to measure distances from both ends.
-    var d1 = 0
-    var d2 = 0
-    var i1 = start
-    var i2 = end
-    var forward = true
-    var backward = true
-    while forward || backward {
-      if forward {
-        let c = self.nextSpan(after: &i1, limitedBy: end).count
-        d1 += c
-        if i1 == end { return d1 }
-        if c == 0 { forward = false }
-      }
-      if backward {
-        let c = self.nextSpan(after: &i2, limitedBy: start).count
-        d2 -= c
-        if i2 == start { return d2 }
-        if c == 0 { backward = false }
-      }
-    }
-    fatalError("Invalid Container")
-#else
-    // Worse variant: this requires start <= end, but it has no way to quickly
-    // validate it. Furthermore, the restriction conflicts with Collection's
-    // more flexible implementation.
-    var i = start
-    var d = 0
-    while true {
-      let c = self.nextSpan(after: &i, limitedBy: j).count
-      d += c
-      if i == end { break }
-      precondition(c > 0, "Invalid Container or 'start' does not precede 'end'")
-    }
-    return d
-#endif
-  }
-}
-
-@available(SwiftStdlib 6.4, *)
 extension Container
 where
   Self: ~Copyable & ~Escapable,
-  Element: ~Copyable,
-  Index: Comparable
+  Element: ~Copyable
 {
   @_alwaysEmitIntoClient
   public func distance(from start: Index, to end: Index) -> Int {

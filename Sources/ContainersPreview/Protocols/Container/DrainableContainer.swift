@@ -23,10 +23,7 @@ import SpanPreview
 @available(SwiftStdlib 6.4, *)
 public protocol DrainableContainer<Element>
 : Container, ~Copyable, ~Escapable
-where
-  Element: ~Copyable,
-  Index: Comparable // For `Range<Index>`
-{
+where Element: ~Copyable {
   // MARK: Core requirements
 
   associatedtype SubrangeConsumer:
