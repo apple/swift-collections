@@ -74,17 +74,17 @@ where
   @_lifetime(self: copy self)
   public mutating func generate(
     into target: inout OutputSpan<Element>
-  ) throws(Failure) -> Bool {
-    var success = false
+  ) throws(Failure) -> Int {
+    var c = 0
     while !target.isFull {
       var source = _base.drainNext(maxCount: target.freeCapacity)
       if source.isEmpty { break }
-      success = true
+      c += source.count
       while !source.isEmpty {
         try target.append(_transform(source.removeFirst()))
       }
     }
-    return success
+    return c
   }
 
   @inlinable

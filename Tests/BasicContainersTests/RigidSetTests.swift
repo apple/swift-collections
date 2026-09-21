@@ -64,7 +64,7 @@ class RigidSetTests: CollectionTestCase {
     expectEqual(MemoryLayout<RigidSet<Int>>.stride, 6 * word)
     expectEqual(MemoryLayout<RigidSet<Int>?>.stride, 6 * word)
   }
-  
+
   func test_empty() {
     let s = RigidSet<Int>()
     expectEqual(s.count, 0)
@@ -398,30 +398,27 @@ class RigidSetTests: CollectionTestCase {
   func test_insert_producer() {
     withEvery("capacity", in: [0, 1, 2, 4, 10, 100, 200]) { capacity in
       withEvery("count", in: 0 ..< capacity) { count in
-        withEvery("chunkSize", in: [1, 2, 10, 100, Int.max]) { chunkSize in
-          withLifetimeTracking { tracker in
-            var s = RigidSet<LifetimeTracked<Int>>(capacity: capacity)
+        withLifetimeTracking { tracker in
+          var s = RigidSet<LifetimeTracked<Int>>(capacity: capacity)
 
-            var p = CustomProducer<LifetimeTracked<Int>, Never>(
-              underestimatedCount: 0,
-              chunkSize: chunkSize
-            ) { offset in
-              guard offset < count else { return nil }
-              return tracker.instance(for: offset)
-            }
-            s.insert(from: &p)
-            expectConsistentSet(s)
+          var p = CustomProducer<LifetimeTracked<Int>, Never>(
+            underestimatedCount: 0
+          ) { offset in
+            guard offset < count else { return nil }
+            return tracker.instance(for: offset)
+          }
+          s.insert(from: &p)
+          expectConsistentSet(s)
 
-            expectEqual(s.capacity, capacity)
-            expectEqual(s.count, count)
+          expectEqual(s.capacity, capacity)
+          expectEqual(s.count, count)
 
-            var seen: Set<Int> = []
-            var index = s.startIndex
-            while index != s.endIndex {
-              let payload = s[index].payload
-              expectTrue(seen.insert(payload).inserted, "Duplicate item \(payload)")
-              index = s.index(after: index)
-            }
+          var seen: Set<Int> = []
+          var index = s.startIndex
+          while index != s.endIndex {
+            let payload = s[index].payload
+            expectTrue(seen.insert(payload).inserted, "Duplicate item \(payload)")
+            index = s.index(after: index)
           }
         }
       }

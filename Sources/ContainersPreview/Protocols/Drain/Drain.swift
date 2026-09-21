@@ -168,13 +168,17 @@ extension Drain where Self: ~Copyable & ~Escapable, Element: ~Copyable  {
   @_lifetime(target: copy target)
   public mutating func generate(
     into target: inout OutputSpan<Element>
-  ) throws(Never) -> Bool {
-    var source = self.drainNext(maxCount: target.freeCapacity)
-    if source.isEmpty { return false }
-    target._append(moving: &source)
-    return true
+  ) throws(Never) -> Int {
+    var c = 0
+    while !target.isFull {
+      var source = self.drainNext(maxCount: target.freeCapacity)
+      guard !source.isEmpty else { break }
+      c += source.count
+      target._append(moving: &source)
+    }
+    return c
   }
-  
+
   /// Skip the given number items in the underlying generative sequence,
   /// decreasing it by the number of items successfully skipped before hitting
   /// the end of the sequence or an error.

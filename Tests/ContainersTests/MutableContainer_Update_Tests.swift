@@ -154,30 +154,27 @@ final class MutableContainer_Update_Tests: CollectionTestCase {
     withEveryFullDeque("layout", ofCapacities: [0, 1, 10]) { layout in
       withEvery("start", in: 0 ..< layout.count) { start in
         withEvery("length", in: 0 ..< layout.count - start + 2) { length in
-          withEvery("chunkSize", in: [1, 2, length] as Set) { chunkSize in
-            withLifetimeTracking { tracker in
-              var expected = Array(0 ..< layout.count)
-              let replacements1 = layout.count ..< (layout.count + length)
-              let end = Swift.min(start + length, layout.count)
-              expected.replaceSubrange(
-                start ..< end,
-                with: replacements1.prefix(end - start))
+          withLifetimeTracking { tracker in
+            var expected = Array(0 ..< layout.count)
+            let replacements1 = layout.count ..< (layout.count + length)
+            let end = Swift.min(start + length, layout.count)
+            expected.replaceSubrange(
+              start ..< end,
+              with: replacements1.prefix(end - start))
 
-              var actual = tracker.rigidDeque(with: layout)
-              var replacements2 = CustomProducer<LifetimeTracked<Int>, Never>(
-                underestimatedCount: 0,
-                chunkSize: chunkSize
-              ) { offset in
-                guard offset < end - start else { return nil }
-                return tracker.instance(for: layout.count + offset)
-              }
-
-              var i = start
-              actual.deque.updateElements(after: &i, from: &replacements2)
-
-              expectIterablePayloads(actual.deque, equalTo: expected)
-              expectEqual(i, end)
+            var actual = tracker.rigidDeque(with: layout)
+            var replacements2 = CustomProducer<LifetimeTracked<Int>, Never>(
+              underestimatedCount: 0,
+            ) { offset in
+              guard offset < end - start else { return nil }
+              return tracker.instance(for: layout.count + offset)
             }
+
+            var i = start
+            actual.deque.updateElements(after: &i, from: &replacements2)
+
+            expectIterablePayloads(actual.deque, equalTo: expected)
+            expectEqual(i, end)
           }
         }
       }

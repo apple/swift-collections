@@ -94,9 +94,7 @@ extension UniqueDeque where Element: ~Copyable {
     return try _storage._handle.uncheckedPrepend(
       addingCount: newItemCount
     ) { target throws(E) in
-      while !target.isFull, try producer.generate(into: &target) {
-        // Do nothing
-      }
+      try producer.generate(into: &target)
     }
   }
 
@@ -136,9 +134,7 @@ extension UniqueDeque where Element: ~Copyable {
           precondition(d >= 0, "Invalid Producer")
           added &+= d
         }
-        while !target.isFull, !done {
-          done = try !producer.generate(into: &target)
-        }
+        done = try producer.generate(into: &target) == 0
       }
     }
     return Range(uncheckedBounds: (0, added))

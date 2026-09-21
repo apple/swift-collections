@@ -80,8 +80,8 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
           }
           let r = try scratch._append(
             addingCount: Swift.min(dst.count &- offset, scratch.freeCapacity)
-          ) { src throws(Failure) in try source.fill(&src) }
-          guard r else { return }
+          ) { src throws(Failure) in try source.generate(into: &src) }
+          guard r > 0 else { return }
         }
         index = next
         offset = 0
@@ -105,7 +105,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
       remaining -= target.count
       target._edit { dst in
         dst.removeAll()
-        source.fill(&dst)
+        source.generate(into: &dst)
       }
     }
   }
@@ -134,7 +134,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
         // `updateElements(after:from:)` to support the throwing case, but at
         // the cost of slower operation and a far more unwieldy interface.)
         dst.removeAll()
-        source.fill(&dst)
+        source.generate(into: &dst)
         precondition(dst.isFull, "Invalid CountedProducer")
       }
     }

@@ -68,24 +68,24 @@ public protocol Producer<Element, Failure>: ~Copyable, ~Escapable {
   ///
   /// Repeatedly calling this method produces, in order, all the elements of the
   /// underlying generative sequence. As soon as the sequence has run out of
-  /// elements, all subsequent calls return false without appending any new
-  /// items to their target. This method is not guaranteed to fully populate the
-  /// given output span, but it always appends at least one item until the end
-  /// of the underlying generative sequence.
+  /// elements, all subsequent calls return zero without appending any new
+  /// items to their target. This method is guaranteed to fully populate the
+  /// given output span unless it reaches the end of the producer, or it
+  /// encounters an error.
   ///
   /// The ownership of all generated elements is transferred to the caller of
   /// this method -- it can arbitrarily store, mutate, consume or discard them
   /// as needed, even across invocations of this method, or after the producer
   /// is destroyed.
   ///
-  /// The returned Boolean value can be used to easily determine if the
-  /// method was able to make progress towards filling `target` without hitting
-  /// the end of the underlying sequence.
+  /// The method returns the number of items it successfully appended to the
+  /// span, making it easy to determine/measure forward progress.
   ///
-  /// If `target` is a full span, this method is allowed to unconditionally
-  /// return true. Passing an empty span is not a reliable way to test if the
-  /// producer has reached its end. (Some producers may only be able to detect
-  /// that they are finished while trying to generate the next item.)
+  /// Passing a `target` with no free capacity is a precondition violation.
+  /// The operation may result in a runtime error in this case, but it is also
+  /// allowed to unconditionally return zero in this case, whether or not the
+  /// producer is at its end. There is no way to test if the producer has
+  /// reached its end without asking it to generate at least one new item.
   ///
   /// ### Error handling
   ///
@@ -111,15 +111,15 @@ public protocol Producer<Element, Failure>: ~Copyable, ~Escapable {
   /// the algorithm is solving.
   ///
   /// - Parameter target: An output span ready to take newly generated items.
-  /// - Returns: A boolean value indicating whether the operation was able to
-  ///    append at least one item to the supplied output span without hitting
-  ///    the end of the underlying sequence.
+  ///     On return, `target.isFull` is true unless the producer has reached its
+  ///     end.
+  /// - Returns: The number of elements that the operation appended to `target`.
   @discardableResult
   @_lifetime(target: copy target)
   @_lifetime(self: copy self)
   mutating func generate(
     into target: inout OutputSpan<Element>
-  ) throws(Failure) -> Bool
+  ) throws(Failure) -> Int
 
   /// Skip the given number items in the underlying generative sequence,
   /// decreasing it by the number of items successfully skipped before hitting
@@ -240,9 +240,12 @@ extension Producer where Self: ~Copyable & ~Escapable, Element: ~Copyable {
       capacity: Swift.min(maxBufferSize, n)
     ) { buffer throws(Failure) in
       repeat {
-        defer { n &-= buffer.count }
-        guard try self.generate(into: &buffer) else { return }
-        buffer.removeAll()
+        defer {
+          n &-= buffer.count
+          buffer.removeAll()
+        }
+        try self.generate(into: &buffer)
+        if !buffer.isFull { return }
       } while n > 0
     }
   }
@@ -320,7 +323,7 @@ extension Producer where Self: ~Copyable & ~Escapable, Element: ~Copyable {
     try withTemporaryAllocation(
       of: Element.self, capacity: 1
     ) { buffer throws(Failure) in
-      guard try self.generate(into: &buffer) else { return nil }
+      guard try self.generate(into: &buffer) == 1 else { return nil }
       return buffer.removeLast()
     }
   }
@@ -328,18 +331,6 @@ extension Producer where Self: ~Copyable & ~Escapable, Element: ~Copyable {
 
 @available(SwiftStdlib 5.0, *)
 extension Producer where Self: ~Copyable & ~Escapable, Element: ~Copyable {
-  @_alwaysEmitIntoClient
-  @discardableResult
-  public mutating func fill(
-    _ target: inout OutputSpan<Element>
-  ) throws(Failure) -> Bool {
-    var result = false
-    while !target.isFull, try self.generate(into: &target) {
-      result = true
-    }
-    return result
-  }
-
   /// Triggers a runtime trap if the producer is not at its end, consuming it in
   /// the process. This is implemented by checking if it is possible to
   /// skip one item.

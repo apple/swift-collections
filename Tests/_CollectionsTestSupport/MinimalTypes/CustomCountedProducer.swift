@@ -51,14 +51,14 @@ package struct CustomCountedProducer<Element: ~Copyable, Failure: Error>: ~Copya
 extension CustomCountedProducer: CountedProducer where Element: ~Copyable {
   package mutating func generate(
     into target: inout OutputSpan<Element>
-  ) throws(Failure) -> Bool {
-    var success = false
+  ) throws(Failure) -> Int {
+    var c = 0
     while !target.isFull, _offset < count {
       target.append(try _generator(_offset))
       _offset += 1
-      success = true
+      c += 1
     }
-    return success
+    return c
   }
 }
 
