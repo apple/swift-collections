@@ -20,7 +20,7 @@ import InternalCollectionsUtilities
 @available(SwiftStdlib 5.0, *)
 extension RigidSet where Element: ~Copyable {
   @frozen
-  public struct Index: Equatable, Hashable, CustomDebugStringConvertible {
+  public struct Index: Equatable, Comparable, Hashable, CustomDebugStringConvertible {
     @_alwaysEmitIntoClient
     package var _bucket: _HTable.Bucket
     
@@ -49,6 +49,11 @@ extension RigidSet where Element: ~Copyable {
     @_alwaysEmitIntoClient
     public static func ==(left: Self, right: Self) -> Bool {
       left._bucket == right._bucket
+    }
+
+    @_alwaysEmitIntoClient
+    public static func <(left: Self, right: Self) -> Bool {
+      left._bucket < right._bucket
     }
 
     @_alwaysEmitIntoClient

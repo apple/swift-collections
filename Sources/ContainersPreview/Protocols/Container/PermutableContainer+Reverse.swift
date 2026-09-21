@@ -34,8 +34,7 @@ where Self: BidirectionalContainer, Element: ~Copyable
 extension PermutableContainer
 where
   Self: BidirectionalContainer,
-  Element: ~Copyable,
-  Index: Comparable
+  Element: ~Copyable
 {
   @inlinable
   public mutating func reverseSubrange(_ range: Range<Index>) {

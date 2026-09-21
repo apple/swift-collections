@@ -16,7 +16,7 @@
 @available(SwiftStdlib 6.4, *)
 public protocol RandomAccessContainer<Element>
 : BidirectionalContainer, ~Copyable, ~Escapable
-where Element: ~Copyable, Index: Comparable {
+where Element: ~Copyable {
   // Note: Some requirements are redeclared to help associated type inference;
   // others are kept separate with `@_nonoverride`.
   //

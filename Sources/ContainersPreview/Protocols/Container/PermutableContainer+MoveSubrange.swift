@@ -17,8 +17,7 @@
 extension PermutableContainer
 where
   Self: BidirectionalContainer,
-  Element: ~Copyable,
-  Index: Comparable
+  Element: ~Copyable
 {
   @inlinable
   @discardableResult
