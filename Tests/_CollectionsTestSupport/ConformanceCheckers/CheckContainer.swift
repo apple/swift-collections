@@ -29,8 +29,7 @@ public func checkContainer<
   expectedContents: Expected,
   file: StaticString = #filePath,
   line: UInt = #line
-) throws(C.Failure)
-where C.Element: Equatable {
+) where C.Element: Equatable {
   checkContainer(
     container,
     expectedContents: expectedContents,
@@ -49,7 +48,7 @@ public func checkContainer<
   by areEquivalent: (borrowing C.Element, Expected.Element) -> Bool,
   file: StaticString = #filePath,
   line: UInt = #line
-) throws(C.Failure) where C.Element: Copyable {
+) where C.Element: Copyable {
   checkContainer(
     container,
     expectedContents: expectedContents,
@@ -70,7 +69,7 @@ public func checkContainer<
   by areEquivalent: (borrowing C.Element, Expected.Element) -> Bool,
   file: StaticString = #filePath,
   line: UInt = #line
-) throws(C.Failure) where C.Element: TestPrintable & ~Copyable {
+) where C.Element: TestPrintable & ~Copyable {
   checkContainer(
     container,
     expectedContents: expectedContents,
