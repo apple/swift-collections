@@ -13,7 +13,7 @@ jobs:
     uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.15
     with:
       enable_macos_checks: true
-      macos_exclude_xcode_versions: '[{"swift_version": 6.1}]'
+      macos_exclude_xcode_versions: '[{"xcode_version": "swift_6.1"}]'
       linux_exclude_swift_versions: '[{"swift_version": "5.9"}, {"swift_version": "5.10"}, {"swift_version": 6.0}, {"swift_version": 6.1}]'
       windows_exclude_swift_versions: '[{"swift_version": "5.9"}, {"swift_version": 6.0}, {"swift_version": 6.1}]'
       enable_wasm_sdk_build: true
