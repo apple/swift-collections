@@ -13,6 +13,7 @@
 
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
+import SpanPreview
 #endif
 
 #if compiler(>=6.4) && UnstableContainersPreview
@@ -87,16 +88,16 @@ extension ConsumingMapProducer: Producer where Base: ~Copyable & ~Escapable {
   @_lifetime(self: copy self)
   public mutating func generate(
     into target: inout OutputSpan<Element>
-  ) throws(Failure) -> Bool {
+  ) throws(Failure) -> Int {
     let c = Swift.min(target.freeCapacity, _producerBufferSize)
-    return try _withUnsafeTemporaryAllocation(
+    return try withTemporaryAllocation(
       of: Base.Element.self, capacity: c
-    ) { buffer throws(Failure) in
-      var outputSpan = OutputSpan(buffer: buffer, initializedCount: 0)
-      let result = try _base.generate(into: &outputSpan)
-      let c = outputSpan.finalize(for: buffer)
-      for i in 0 ..< c {
-        target.append(try _transform(buffer.moveElement(from: i)))
+    ) { source throws(Failure) in
+      let result = try _base.generate(into: &source)
+      try source._consumeAll { src throws(Failure) in
+        while !src.isEmpty {
+          target.append(try _transform(src.removeFirst()))
+        }
       }
       return result
     }

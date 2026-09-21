@@ -176,8 +176,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
       consumingWith: { _ in },
       addingCount: newItemCount,
       initializingWith: { target throws(E) in
-        while !target.isFull, try producer.generate(into: &target) {
-        }
+        try producer.generate(into: &target)
       })
   }
 
@@ -350,9 +349,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
   where P.Element: ~Copyable
   {
     try self.insert(addingCount: newItemCount, at: index) { target throws(E) in
-      while !target.isFull, try producer.generate(into: &target) {
-        // Do nothing
-      }
+      try producer.generate(into: &target)
     }
   }
 
@@ -390,8 +387,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
   {
     let c = producer.count
     let range = try self.insert(addingCount: c, at: index) { target throws(E) in
-      while !target.isFull, try producer.generate(into: &target) {
-      }
+      try producer.generate(into: &target)
     }
     try producer._expectEnd("Invalid Container")
     return range

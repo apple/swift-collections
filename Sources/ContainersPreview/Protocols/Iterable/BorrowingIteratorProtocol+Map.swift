@@ -101,19 +101,19 @@ where
   @_lifetime(self: copy self)
   public mutating func generate(
     into target: inout OutputSpan<Element>
-  ) throws(Failure) -> Bool {
-    var success = false
+  ) throws(Failure) -> Int {
+    var c = 0
     while !target.isFull {
       let span = try _it.nextSpan(maxCount: target.freeCapacity)
       guard !span.isEmpty else { break }
-      success = true
+      c += span.count
       var i = 0
       while i < span.count {
         target.append(try _transform(span[unchecked: i]))
         i &+= 1
       }
     }
-    return success
+    return c
   }
 
   @inlinable

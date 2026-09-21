@@ -90,16 +90,17 @@ where
   @_lifetime(self: copy self)
   public mutating func generate(
     into target: inout OutputSpan<Element>
-  ) throws(Failure) -> Bool {
+  ) throws(Failure) -> Int {
     let startCount = target.count
     repeat {
       let prevCount = target.count
       defer {
         target._remove(from: prevCount, where: { !_isIncluded($0) })
       }
-      guard try _base.generate(into: &target) else { break }
+      try _base.generate(into: &target)
+      guard target.isFull else { break }
     } while target.count == startCount
-    return target.count > startCount
+    return target.count - startCount
   }
 
   // Note: We can't implement skip(by:) a better way than the default algorithm.

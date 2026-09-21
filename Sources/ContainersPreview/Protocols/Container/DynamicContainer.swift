@@ -94,9 +94,7 @@ extension DynamicContainer where Self: ~Copyable, Element: ~Copyable {
       let c = Swift.max(producer.underestimatedCount, self.freeCapacity)
       if c > 0 {
         try self.append(addingCount: c) { target throws(E) in
-          while !target.isFull {
-            guard try producer.generate(into: &target) else { return }
-          }
+          try producer.generate(into: &target)
         }
       }
       // Nudge the container to resize itself, hopefully providing more

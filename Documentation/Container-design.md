@@ -1,12 +1,6 @@
 # An Ownership-Aware Container Model for Swift
 
 * Author: [Karoy Lorentey](https://github.com/lorentey)
-* Version history:
-   - 0.1 (2026-07-21): Initial draft, describing `Container`.
-   - 0.2 (2026-07-22): Second draft, completing the chapter on the read-only container model.
-   - 0.3 (2026-07-28): `PermutableContainer` and `MutableContainer`
-   - 0.4 (2026-08-06): `Producer`
-   - 0.5 (2026-08-18): Add `Overview of Container Protocols` section. Spin off `DrainableContainer` as a separate protocol.
 
 ## Table of Contents
 
@@ -41,6 +35,7 @@
     * [Iterating Over a Producer](#iterating-over-a-producer)
     * [Creating a Producer](#creating-a-producer)
     * [Default Implementations on Producer](#default-implementations-on-producer)
+  * [Counted Producers](#counted-producers)
   * [In\-Place Consumption](#in-place-consumption)
     * [struct InputSpan](#struct-inputspan)
     * [protocol Drain](#protocol-drain)
@@ -53,7 +48,11 @@
       * [Adding Elements to a Container](#adding-elements-to-a-container)
       * [Replacing Subranges](#replacing-subranges)
     * [Dynamic Containers](#dynamic-containers)
+  * [Sample Conformances](#sample-conformances)
+    * [UniqueDeque](#uniquedeque)
+    * [LinkedList](#linkedlist)
   * [Rejected Directions](#rejected-directions)
+    * [Non\-Comparable Indices](#non-comparable-indices)
     * [Cursors](#cursors)
     * [Index Rounding Operations](#index-rounding-operations)
     * [protocol ContiguousContainer](#protocol-contiguouscontainer)
@@ -396,7 +395,7 @@ As `Container` refines `Iterable`, it provides a `BorrowingIterator`, and we can
 ```swift
 protocol Container<Element>: ... {
   ...
-  associatedtype Index: Equatable, Hashable
+  associatedtype Index: Equatable, Comparable, Hashable
   ...
 }
 ```
@@ -418,11 +417,9 @@ Over the years, Swift's indices have proven to be extremely successful abstracti
 
 Every one of the standard container types we've introduced so far (from [`Span`][Span] to [`UniqueArray`][UniqueArray] and beyond) already defines an index that fits this model.
 
-`Container` indices are required to be `Equatable`, but unlike `Collection`, they do not need to be `Comparable`. Linked lists are commonly used in systems programming, and this choice allows some linked list implementations to usefully conform to `Container`. The lack of an inherent ordering does complicate the default implementations of some index operations -- [see below](#distance-from-to).
+`Container` indices are required to be `Equatable` and `Comparable`, like `Collection` indices. In addition, `Container` also requires its indices to be `Hashable`. This does not put an undue burden on container implementations, but it does allow indices to be collected in sets or used as dictionary keys, enabling use cases such as dynamic filtering or out-of-band storage of data associated with container elements. (Not guaranteeing hashable indices is a long-standing annoyance with `Collection`.)
 
-In exchange, `Container` requires its indices to be `Hashable`. This does not put an undue burden on container implementations, but it does allow indices to be collected in sets or used as dictionary keys, enabling use cases such as dynamic filtering or out-of-band storage of data associated with container elements. (Not guaranteeing hashable indices is a long-standing annoyance with `Collection`.)
-
-To acknowledge our performance goals, **we require that equating and hashing `Container` indices must be performed with O(1) complexity**. If a container's index does happen to be `Comparable`, then it is required that `<` has O(1) complexity as well.
+To acknowledge our performance goals, **we require that equating, comparing and hashing `Container` indices must all be performed with O(1) complexity**.
 
 Now that we have an `Index` type, we can define all the familiar operations that allow us to navigate within a container:
 
@@ -446,19 +443,15 @@ protocol Container<Element>: ... {
 
 As `Container` models a forward-only container, its `index(_:offsetBy:)` operation requires a nonnegative offset. (We'll shortly introduce a `BidirectionalContainer` refinement that will relax this constraint.)
 
-<span id="distance-from-to">
+However, as indices are required to be `Comparable`, the `distance(from:to:)` method works whether or not its `start` argument precedes `end`, even if we can only iterate forward.
 
-As indices aren't required to be `Comparable`, the default implementation of `distance(from:to:)` cannot quickly validate that its `start` argument precedes `end`. To avoid having to run all the way to the end of the container to detect misuse, the algorithm instead iterates forward from both arguments, until it finds the other. This makes the default implementation twice as slow, but it allows it to correctly calculate negative distances. In the common case when `Index` is `Comparable`, we also provide a refined default algorithm that avoids this overhead.
-
-</span>
-
-Notably, we replace `Collection`'s classic `index(_:offsetBy:limitedBy:)` requirement with an improved variant ([first introduced on `UniqueArray`][formIndex-offsetBy-limitedBy]) that reports the number of steps it was unable to take when reaching the limit. This avoids having to figure this out with a separate `distance(from:to:)` invocation, enabling more efficient use of this operation in situations that need this data; for example, it allows easy single-pass offsetting across concatenated containers. `Collection`'s original `index(_:offsetBy:limitedBy:)` operation is still available, as a standard algorithm based on the new requirement.
+Notably, we replace `Collection`'s classic `index(_:offsetBy:limitedBy:)` requirement with an improved variant ([first introduced on `RigidArray`/`UniqueArray`][formIndex-offsetBy-limitedBy]) that reports the number of steps it was unable to take when reaching the limit. This avoids having to figure this out with a separate `distance(from:to:)` invocation, enabling more efficient use of this operation in situations that need this data; for example, it allows easy single-pass offsetting across concatenated containers. `Collection`'s original `index(_:offsetBy:limitedBy:)` operation is still available, as a standard algorithm based on the new requirement.
 
 <span id="limiting-index-semantics">
 
 The `limit` argument here (and also elsewhere throughout the `Container` interface surface) means a **limiting index**, intended to cause the operation to stop if it encounters the limit during its execution. A limit of this sort only triggers a stop if the operation needs to actively iterate over it. A limit that the operation never needs to visit has no effect, whether it happens to address a position before or after the visited range. For example, if we're trying to find the index by offsetting position 10 by 5 places forward, a limiting index at position 3 has no effect -- to offset the original position, we only need to visit positions 10, 11, 12, 13, 14, and 15.
 
-These curious semantics allow types that cannot provide comparable indices to still correctly conform to the protocol. (For example, linked lists usually cannot determine relative ordering between their indices without actively iterating through the list in linear time. If `limit` was required to be observed even if it lied behind the starting position, then linked lists would need to painstakingly figure out if this was the case, by iterating through items we wouldn't expect the operation to ever visit.)
+These curious semantics come from `Collection`, and they are a legacy of an early collection design where indices were not required to be comparable. We adopt them for `Container` for two reasons: first, it is preferable to avoid diverging from `Collection` behavior where there isn't a strong reason to do otherwise; second, while `Container.Index` is required to be comparable in this version of this document, we are not yet fully committed to keep it.
 
 </span>
 
@@ -572,90 +565,6 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
 Containers often group their contents into piecewise contiguous storage chunks: for example, array types hold all of their elements in a single, contiguous region of memory. As this default implementation iterates over entire chunks, it can be considerably more efficient than stepping through indices one by one, like `Collection` does. The elements are all required to preexist in memory, so materializing spans over them is relatively cheap -- `nextSpan` merely needs to locate storage, not populate its contents. Still, it is often possible to implement `Container` operations more directly (and more efficiently) than by invoking `nextSpan`, and so it is good practice to do so whenever it leads to measurable improvement.
 
 While bulk iteration is often a performance boost, not all container types benefit from it. Some containers allocate a separate node for each of their elements, so their storage chunks all have just one item each. (Linked lists and binary search trees are two well-known examples.) These container types are still able to implement bulk iteration interfaces, but they become far less effective, as they are reduced to a somewhat overcomplicated form of elementwise iteration. Accordingly, in the worst case the `index(_:offsetBy:)` implementation above may need to invoke the `nextSpan` operation `n` times -- it has the same linear worst-case complexity as `Collection`'s elementwise implementation.
-
-The default implementation of `distance(from:to:)` poses an interesting problem: `Container` only allows forward iteration, so to measure the distance between two indices, we have to start iterating from the one addressing the earlier one. But `Container` does not require its `Index` to be `Comparable`, so we cannot easily decide which index goes first! We have three options to resolve this:
-
-1. Only provide a default `distance` algorithm for containers with comparable indices.
-
-    ```swift
-    extension Container
-    where
-      Self: ~Copyable & ~Escapable,
-      Element: ~Copyable,
-      Index: Comparable
-    {
-      func distance(from start: Index, to end: Index) -> Int {
-        var (i, j, forward): (Index, Index, Bool) = (start <= end
-         ? (start, end, true)
-         : (end, start, false))
-        var d = 0
-        while i < j {
-          let span = self.nextSpan(after: &i, maxCount: .max, limitedBy: j)
-          precondition(span.count > 0, "Invalid Container")
-          d += span.count
-        }
-        return forward ? d : -d
-      }
-    }
-    ```
-
-   This visits exactly as many storage chunks as exist between the indices, so it is the most efficient way to calculate the distance. (Without knowing more about the internals of the container.)
-
-2. Require `start` to precede `end`, but with no easy way to validate this other than letting iteration go all the way to the end of the container.
-
-    ```swift
-    extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
-      func distance(from start: Index, to end: Index) -> Int {
-        var i = start
-        var d = 0
-        while true {
-          let c = self.nextSpan(after: &i, maxCount: .max, limitedBy: end).count
-          d += c
-          if i == end { break }
-          precondition(c > 0, "Invalid Container or 'start' does not precede 'end'")
-        }
-        return d
-      }
-    }
-    ```
-
-    This option is equivalent to the previous one if `start` happens to come before `end`, but it runs all the way to the end of the container and then traps if they are in the wrong order. `Collection`'s original `distance` had no trouble returning negative values, so choosing this option could invite accidental misuse.
-
-3. Allow `start` and `end` to be in any order, but iterate forward from both ends until we find the other:
-
-    ```swift
-    extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
-      func distance(from start: Index, to end: Index) -> Int {
-        // This variant allows start to follow end, but as indices aren't
-        // comparable, we have to measure distances from both ends.
-        var d1 = 0
-        var d2 = 0
-        var i1 = start
-        var i2 = end
-        var forward = true
-        var backward = true
-        while forward || backward {
-          if forward {
-            let c = self.nextSpan(after: &i1, limitedBy: end).count
-            d1 += c
-            if i1 == end { return d1 }
-            if c == 0 { forward = false }
-          }
-          if backward {
-            let c = self.nextSpan(after: &i2, limitedBy: start).count
-            d2 -= c
-            if i2 == start { return d2 }
-            if c == 0 { backward = false }
-          }
-        }
-        fatalError("Invalid Container")
-      }
-    }
-    ```
-
-    This option has to visit (at worst) twice as many items as the previous two in their regular execution, as the `limitedBy:` arguments [have no effect if the specified `limit` lies behind the start position](#limiting-index-semantics).
-
-To preserve continuity/interoperability with `Collection` (whose `distance` operation allows any ordering), `Container` implements option 3, while also providing the simpler/faster implementation from option 1, for the common case when `Index` is `Comparable`.
 
 ### Subscripting
 
@@ -918,7 +827,7 @@ Our `Container` model follows in the footsteps of `Collection`, so we model back
 
 ```swift
 protocol BidirectionalContainer<Element>: Container, ~Copyable, ~Escapable
-where Element: ~Copyable, Index: Comparable
+where Element: ~Copyable
 {
   func index(before i: Index) -> Index
   func formIndex(before i: inout Index)
@@ -1046,7 +955,7 @@ Protocol `RandomAccessContainer` refines `BidirectionalContainer`, with minimal 
 ```
 protocol RandomAccessContainer<Element>
 : BidirectionalContainer, ~Copyable, ~Escapable
-where Element: ~Copyable, Index: Comparable {
+where Element: ~Copyable {
   @_nonoverride func index(_ index: Index, offsetBy n: Int) -> Index
   @_nonoverride func formIndex(_ index: inout Index, offsetBy n: inout Int, limitedBy limit: Index)
   @_nonoverride func distance(from start: Index, to end: Index) -> Int
@@ -1078,8 +987,6 @@ However, the protocol adds strong semantic complexity requirements across all op
 | `currentIndex(of:)` | O(1) |
 | `_customIndexOfEquatableElement(_:)` | O(1) |
 | `_customLastIndexOfEquatableElement(_:)` | O(1) |
-
-Random-access containers must have a `Comparable` index type. This is mostly a consequence of an O(1) `distance(from:to:)`: if we can measure distances between indices in constant time, then we can simply use the sign of the resulting distance to decide their ordering. Requiring indices to be `Comparable` only take a little bit of additional effort, in that it requires that we can do this based on just the indices themselves, without consulting the container.
 
 Random-access container (and collection) indices are largely isomorphic to integer offsets, and we are often able to increment/decrement them independent of their container. Indeed, well-designed random-access containers often use simple `Int` values as their index; [`Span`][Span], [`InlineArray`][InlineArray], [`UniqueArray`][UniqueArray] all use integer indices, and so do [`RigidArray`][RigidArray], [`RigidDeque`][RigidDeque] and [`UniqueDeque`][UniqueDeque] in swift-collections. To exploit this, and to simplify creating conforming types, `RandomAccessContainer` provides efficient default implementations for most indexing operations if `Index` is `Strideable`:
 
@@ -1354,7 +1261,7 @@ protocol Producer<Element, Failure>: ~Copyable, ~Escapable {
   @discardableResult
   mutating func generate(
     into target: inout OutputSpan<Element>
-  ) throws(Failure) -> Bool
+  ) throws(Failure) -> Int
 
   // Requirements with default implementations:
 
@@ -1374,14 +1281,14 @@ The `generate(into:)` member requirement forms the core producer operation: it m
   @discardableResult
   mutating func generate(
     into target: inout OutputSpan<Element>
-  ) throws(Failure) -> Bool
+  ) throws(Failure) -> Int
 ```
 
-This operation generates the next batch of items into the supplied output span instance, which should have room for at least one new element. Repeatedly calling this method produces, in order, all the elements of the underlying sequence. The operation is not guaranteed to fully populate the given output span, but it always appends at least one item until it hits the end of the producer. The returned Boolean indicates the end condition: as soon as the sequence has run out of elements, all subsequent calls return `false` without appending any new items to their target.
+This operation generates the next batch of items into the supplied output span instance, which should have room for at least one new element. Repeatedly calling this method produces, in order, all the elements of the underlying sequence. The operation fully populates the given output span, unless it hits the end of the producer or encounters a failure. The returned integer is the number of items generated: as soon as the sequence has run out of elements, all subsequent calls return `0` without appending any new items to their target.
 
 <details><summary>Click to expand footnote</summary>
 
-(If a client passes `generate(into:)` a `target` output span that's already full, this operation is allowed to unconditionally return true without doing anything. Some producers are only able to detect that they are finished while trying to actually generate the next item, so we cannot test if the producer has reached its end by passing a zero-capacity span to it.)
+(Passing a `target` with no free capacity is a precondition violation. The operation may result in a runtime error in this case, but it is also allowed to unconditionally return zero in this case, whether or not the producer is at its end. There is no way to test if the producer has reached its end without asking it to generate at least one new item.)
 
 </details>
 
@@ -1415,12 +1322,11 @@ extension UniqueArray where Element: ~Copyable {
     repeat {
       let c = Swift.max(1, Swift.max(producer.underestimatedCount, self.freeCapacity))
       try self.append(addingCount: c) { target throws(E) in
-        while !target.isFull {
-          guard try producer.generate(into: &target) else {
-            done = true
-            return
-          }
-        }
+         try producer.generate(into: &target)
+         if !target.isFull {
+           done = true
+           return
+         }
       }
     } while !done
   }
@@ -1459,7 +1365,7 @@ extension UniqueArray where Element: ~Copyable {
   struct SubrangeConsumer: Producer, ~Copyable, ~Escapable { ... }
 
   @_lifetime(&self)
-  mutating func consume(_ subrange: Range<Index>) -> SubrangeConsumer {
+  mutating func consumeSubrange(_ subrange: Range<Index>) -> SubrangeConsumer {
     ...
   }
 }
@@ -1467,12 +1373,12 @@ extension UniqueArray where Element: ~Copyable {
 
 `UniqueArray.SubrangeConsumer` conforms to `Producer` by moving the specified elements out of the array and into the supplied output spans. The subrange consumer extends the duration of the mutation of the array that produced it -- the array is in an inconsistent state while it is being consumed from. When the `SubrangeConsumer` is destroyed, its deinitializer restores the array's invariants by closing the resulting gap in array storage and updating its count to reflect the removals.
 
-(Later on, we'll introduce the [`RangeRemovableContainer` protocol](#range-removable-containers) to standardize the `SubrangeConsumer` shape, allowing us to supply a small family of useful generic algorithms built around it.)
+(Later on, we'll introduce the [`DrainableContainer` protocol](#drainable-containers) to standardize the `SubrangeConsumer` shape, allowing us to express in-place consumption and to supply a small family of useful generic algorithms built around it.)
 
 
-Note how the `Producer` protocol defines an iterator shape, not a sequence. It is the "taking" analogue of `BorrowingIterator`, without a separate `Iterable` analogue.
+Note how the `Producer` protocol defines an iterator shape, not a sequence. It is the "taking" analogue of `BorrowingIterator`. We do not provide a producer analogue of the `Iterable` protocol.
 
-`Iterable` provides a uniform way to create a borrowing iterator, but there is no way to _(usefully)_ unify producer creation like that. For example, the `borrowing func map(_:)` and `mutating func consume(_:)` operations above are two prominent instances of `Producer` creation. Neither their ownership modifiers nor their parameter lists lend themselves to easy unification: the parameters are naturally unique, and the modifiers can only be unified by requiring them both to be `consuming` -- which would be unacceptable.
+`Iterable` provides a uniform way to create a borrowing iterator, but there is no way to _(usefully)_ unify producer creation like that. For example, the `borrowing func map(_:)` and `mutating func consume(_:)` operations above are two prominent instances of `Producer` creation. Neither their ownership modifiers nor their parameter lists lend themselves to easy unification: the parameters are naturally unique, and the modifiers can only be unified by requiring them both to be `consuming` -- which would be unacceptable. (We can't have a borrowing map or a partial consumption consume the entire container they're invoked on!)
 
 Additionally, many producers are inherently nonrepeatable: for instance, a `SubrangeConsumer` can only move the subrange of elements out of its underlying container a single time: once it has transferred their ownership to the client, it cannot do so again.
 
@@ -1491,46 +1397,6 @@ Of course, the issue is that `makeProducer` would be defined as a _consuming_ me
 
 ### Default Implementations on `Producer`
 
-```
-  /// Return the nearest valid index in this container less than or equal to
-  /// the given index value, which must be valid in at least one view of self.
-  ///
-  /// This operation is important for container types that provide multiple
-  /// alternative projections (or "views") over the same underlying
-  /// representation, with each view conforming to `Container`, and sharing
-  /// the same `Index`. (Like `String` does with its UTF-8, UTF-16,
-  /// Unicode scalar and character views in the `Collection` world.)
-  /// This rounding operation enables clients to convert/normalize valid index
-  /// values in one container view into valid indices in another, allowing them
-  /// to (easily) decide whether two (potentially misaligned) index values
-  /// address the same element.
-  ///
-  /// The default implementation of this operation simply returns `index`.
-  ///
-  /// - Complexity: Recommended to be O(1). Conforming types must clearly
-  ///    document deviations from this expectation.
-  func index(alignedDown index: Index) -> Index
-
-  /// Return the nearest valid index in this container greater than or equal to
-  /// the given index value, which must be valid in at least one view of self.
-  ///
-  /// This operation is important for container types that provide multiple
-  /// alternative projections (or "views") over the same underlying
-  /// representation, with each view conforming to `Container`, and sharing
-  /// the same `Index`. (Like `String` does with its UTF-8, UTF-16,
-  /// Unicode scalar and character views in the `Collection` world.)
-  /// This rounding operation enables clients to convert/normalize valid index
-  /// values in one container view into valid indices in another, allowing them
-  /// to (easily) decide whether two (potentially misaligned) index values
-  /// address the same element.
-  ///
-  /// The default implementation of this operation simply returns `index`.
-  ///
-  /// - Complexity: Recommended to be O(1). Conforming types must clearly
-  ///    document deviations from this expectation.
-  func index(alignedUp index: Index) -> Index
-```
-
 ```swift
 extension Producer where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   var underestimatedCount: Int { 0 }
@@ -1543,9 +1409,12 @@ extension Producer where Self: ~Copyable & ~Escapable, Element: ~Copyable {
       capacity: Swift.min(maxBufferSize, n)
     ) { buffer throws(Failure) in
       repeat {
-        defer { n &-= buffer.count }
-        guard try self.generate(into: &buffer) else { return }
-        buffer.removeAll()
+        defer {
+          n &-= buffer.count
+          buffer.removeAll()
+        }
+        try self.generate(into: &buffer)
+        if !buffer.isFull { return }
       } while n > 0
     }
   }
@@ -1563,6 +1432,23 @@ extension Producer where Self: ~Copyable & ~Escapable, Element: ~Copyable {
       guard try self.generate(into: &buffer) else { return nil }
       return buffer.removeLast()
     }
+  }
+}
+```
+
+## Counted Producers
+
+```swift
+/// A producer with an exact count.
+public protocol CountedProducer<Element, Failure>: ~Copyable, ~Escapable, Producer
+where Element: ~Copyable
+{
+  var count: Int { get }
+}
+
+extension CountedProducer where Self: ~Copyable & ~Escapable, Element: ~Copyable {
+  var underestimatedCount: Int {
+    count
   }
 }
 ```
@@ -1698,11 +1584,15 @@ extension Drain where Self: ~Copyable & ~Escapable, Element: ~Copyable  {
   @_lifetime(target: copy target)
   mutating func generate(
     into target: inout OutputSpan<Element>
-  ) throws(Never) -> Bool {
-    var source = self.drainNext(maxCount: target.freeCapacity)
-    if source.isEmpty { return false }
-    target._append(moving: &source)
-    return true
+  ) throws(Never) -> Int {
+    var c = 0
+    while !target.isFull {
+      var source = self.drainNext(maxCount: target.freeCapacity)
+      guard !source.isEmpty else { break }
+      c += source.count
+      target._append(moving: &source)
+    }
+    return c
   }
 
   @_lifetime(self: copy self)
@@ -1742,27 +1632,60 @@ extension PartialRangeThrough: RangeExpression2 {...}
 ### Drainable Containers
 
 ```swift
+public protocol ContainerDrain<Element>: Drain, ~Copyable, ~Escapable
+where Element: ~Copyable
+{
+  associatedtype Index
+  consuming func finalize() -> Index
+}
+```
+
+```swift
 protocol DrainableContainer<Element>
 : Container, ~Copyable, ~Escapable
-where
-  Element: ~Copyable,
-  Index: Comparable // For `Range<Index>`
-{
+where Element: ~Copyable {
   // MARK: Core requirements
 
-  associatedtype SubrangeConsumer: Drain<Element> & ~Copyable & ~Escapable
+  associatedtype SubrangeConsumer:
+    ContainerDrain<Element> & ~Copyable & ~Escapable
+  where SubrangeConsumer.Index == Index
 
   @_lifetime(&self)
-  mutating func consume(_ subrange: Range<Index>) -> SubrangeConsumer
+  mutating func consumeSubrange(_ subrange: Range<Index>) -> SubrangeConsumer
+
+  // FIXME: `consumeAll(where:)`
+  // FIXME: `removeAll(where:)`
+  // These should ideally be using SubrangeConsumer, but that requires Drain
+  // to support partial consumption -- a large complication.
 
   // MARK: Requirements with default implementations
 
-  mutating func remove(at index: Index) -> Element
-  mutating func removeSubrange(_ bounds: Range<Index>)
+  /// Removes and returns the element at the specified position.
+  ///
+  /// - Parameter index: The position of the element to remove. `index` must be
+  ///   a valid index that is not equal to the end index.
+  ///   On return, `index` is updated to address the position following the
+  ///   removed element.
+  /// - Returns: The removed element.
+  @discardableResult
+  mutating func remove(at index: inout Index) -> Element
+
+  @discardableResult
+  mutating func consumeSubrange(
+    _ bounds: Range<Index>,
+    consumingWith consumer: (inout InputSpan<Element>) -> Void
+  ) -> Index
+
+  @discardableResult
+  mutating func removeSubrange(_ bounds: Range<Index>) -> Index
+
   mutating func removeAll()
-  mutating func removeFirst() -> Element
   mutating func removeFirst(_ n: Int)
   mutating func _customRemoveLast() -> Element?
+
+  @_lifetime(&self)
+  mutating func _customConsumeLast(_ n: Int) -> SubrangeConsumer?
+
   mutating func _customRemoveLast(_ n: Int) -> Bool
 }
 ```
@@ -1777,38 +1700,46 @@ where
 
 ```swift
 protocol RangeReplaceableContainer<Element>
-: RangeRemovableContainer, ~Copyable, ~Escapable
-where
-  Element: ~Copyable,
-  Index: Comparable // For `Range<Index>`
+: DrainableContainer, ~Copyable, ~Escapable
+where Element: ~Copyable
 {
   // MARK: Core requirements
 
   var freeCapacity: Int { get }
 
-  mutating func replace<E: Error>(
-    removing subrange: Range<Index>,
+  /// - Returns: A valid index range addressing the newly inserted items.
+  @discardableResult
+  mutating func replaceSubrange<E: Error>(
+    _ subrange: Range<Index>,
     consumingWith consumer: (inout InputSpan<Element>) -> Void,
     addingCount newItemCount: Int,
     initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
-  ) throws(E)
+  ) throws(E) -> Range<Index>
 
   // MARK: Requirements with default implementations
 
+  /// - Returns: A valid index range addressing the newly inserted items.
+  @discardableResult
   mutating func insert<E: Error>(
     addingCount newItemCount: Int,
     at index: Index,
     initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
-  ) throws(E)
+  ) throws(E) -> Range<Index>
 
-  mutating func insert(_ item: consuming Element, at index: Index)
+  /// - Returns: A valid index addressing the newly inserted item.
+  @discardableResult
+  mutating func insert(_ item: consuming Element, at index: Index) -> Index
 
+  /// - Returns: A valid index range addressing the newly inserted items.
+  @discardableResult
   mutating func append<E: Error>(
     addingCount newItemCount: Int,
     initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
-  ) throws(E)
+  ) throws(E) -> Range<Index>
 
-  mutating func append(_ item: consuming Element)
+  /// - Returns: A valid index addressing the newly inserted item.
+  @discardableResult
+  mutating func append(_ item: consuming Element) -> Index
 }
 ```
 
@@ -1821,7 +1752,7 @@ where
 ### Dynamic Containers
 
 ```swift
-public protocol DynamicContainer<Element>: RangeReplaceableContainer, ~Copyable
+protocol DynamicContainer<Element>: RangeReplaceableContainer, ~Copyable
 where Element: ~Copyable
 {
   init()
@@ -1851,7 +1782,15 @@ where Element: ~Copyable
 
 (TODO: Describe the standard algorithms.)
 
+## Sample Conformances
+
+### `UniqueDeque`
+
+### `LinkedList`
+
 ## Rejected Directions
+
+### Non-Comparable Indices
 
 ### Cursors
 

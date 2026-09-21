@@ -34,7 +34,8 @@ extension Producer where Self: ~Copyable & ~Escapable, Element: ~Copyable {
       var done = false
       var result = initialResult.take()
       repeat {
-        done = try !self.generate(into: &buffer)
+        try self.generate(into: &buffer)
+        done = done || !buffer.isFull
         try buffer._consumeAll { span throws(Failure) in
           while let next = span.popFirst() {
             result = try nextPartialResult(result.take()!, next)
@@ -59,7 +60,8 @@ extension Producer where Self: ~Copyable & ~Escapable, Element: ~Copyable {
       var result = initialResult.take()!
       var done = false
       repeat {
-        done = try !self.generate(into: &buffer)
+        try self.generate(into: &buffer)
+        done = done || !buffer.isFull
         try buffer._consumeAll { span throws(Failure) in
           while let next = span.popFirst() {
             try updateAccumulatingResult(&result, next)

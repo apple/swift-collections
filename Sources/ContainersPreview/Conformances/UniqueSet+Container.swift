@@ -80,9 +80,8 @@ extension UniqueSet where Element: ~Copyable {
     while !done {
       _ensureFreeCapacity(Swift.max(producer.underestimatedCount, 1))
       try self.insert(addingCount: self.freeCapacity) { target throws(E) in
-        while !target.isFull, !done {
-          done = try !producer.generate(into: &target)
-        }
+        try producer.generate(into: &target)
+        done = done || !target.isFull
       }
     }
   }

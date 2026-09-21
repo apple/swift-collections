@@ -104,9 +104,7 @@ extension RigidSet where Element: ~Copyable {
     try self.insert(
       addingCount: newItemCount ?? freeCapacity
     ) { target throws(E) in
-      while !target.isFull {
-        guard try producer.generate(into: &target) else { break }
-      }
+      try producer.generate(into: &target)
     }
   }
 

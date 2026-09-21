@@ -69,7 +69,7 @@ where Wrapped: ~Copyable & ~Escapable, Wrapped.Element: ~Copyable {
   @_lifetime(target: copy target)
   package mutating func generate(
     into target: inout OutputSpan<Element>
-  ) throws(Failure) -> Bool {
+  ) throws(Failure) -> Int {
     try _base.generate(into: &target)
   }
 

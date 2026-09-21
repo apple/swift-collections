@@ -66,14 +66,14 @@ where
   @_lifetime(self: copy self)
   public mutating func generate(
     into target: inout OutputSpan<Element>
-  ) throws(Failure) -> Bool {
+  ) throws(Failure) -> Int {
     var c = 0
     while !target.isFull {
       guard let next = try _next(&self._state) else { break }
       target.append(next)
       c += 1
     }
-    return c > 0
+    return c
   }
 
   @inlinable

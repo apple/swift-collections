@@ -23,17 +23,14 @@ import ContainersPreview
 @available(SwiftStdlib 5.0, *)
 package struct CustomProducer<Element: ~Copyable, Failure: Error>: ~Copyable {
   package let underestimatedCount: Int
-  package let _chunkSize: Int
   package let _generator: (Int) throws(Failure) -> Element?
   package var _offset: Int
 
   package init(
     underestimatedCount: Int = 0,
-    chunkSize: Int = Int.max,
     generatingWith generator: borrowing @escaping (Int) throws(Failure) -> Element?
   ) {
     self.underestimatedCount = underestimatedCount
-    self._chunkSize = chunkSize
     self._generator = copy generator
     self._offset = 0
   }
@@ -45,15 +42,15 @@ package struct CustomProducer<Element: ~Copyable, Failure: Error>: ~Copyable {
 extension CustomProducer: Producer where Element: ~Copyable {
   package mutating func generate(
     into target: inout OutputSpan<Element>
-  ) throws(Failure) -> Bool {
-    var i = 0
-    while !target.isFull, i < _chunkSize {
-      guard let next = try _generator(_offset) else { return i > 0 }
+  ) throws(Failure) -> Int {
+    var c = 0
+    while !target.isFull {
+      guard let next = try _generator(_offset) else { return c }
       target.append(next)
       _offset += 1
-      i += 1
+      c += 1
     }
-    return i > 0
+    return c
   }
 }
 
