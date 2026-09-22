@@ -15,8 +15,6 @@
 import InternalCollectionsUtilities
 #endif
 
-#if compiler(>=6.2)
-
 @available(SwiftStdlib 5.0, *)
 extension UniqueArray where Element: ~Copyable {
   /// Removes all elements from the array, preserving its
@@ -141,5 +139,3 @@ extension UniqueArray where Element: ~Copyable {
     return removeLast()
   }
 }
-
-#endif

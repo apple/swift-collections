@@ -16,8 +16,6 @@ import InternalCollectionsUtilities
 import SpanPreview
 #endif
 
-#if compiler(>=6.2)
-
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque where Element: ~Copyable {
   /// Adds an element to the front of the deque.
@@ -34,7 +32,7 @@ extension RigidDeque where Element: ~Copyable {
     precondition(!isFull, "RigidDeque capacity overflow")
     _handle.uncheckedPrepend(item)
   }
-  
+
   /// Adds an element to the front of the deque, if possible.
   ///
   /// If the deque does not have sufficient capacity to hold any more elements,
@@ -140,7 +138,7 @@ extension RigidDeque where Element: ~Copyable {
     precondition(items.count <= freeCapacity, "RigidDeque capacity overflow")
     return _handle.uncheckedPrepend(moving: items)
   }
-  
+
 #if UnstableContainersPreview
   /// Moves the elements of an input span by prepending them to the front of
   /// this deque, leaving the span empty.
@@ -164,7 +162,7 @@ extension RigidDeque where Element: ~Copyable {
     }
   }
 #endif
-  
+
   /// Moves the elements of an output span by prepending them to the front of
   /// this deque, leaving the span empty.
   ///
@@ -212,7 +210,7 @@ extension RigidDeque /*where Element: Copyable*/ {
       "RigidDeque capacity overflow")
     return _handle.uncheckedPrepend(copying: items)
   }
-  
+
   /// Copies the elements of a buffer and prepend them to the front of this
   /// deque.
   ///
@@ -232,7 +230,7 @@ extension RigidDeque /*where Element: Copyable*/ {
   ) -> Range<Int> {
     unsafe self.prepend(copying: UnsafeBufferPointer(items))
   }
-  
+
   /// Copy the elements of a span and prepend them to the front of this deque.
   ///
   /// If the deque does not have sufficient capacity to hold all items in the
@@ -250,7 +248,7 @@ extension RigidDeque /*where Element: Copyable*/ {
       unsafe self.prepend(copying: source)
     }
   }
-  
+
 #if compiler(>=6.4)
   @available(SwiftStdlib 6.4, *)
   @inlinable
@@ -287,7 +285,7 @@ extension RigidDeque /*where Element: Copyable*/ {
       target._append(copying: span)
     }
   }
-  
+
   /// Copies the elements of a borrowing sequence and prepend them to the front
   /// of this deque.
   ///
@@ -380,7 +378,7 @@ extension RigidDeque /*where Element: Copyable*/ {
     precondition(c <= freeCapacity, "RigidDeque capacity overflow")
     return _handle.uncheckedPrepend(copying: items, exactCount: c)
   }
-  
+
 #if compiler(>=6.4)
   /// Copies the elements of a borrowing sequence to the front of this deque.
   ///
@@ -420,4 +418,3 @@ extension RigidDeque /*where Element: Copyable*/ {
   }
 #endif
 }
-#endif

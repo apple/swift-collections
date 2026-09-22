@@ -15,7 +15,6 @@
 import InternalCollectionsUtilities
 #endif
 
-#if compiler(>=6.2)
 extension _HTable {
   package func maxOccupiedRun() -> Int {
     if isSmall { return self.count }
@@ -61,7 +60,7 @@ extension _HTable {
     }
     return str
   }
-  
+
   package func describe(
     bitmap: Bool = false,
   ) -> String {
@@ -78,11 +77,11 @@ extension _HTable {
     }
     return s
   }
-  
+
   package var description: String {
     describe()
   }
-  
+
   package func checkInvariants(
     failureHandler: (String) -> Void,
     hashGenerator: (Bucket) -> Int
@@ -104,13 +103,13 @@ extension _HTable {
       }
       return
     }
-    
+
     // large
     let c = bitmap.occupiedCount()
     if c != self.count {
       failureHandler("Count does not match bitmap count (count: \(self.count), bitmap: \(c))")
     }
-    
+
     guard c > 0 else { return }
     // Start iterating from the first empty bucket, wrapping around once
     var it = self.makeBucketIterator()
@@ -167,4 +166,3 @@ extension _HTable {
 #endif
   }
 }
-#endif

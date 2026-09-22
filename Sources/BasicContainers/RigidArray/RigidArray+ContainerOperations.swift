@@ -15,8 +15,6 @@
 import InternalCollectionsUtilities
 #endif
 
-#if compiler(>=6.2)
-
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
   /// A Boolean value indicating whether this array contains no elements.
@@ -442,5 +440,3 @@ extension RigidArray where Element: ~Copyable {
     return _span(in: Range(uncheckedBounds: (start, index)))
   }
 }
-
-#endif

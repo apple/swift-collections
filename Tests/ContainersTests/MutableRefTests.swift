@@ -153,6 +153,7 @@ final class MutableRefTests: CollectionTestCase {
 
   // MARK: Optional.mutate()
 
+#if compiler(>=6.4)
   @available(SwiftStdlib 6.4, *)
   func test_optional_mutate_some() {
     var x: Int? = 77
@@ -218,5 +219,6 @@ final class MutableRefTests: CollectionTestCase {
     }
     expectEqual(x!.value, 66)
   }
+#endif
 }
 #endif

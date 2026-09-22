@@ -15,8 +15,6 @@
 import InternalCollectionsUtilities
 #endif
 
-#if compiler(>=6.2)
-
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque where Element: ~Copyable {
   /// Removes and returns the element at the specified position.
@@ -64,7 +62,7 @@ extension RigidDeque where Element: ~Copyable {
   public mutating func removeAll() {
     _handle.uncheckedRemoveAll()
   }
-  
+
   /// Removes and returns the first element of the deque.
   ///
   /// The deque must not be empty.
@@ -98,7 +96,7 @@ extension RigidDeque where Element: ~Copyable {
     precondition(!isEmpty, "Cannot remove last element of an empty RigidDeque")
     return _handle.uncheckedRemoveLast()
   }
-  
+
   /// Removes and discards the specified number of elements from the start of
   /// the deque.
   ///
@@ -142,7 +140,7 @@ extension RigidDeque where Element: ~Copyable {
     precondition(n <= count, "Cannot remove more elements than there are in the container")
     _handle.uncheckedRemoveLast(n)
   }
-  
+
   /// Removes the specified subrange of elements from the deque.
   ///
   /// - Parameter bounds: The subrange to remove. The bounds of the
@@ -188,5 +186,3 @@ extension RigidDeque where Element: ~Copyable {
     return _handle.uncheckedRemoveLast()
   }
 }
-
-#endif

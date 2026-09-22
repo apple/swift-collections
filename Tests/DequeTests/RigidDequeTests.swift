@@ -22,7 +22,6 @@ import BasicContainers
 import ContainersPreview
 #endif
 
-#if compiler(>=6.2)
 /// Check if `left` and `right` contain equal elements in the same order.
 @available(SwiftStdlib 5.0, *)
 internal func expectRigidDequeContents<
@@ -1624,4 +1623,3 @@ final class RigidDequeTests: CollectionTestCase {
   }
 #endif
 }
-#endif

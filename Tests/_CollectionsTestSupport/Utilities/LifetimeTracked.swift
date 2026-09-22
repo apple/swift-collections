@@ -57,9 +57,7 @@ extension LifetimeTracked: CustomStringConvertible {
   public var description: String { "\(payload)" }
 }
 
-#if compiler(>=6.2)
 extension LifetimeTracked: TestPrintable {}
-#endif
 
 extension LifetimeTracked: Equatable where Payload: Equatable {
   public static func == (left: LifetimeTracked, right: LifetimeTracked) -> Bool {

@@ -122,18 +122,24 @@ An experimental preview of an ownership-aware container model in Swift. Most of 
 [ContainersPreview]: https://swiftpackageindex.com/apple/swift-collections/documentation/containerspreview
 [UniqueBox]: https://swiftpackageindex.com/apple/swift-collections/documentation/containerspreview/uniquebox
 
+#### [`SpanPreview`][SpanPreview] module
+
+An experimental preview of the `InputSpan` type, a dual to `OutputSpan`. While `OutputSpan` is primarily focused on safe in-place initialization of storage, `InputSpan` is mostly for safe in-place consumption/destruction of items in storage.  
+
+- [`struct InputSpan<Element>`][InputSpan] is a reference to a contiguous region of consumable items.
+
+[SpanPreview]: https://swiftpackageindex.com/apple/swift-collections/documentation/spanpreview
+[InputSpan]: https://github.com/apple/swift-collections/blob/main/Sources/SpanPreview/Types/InputSpan.swift
+
 #### [`Collections`][CollectionsModule] module
 
-Exposes the most commonly used collection types with a single import statement:
+This module makes the contents of the following modules available with a single import statement:
 
-- [`struct BitArray`][BitArray] from `BitCollections`
-- [`struct BitSet`][BitSet] from `BitCollections`
-- [`struct Deque<Element>`][Deque] from `DequeModule`
-- [`struct Heap<Element>`][Heap] from `HeapModule`
-- [`struct OrderedSet<Element>`][OrderedSet] from `OrderedCollections`
-- [`struct OrderedDictionary<Key, Value>`][OrderedDictionary] from `OrderedCollections`
-- [`struct TreeSet<Element>`][TreeSet] from `HashTreeCollections`
-- [`struct TreeDictionary<Key, Value>`][TreeDictionary] from `HashTreeCollections`
+- [`BitCollections`][BitCollections] ([`struct BitArray`][BitArray] and [`struct BitSet`][BitSet])
+- [`DequeModule`][DequeModule] ([`struct Deque<Element>`][Deque], [`struct RigidDeque<Element>`][RigidDeque] and [`struct UniqueDeque<Element>`][UniqueDeque])
+- [`HeapModule`][HeapModule] ([`struct Heap<Element>`][Heap])
+- [`OrderedCollections`][OrderedCollections] ([`struct OrderedSet<Element>`][OrderedSet] and [`struct OrderedDictionary<Key, Value>`][OrderedDictionary])
+- [`HashTreeCollections`][HashTreeCollections] ([`struct TreeSet<Element>`][TreeSet], [`struct TreeDictionary<Key, Value>`][TreeDictionary])
 
 [CollectionsModule]: https://swiftpackageindex.com/apple/swift-collections/documentation/collections
 
@@ -145,13 +151,13 @@ These features are disabled by default. The package provides several package tra
 
 ### `UnstableContainersPreview` package trait
 
-This trait enables the following types in the [`ContainersPreview`][ContainersPreview] module:
+This trait enables the following types in the [`ContainersPreview`][ContainersPreview] and [`SpanPreview`][SpanPreview] modules:
 
 - [`struct InputSpan<Element>`][InputSpan] is a reference to a contiguous region of consumable items.
 - [`struct Ref<Target>`][Ref] represents a borrowing reference to an item.
 - [`struct MutableRef<Target>`][MutableRef] represents a mutating reference to an item.
 
-- [`protocol BorrowingSequence<Element>`][BorrowingSequence] models borrowing sequences with ephemeral lifetimes.
+- [`protocol Iterable<Element>`][Iterable] models borrowing sequences with ephemeral lifetimes.
 - [`protocol BorrowingIteratorProtocol<Element>`][BorrowingIteratorProtocol] models borrowing iterators with ephemeral elements.
 - [`protocol Container<Element>`][Container] models containers, or constructs that physically store their contents.
 - [`protocol BidirectionalContainer<Element>`][BidirectionalContainer] is the container analogue of `BidirectionalCollection`.
@@ -161,12 +167,14 @@ This trait enables the following types in the [`ContainersPreview`][ContainersPr
 - [`protocol RangeReplaceableContainer<Element>`][RangeReplaceableContainer] models a (potentially fixed capacity) container with insert/append/replace operations.
 - [`protocol DynamicContainer<Element>`][DynamicContainer] refines `RangeReplaceableContainer` to add operations that require dynamic storage sizing.
 - [`protocol Producer<Element, Failure>`][Producer] models a generative iterator -- an abstraction for producing items on demand.
-- [`protocol Drain<Element>`][Drain] refines `Producer` to model a source of in-place consumable elements -- primarily for use around container types.
+- [`protocol CountedProducer<Element, Failure>`][Producer] refines `Producer` to add a precise count of remaining elements.
+- [`protocol Drain<Element>`][Drain] refines `CountedProducer` to model a source of in-place consumable elements -- primarily for use around container types.
+- [`protocol ContainerDrain<Element>`][ContainerDrain] refines `Drain` to allow retrieving a valid index after the items have been drained.
+- [`protocol RangeExpression2<Bound>`][RangeExpression2] refines the standard `RangeExpression` to support container subranges.
 
-[InputSpan]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Types/InputSpan.swift
 [Ref]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Types/Ref.swift
 [MutableRef]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Types/MutableRef.swift
-[BorrowingSequence]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/BorrowingSequence.swift
+[Iterable]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Iterable.swift
 [BorrowingIteratorProtocol]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/BorrowingIteratorProtocol.swift
 [Container]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Container/Container.swift
 [BidirectionalContainer]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Container/Container.swift
@@ -176,7 +184,10 @@ This trait enables the following types in the [`ContainersPreview`][ContainersPr
 [RangeReplaceableContainer]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Container/RangeReplaceableContainer.swift
 [DynamicContainer]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Container/DynamicContainer.swift
 [Producer]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Producer.swift
+[CountedProducer]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/CountedProducer.swift
 [Drain]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Drain.swift
+[ContainerDrain]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/ContainerDrain.swift
+[RangeExpression2]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/RangeExpression2.swift
 
 The trait also enables a large list of new APIs throughout the package that make use of these constructs -- such as generic methods for transferring items between container types, and implementations of the classic `map`/`reduce`/`filter`/etc algorithms.
 
@@ -200,7 +211,7 @@ These types support noncopyable elements -- noncopyable members in the set types
 
 Under the hood, these containers implement Robin Hood hashing, achieving better memory utilization and more consistent lookup performance when compared to the standard `Set` and `Dictionary` types.
 
-These types need to remain unstable for now, as they depend on compiler/stdlib features that have not shipped yet. Additionally, we may need to tweak their API as we gain more experience with using them.
+These types are kept unstable for now, as we expect we will need to tweak their API as we gain more experience with using them.
 
 ### `UnstableSortedCollections` package trait
 
@@ -225,7 +236,7 @@ The Swift Collections package is source-stable. The version numbers follow [Sema
 
 ### Definition of Public API
 
-The public API of version 1.5 of the `swift-collections` package consists of non-underscored declarations that are marked `public` in the `Collections`, `BasicContainers`, `BitCollections`, `ContainersPreview`, `DequeModule`, `HashTreeCollections`, `HeapModule`, `OrderedCollections`, and `TrailingElementsModule` modules.
+The public API of version 1.7 of the `swift-collections` package consists of non-underscored declarations that are marked `public` in the `Collections`, `BasicContainers`, `BitCollections`, `ContainersPreview`, `DequeModule`, `HashTreeCollections`, `HeapModule`, `OrderedCollections`, and `TrailingElementsModule` modules, when they are built without any package traits.
 
 Interfaces that aren't part of the public API may continue to change in any release, including patch releases.
 
@@ -238,7 +249,7 @@ By "underscored declarations" we mean declarations that have a leading underscor
 
 Interfaces that get enabled by opting into the `UnstableContainersPreview`, `UnstableSortedCollections`, or `UnstableHashedContainers` package traits are not part of the public API; those interfaces may get removed or changed in any release.
 
-(Note: the list of stable modules above intentionally does not include `SortedCollections` nor `_RopeModule` -- these experimental modules are unstable and need more time in the oven before they can become public API.)
+(Note: the list of stable modules above intentionally does not include `SpanPreview`, `SortedCollections` nor `_RopeModule` -- these experimental modules are unstable and need more time in the oven before they can become public API.)
 
 If you have a use case that requires using underscored (or otherwise non-public) APIs, please [submit a Feature Request][enhancement] describing it! We'd like the public interface to be as useful as possible -- although preferably without compromising safety or limiting future evolution.
 
@@ -263,6 +274,7 @@ The following table maps package releases to their minimum required Swift toolch
 | swift-collections 1.4.x | >= Swift 6.0.3  | >= Xcode 16.2 |
 | swift-collections 1.5.x | >= Swift 6.0.3  | >= Xcode 16.2 |
 | swift-collections 1.6.x | >= Swift 6.0.3 | >= Xcode 16.2 |
+| swift-collections 1.7.x | >= Swift 6.2.4 | >= Xcode 26.3 |
 
 We make an effort to ensure that each new minor package version supports the most recent three major Swift versions at the time of its release.
 
@@ -283,7 +295,7 @@ let package = Package(
   dependencies: [
     .package(
       url: "https://github.com/apple/swift-collections.git",
-      .upToNextMinor(from: "1.6.0") // or `.upToNextMajor`
+      .upToNextMinor(from: "1.7.0") // or `.upToNextMajor`
     )
   ],
   targets: [
@@ -314,10 +326,11 @@ We maintain separate branches for each minor version of the package:
 | swift-collections 1.0.x | release/1.0 | Obsolete, closed|
 | swift-collections 1.1.x | release/1.1 | Obsolete, closed|
 | swift-collections 1.2.x | release/1.2 | Obsolete, closed|
-| swift-collections 1.3.x | release/1.3 | Bugfixes only|
+| swift-collections 1.3.x | release/1.3 | Obsolete, closed|
 | swift-collections 1.4.x | <created on demand> | Bugfixes only |
 | swift-collections 1.5.x | <created on demand> | Bugfixes only |
 | swift-collections 1.6.x | <created on demand>| Bugfixes only |
+| swift-collections 1.7.x | <created on demand>| Bugfixes only |
 | n.a.                    | main        | Feature work towards next minor release |
 
 Changes must land on the branch corresponding to the earliest release that they will need to ship on. They are periodically propagated to subsequent branches, in the following direction:

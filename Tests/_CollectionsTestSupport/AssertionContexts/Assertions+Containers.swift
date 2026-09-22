@@ -18,7 +18,6 @@ import InternalCollectionsUtilities
 import ContainersPreview
 #endif
 
-#if compiler(>=6.2)
 /// Check if `left` and `right` contain equal elements in the same order.
 @available(SwiftStdlib 5.0, *)
 public func expectIterableContents<
@@ -357,5 +356,4 @@ public func expectIterableContents<
     return
   }
 }
-#endif
 #endif

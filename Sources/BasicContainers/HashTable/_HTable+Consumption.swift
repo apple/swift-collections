@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2)
-
 extension _HTable {
   @usableFromInline
   package mutating func consumeAll(
@@ -25,5 +23,3 @@ extension _HTable {
     clear()
   }
 }
-
-#endif

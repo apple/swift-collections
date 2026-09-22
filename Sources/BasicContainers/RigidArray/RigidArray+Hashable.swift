@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2)
-
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
 #endif
@@ -39,6 +37,4 @@ extension RigidArray where Element: Hashable {
     self.span._hashContents(into: &hasher)
   }
 }
-#endif
-
 #endif

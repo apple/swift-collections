@@ -15,7 +15,7 @@
 import InternalCollectionsUtilities
 #endif
 
-#if compiler(>=6.2) && UnstableContainersPreview
+#if UnstableContainersPreview
 @available(SwiftStdlib 5.0, *)
 extension OutputSpan where Element: ~Copyable {
   @inlinable

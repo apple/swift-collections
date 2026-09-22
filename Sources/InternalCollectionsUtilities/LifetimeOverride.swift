@@ -11,7 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2)
 /// Unsafely discard any lifetime dependency on the `dependent` argument.
 /// Return a value identical to `dependent` with an immortal lifetime.
 @unsafe
@@ -90,5 +89,3 @@ public func _overrideLifetime<
 >(
   _ dependent: inout T, borrowing source: borrowing U
 ) {}
-
-#endif

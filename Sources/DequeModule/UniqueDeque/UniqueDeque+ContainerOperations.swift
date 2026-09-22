@@ -15,8 +15,6 @@
 import InternalCollectionsUtilities
 #endif
 
-#if compiler(>=6.2)
-
 @available(SwiftStdlib 5.0, *)
 extension UniqueDeque where Element: ~Copyable {
   @_alwaysEmitIntoClient
@@ -97,5 +95,3 @@ extension UniqueDeque where Element: ~Copyable {
     _storage.previousSpan(before: &index, maxCount: maxCount)
   }
 }
-
-#endif

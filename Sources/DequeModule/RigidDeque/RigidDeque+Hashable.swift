@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2)
-
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
 #endif
@@ -47,6 +45,4 @@ extension RigidDeque where Element: Hashable {
     }
   }
 }
-#endif
-
 #endif

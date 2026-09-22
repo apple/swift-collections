@@ -61,14 +61,12 @@ public struct LifetimeTrackedStruct<Payload: ~Copyable>: ~Copyable {
   }
 }
 
-#if compiler(>=6.2)
 extension LifetimeTrackedStruct: TestPrintable
 where Payload: TestPrintable & ~Copyable {
   public var testDescription: String {
     "\(payload.testDescription)"
   }
 }
-#endif
 
 #if compiler(>=6.4)
 extension LifetimeTrackedStruct: Equatable where Payload: Equatable & ~Copyable {

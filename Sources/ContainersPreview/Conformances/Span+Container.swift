@@ -47,7 +47,6 @@ extension Span: RandomAccessContainer where Element: ~Copyable {
 }
 #endif
 
-#if compiler(>=6.2)
 @available(SwiftStdlib 5.0, *)
 extension Span where Element: ~Copyable {
   @_alwaysEmitIntoClient
@@ -91,4 +90,3 @@ extension Span where Element: ~Copyable {
     _spanBoundary(before: index, maxDistance: maxDistance, limitedBy: limit)
   }
 }
-#endif

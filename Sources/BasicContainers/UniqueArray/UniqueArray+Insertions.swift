@@ -16,8 +16,6 @@ import InternalCollectionsUtilities
 import SpanPreview
 #endif
 
-#if compiler(>=6.2)
-
 @available(SwiftStdlib 5.0, *)
 extension UniqueArray where Element: ~Copyable {
   /// Inserts a new element into the array at the specified position.
@@ -335,5 +333,3 @@ extension UniqueArray {
       addingCount: newCount, copying: newElements, at: index)
   }
 }
-
-#endif

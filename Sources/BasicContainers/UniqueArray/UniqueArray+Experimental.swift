@@ -15,7 +15,7 @@
 import InternalCollectionsUtilities
 #endif
 
-#if compiler(>=6.2) && UnstableContainersPreview
+#if UnstableContainersPreview
 
 #if false // TODO
 extension UniqueArray /*where Element: Copyable*/ {

@@ -16,8 +16,6 @@ import InternalCollectionsUtilities
 import SpanPreview
 #endif
 
-#if compiler(>=6.2)
-
 #if UnstableContainersPreview
 @available(SwiftStdlib 5.0, *)
 extension UniqueArray where Element: ~Copyable {
@@ -127,6 +125,4 @@ extension UniqueArray where Element: ~Copyable {
     SubrangeConsumer(_base: &self._storage, offsetRange: subrange)
   }
 }
-#endif
-
 #endif

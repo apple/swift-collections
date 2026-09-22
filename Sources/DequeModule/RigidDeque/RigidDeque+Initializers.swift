@@ -15,8 +15,6 @@
 import InternalCollectionsUtilities
 #endif
 
-#if compiler(>=6.2)
-
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque where Element: ~Copyable {
   /// Initializes a new rigid deque with zero capacity and no elements.
@@ -32,7 +30,7 @@ extension RigidDeque where Element: ~Copyable {
   public init(capacity: Int) {
     self.init(_handle: .allocate(capacity: capacity))
   }
-  
+
   /// Creates a rigid deque with the specified capacity, then calls the given
   /// closure with an output span covering the deque's uninitialized memory.
   ///
@@ -141,7 +139,7 @@ extension RigidDeque /*where Element: Copyable*/ {
     self.init(capacity: capacity ?? contents.count)
     self.append(copying: contents)
   }
-  
+
 #if compiler(>=6.4)
   /// Creates a new deque with the specified capacity, holding a copy
   /// of the contents of a given sequence.
@@ -186,5 +184,3 @@ extension RigidDeque /*where Element: Copyable*/ {
   }
 #endif
 }
-
-#endif

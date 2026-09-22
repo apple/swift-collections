@@ -15,8 +15,6 @@
 import InternalCollectionsUtilities
 #endif
 
-#if compiler(>=6.2)
-
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
   /// Removes all elements from the array, preserving its allocated capacity.
@@ -157,5 +155,3 @@ extension RigidArray where Element: ~Copyable {
     return removeLast()
   }
 }
-
-#endif

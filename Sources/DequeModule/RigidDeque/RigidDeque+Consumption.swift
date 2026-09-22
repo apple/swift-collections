@@ -16,8 +16,6 @@ import InternalCollectionsUtilities
 import SpanPreview
 #endif
 
-#if compiler(>=6.2)
-
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque where Element: ~Copyable {
 #if UnstableContainersPreview
@@ -46,12 +44,12 @@ extension RigidDeque where Element: ~Copyable {
   ) -> Index {
     _checkValidBounds(subrange)
     let segments = self._handle.mutableSegments(forOffsets: subrange)
-    
+
     var span = InputSpan(
       buffer: segments.first, initializedCount: segments.first.count)
     consumer(&span)
     _ = consume span
-    
+
     if let second = segments.second {
       var span = InputSpan(buffer: second, initializedCount: second.count)
       consumer(&span)
@@ -87,7 +85,7 @@ extension RigidDeque where Element: ~Copyable {
   ) -> Index {
     consumeSubrange(subrange.relative(to: indices), consumingWith: consumer)
   }
-  
+
   /// Remove all items currently in this deque, passing a series of input
   /// spans to a given callback function to consume them in place.
   ///
@@ -108,7 +106,7 @@ extension RigidDeque where Element: ~Copyable {
   ) {
     consumeSubrange(indices, consumingWith: consumer)
   }
-  
+
   /// Remove the specified number of items from the end of this deque,
   /// passing an input span to a given callback function to consume them in
   /// place.
@@ -266,6 +264,4 @@ extension RigidDeque.SubrangeConsumer where Element: ~Copyable {
     _offsetRange.lowerBound
   }
 }
-#endif
-
 #endif

@@ -36,7 +36,7 @@ extension MutableSpan: RandomAccessContainer where Element: ~Copyable {
 }
 #endif
 
-#if compiler(>=6.2) && UnstableContainersPreview
+#if UnstableContainersPreview
 @available(SwiftStdlib 5.0, *)
 extension MutableSpan where Element: ~Copyable {
   @_alwaysEmitIntoClient
@@ -86,7 +86,7 @@ extension MutableSpan where Element: ~Copyable {
 extension MutableSpan: MutableContainer where Element: ~Copyable {}
 #endif
 
-#if compiler(>=6.2) && UnstableContainersPreview
+#if UnstableContainersPreview
 @available(SwiftStdlib 5.0, *)
 extension MutableSpan where Element: ~Copyable {
   @_alwaysEmitIntoClient

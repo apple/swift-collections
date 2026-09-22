@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2)
-
 extension _HTable {
   @usableFromInline
   package mutating func migrateItems_Small(
@@ -23,7 +21,7 @@ extension _HTable {
     assert(self.isSmall)
     assert(source.count <= self.capacity)
     guard !source.isEmpty else { return }
-    
+
     // Let's reverse the order of members, to emphasize that this is not an
     // ordered container.
     let c = source.count
@@ -41,7 +39,7 @@ extension _HTable {
     }
     source.clear()
   }
-    
+
   @usableFromInline
   package mutating func migrateItems_Large(
     from source: inout _HTable,
@@ -54,7 +52,7 @@ extension _HTable {
     assert(!self.isSmall)
     assert(source.count <= self.capacity)
     guard !source.isEmpty else { return }
-    
+
     // Move & rehash items one by one.
     var it = source.makeBucketIterator()
     while let next = it.nextOccupiedRegion() {
@@ -72,5 +70,3 @@ extension _HTable {
     source.clear()
   }
 }
-
-#endif

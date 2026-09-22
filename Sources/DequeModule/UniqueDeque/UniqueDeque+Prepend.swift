@@ -16,8 +16,6 @@ import InternalCollectionsUtilities
 import SpanPreview
 #endif
 
-#if compiler(>=6.2)
-
 @available(SwiftStdlib 5.0, *)
 extension UniqueDeque where Element: ~Copyable {
   /// Adds an element to the front of the deque.
@@ -126,7 +124,7 @@ extension UniqueDeque where Element: ~Copyable {
     _ensureFreeCapacity(items.count)
     return _storage._handle.uncheckedPrepend(moving: items)
   }
-  
+
 #if UnstableContainersPreview
   /// Moves the elements of an input span by prepending them to the front of
   /// this deque, leaving the span empty.
@@ -152,7 +150,7 @@ extension UniqueDeque where Element: ~Copyable {
     }
   }
 #endif
-  
+
   /// Moves the elements of an output span by prepending them to the front of
   /// this deque, leaving the span empty.
   ///
@@ -201,7 +199,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
     _ensureFreeCapacity(items.count)
     return _storage._handle.uncheckedPrepend(copying: items)
   }
-  
+
   /// Copies the elements of a buffer and prepend them to the front of this
   /// deque.
   ///
@@ -221,7 +219,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   ) -> Range<Int> {
     unsafe self.prepend(copying: UnsafeBufferPointer(items))
   }
-  
+
   /// Copy the elements of a span and prepend them to the front of this deque.
   ///
   /// If the deque does not have sufficient capacity to hold all items in the
@@ -239,7 +237,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
       unsafe self.prepend(copying: source)
     }
   }
-  
+
 #if compiler(>=6.4)
   @available(SwiftStdlib 6.4, *)
   @inlinable
@@ -273,7 +271,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
       target._append(copying: span)
     }
   }
-  
+
   /// Copies the elements of a borrowing sequence and prepend them to the front
   /// of this deque.
   ///
@@ -370,7 +368,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
     _ensureFreeCapacity(c)
     return _storage._handle.uncheckedPrepend(copying: items, exactCount: c)
   }
-  
+
 #if compiler(>=6.4)
   /// Copies the elements of a borrowing sequence to the end of this deque.
   ///
@@ -412,4 +410,3 @@ extension UniqueDeque /*where Element: Copyable*/ {
   }
 #endif
 }
-#endif

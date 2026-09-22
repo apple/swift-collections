@@ -15,8 +15,6 @@
 import InternalCollectionsUtilities
 #endif
 
-#if compiler(>=6.2)
-
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
   /// Initializes a new rigid array with zero capacity and no elements.
@@ -28,7 +26,7 @@ extension RigidArray where Element: ~Copyable {
     _capacity = 0
     _count = 0
   }
-  
+
   /// Initializes a new rigid array with the specified capacity and no elements.
   @inlinable
   public init(capacity: Int) {
@@ -114,7 +112,7 @@ extension RigidArray /*where Element: Copyable*/ {
     self.init(capacity: capacity)
     self.append(copying: contents)
   }
-  
+
 #if compiler(>=6.4)
   /// Creates a new array with the specified capacity, holding a copy
   /// of the contents of a given container.
@@ -135,9 +133,9 @@ extension RigidArray /*where Element: Copyable*/ {
     self.init(capacity: capacity)
     try self.append(copying: contents)
   }
-  
+
 #endif
-  
+
 #if compiler(>=6.4)
   /// Creates a new array with the specified capacity, holding a copy
   /// of the contents of a given container.
@@ -159,7 +157,7 @@ extension RigidArray /*where Element: Copyable*/ {
     try self.append(copying: contents)
   }
 #endif
-  
+
   /// Creates a new array with the specified capacity, holding a copy
   /// of the contents of a given collection.
   ///
@@ -196,5 +194,3 @@ extension RigidArray /*where Element: Copyable*/ {
     self.append(copying: span)
   }
 }
-
-#endif

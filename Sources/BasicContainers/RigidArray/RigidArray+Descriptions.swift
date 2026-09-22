@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2)
-
 // FIXME: Add this when/if SE-0499 gets implemented.
 //#if compiler(>=6.x)
 //@available(SwiftStdlib 5.0, *)
@@ -42,6 +40,3 @@ extension RigidArray where Element: ~Copyable {
     "<\(count) items>"
   }
 }
-
-
-#endif

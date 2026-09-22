@@ -15,7 +15,6 @@
 import InternalCollectionsUtilities
 #endif
 
-#if compiler(>=6.2)
 @usableFromInline
 @frozen
 package struct _HTable: ~Copyable {
@@ -30,13 +29,13 @@ package struct _HTable: ~Copyable {
 
   @_alwaysEmitIntoClient
   package let _bitmap: UnsafeMutablePointer<Word>?
-  
+
   @_alwaysEmitIntoClient
   package var _maxProbeLength: Int
 
   @_alwaysEmitIntoClient
   package let scale: UInt8
-  
+
   // FIXME: Add a reservedScale for UniqueSet/UniqueDictonary
 
   @inlinable
@@ -61,7 +60,7 @@ package struct _HTable: ~Copyable {
       self._bitmap = bitmap
     }
   }
-  
+
   @inlinable
   internal init(capacity: Int) {
     assert(capacity >= 0)
@@ -69,7 +68,7 @@ package struct _HTable: ~Copyable {
       _capacity: capacity,
       scale: Self.minimumScale(forCapacity: capacity))
   }
-  
+
   @inlinable
   internal init(minimumCapacity: Int) {
     precondition(minimumCapacity >= 0, "Capacity must be nonnegative")
@@ -77,7 +76,7 @@ package struct _HTable: ~Copyable {
     self.init(_capacity: p.capacity, scale: p.scale)
   }
 
-  
+
   @_alwaysEmitIntoClient
   deinit {
     _bitmap?.deallocate()
@@ -115,7 +114,7 @@ extension _HTable {
     _count == capacity
   }
 
-  
+
   @_alwaysEmitIntoClient
   @_transparent
   package var wordCount: Int {
@@ -130,7 +129,7 @@ extension _HTable {
   package var startBucket: Bucket {
     Bucket(offset: 0)
   }
-  
+
   @_alwaysEmitIntoClient
   @_transparent
   package var endBucket: Bucket {
@@ -149,13 +148,13 @@ extension _HTable {
   package var bucketCount: UInt {
     UInt(bitPattern: storageCapacity)
   }
-  
+
   @_transparent
   @inlinable
   package func isValid(_ bucket: Bucket) -> Bool {
     bucket._offset < bucketCount
   }
-  
+
   @_transparent
   @inlinable
   package func wrapBucket(after bucket: inout Bucket) {
@@ -180,7 +179,7 @@ extension _HTable {
       Bitmap(table: self)
     }
   }
-  
+
   @_transparent
   @inlinable
   package func isOccupied(_ bucket: Bucket) -> Bool {
@@ -236,4 +235,3 @@ extension _HTable {
     && self.scale == other.scale
   }
 }
-#endif

@@ -13,9 +13,9 @@ jobs:
     uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.15
     with:
       enable_macos_checks: true
-      macos_exclude_xcode_versions: '[]'
-      linux_exclude_swift_versions: '[{"swift_version": "5.9"}, {"swift_version": "5.10"}]'
-      windows_exclude_swift_versions: '[{"swift_version": "5.9"}]'
+      macos_exclude_xcode_versions: '[{"xcode_version": "swift_6.1"}]'
+      linux_exclude_swift_versions: '[{"swift_version": "5.9"}, {"swift_version": "5.10"}, {"swift_version": 6.0}, {"swift_version": 6.1}]'
+      windows_exclude_swift_versions: '[{"swift_version": "5.9"}, {"swift_version": 6.0}, {"swift_version": 6.1}]'
       enable_wasm_sdk_build: true
       enable_android_sdk_build: true
       enable_android_sdk_checks: true
@@ -45,7 +45,7 @@ jobs:
     name: All Unstable Package Traits Test
     uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.15
     with:
-      linux_swift_versions: '["6.2", "nightly-main"]'
+      linux_swift_versions: '["6.2", "6.3", "nightly-6.4.x", "nightly-main"]'
       enable_macos_checks: false
       enable_linux_checks: true
       enable_windows_checks: false
@@ -88,18 +88,30 @@ jobs:
         uses: actions/checkout@v7
       - name: Install apt dependencies
         run: apt-get -qq update && apt-get -qq -y install curl ninja-build
-      - name: Install CMake 3.30.2
+      - name: Install CMake
+        id: install-cmake
+        uses: swiftlang/github-workflows/.github/actions/install-cmake@0.0.15
+        with:
+          cmake-version: "3.30.2"
+          hash: "cdd7fb352605cee3ae53b0e18b5929b642900e33d6b0173e19f6d4f2067ebf16"
+      - name: CMake version
+        shell: bash
+        env:
+          CMAKE: ${{ steps.install-cmake.outputs.cmake }}
         run: |
-          ARCH=`uname -m`
-          curl -sL https://github.com/Kitware/CMake/releases/download/v3.30.2/cmake-3.30.2-linux-$ARCH.tar.gz -O
-          tar xzf cmake-3.30.2-linux-$ARCH.tar.gz
-          export PATH="`pwd`/cmake-3.30.2-linux-$ARCH/bin:$PATH"
-          echo "PATH=$PATH" >> $GITHUB_ENV
-          cmake --version
-      - name: Configure CMake
-        run: cmake -G Ninja -S . -B .cmake-build
-      - name: Build
-        run: cmake --build .cmake-build
+          "$CMAKE" --version
+      - name: Configure with CMake
+        shell: bash
+        env:
+          CMAKE: ${{ steps.install-cmake.outputs.cmake }}
+        run: |
+          "$CMAKE" -G Ninja -S . -B .cmake-build
+      - name: Build with CMake
+        shell: bash
+        env:
+          CMAKE: ${{ steps.install-cmake.outputs.cmake }}
+        run: |
+          "$CMAKE" --build .cmake-build
 
   xcode-build:
     name: Xcode Project Build
