@@ -180,6 +180,16 @@ public func validateContainer<
        "count": count])
   }
 
+  // The expectation must describe as many items as the container holds. Every
+  // loop below is bounded by `count`, so without this a short expectation runs
+  // off the end of `expectedContents` and a long one is silently ignored.
+  guard expectedContents.count == count else {
+    throw ValidationError(
+      "`count` must match the number of expected contents",
+      ["count": count,
+       "expectedContents.count": expectedContents.count])
+  }
+
   // *** startIndex, endIndex
   let startIndex = container.startIndex
   let endIndex = container.endIndex
