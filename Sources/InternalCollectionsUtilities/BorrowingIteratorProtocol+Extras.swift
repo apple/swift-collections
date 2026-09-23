@@ -13,6 +13,7 @@
 
 #if compiler(>=6.4)
 
+#if false // Avoid broken _swift_initBorrow linkage (https://github.com/apple/swift-collections/issues/733)
 @available(SwiftStdlib 6.4, *)
 extension BorrowingIteratorProtocol
 where Self: ~Copyable & ~Escapable, Element: ~Copyable {
@@ -20,12 +21,13 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   @_unsafeNonescapableResult // FIXME: Eep; _overrideLifetime(_:mutating:) doesn't work
   @_lifetime(&self)
   @_lifetime(self: copy self)
-  public mutating func next() throws(Failure) -> Ref<Element>? {
+  package mutating func _next() throws(Failure) -> Ref<Element>? {
     let span = try nextSpan(maxCount: 1)
     guard !span.isEmpty else { return nil }
     return Ref(span[unchecked: 0])
   }
 }
+#endif
 
 @available(SwiftStdlib 6.4, *)
 extension BorrowingIteratorProtocol
