@@ -155,9 +155,9 @@ final class MutableSpanUpdateTests: CollectionTestCase {
           let replacements1 = c ..< (c + subrange.count)
           expected.replaceSubrange(subrange, with: replacements1)
 
-          var actual = tracker.instances(count: c, generator: { $0 })
-          let replacements2 = tracker.instances(
-            count: subrange.count, generator: { c + $0 })
+          var actual = RigidArray(copying: tracker.instances(count: c, generator: { $0 }))
+          let replacements2 = RigidArray(copying: tracker.instances(
+            count: subrange.count, generator: { c + $0 }))
           var span = actual.mutableSpan
           span._updateSubrange(subrange, copying: replacements2.span)
 
@@ -174,8 +174,8 @@ final class MutableSpanUpdateTests: CollectionTestCase {
       withLifetimeTracking { tracker in
         let expected = c ..< 2 * c
 
-        var actual = tracker.instances(count: c, generator: { $0 })
-        let replacements2 = tracker.instances(count: c, generator: { c + $0 })
+        var actual = RigidArray(copying: tracker.instances(count: c, generator: { $0 }))
+        let replacements2 = RigidArray(copying: tracker.instances(count: c, generator: { c + $0 }))
 
         var span = actual.mutableSpan
         span._updateAll(copying: replacements2.span)

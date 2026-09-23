@@ -122,15 +122,6 @@ An experimental preview of an ownership-aware container model in Swift. Most of 
 [ContainersPreview]: https://swiftpackageindex.com/apple/swift-collections/documentation/containerspreview
 [UniqueBox]: https://swiftpackageindex.com/apple/swift-collections/documentation/containerspreview/uniquebox
 
-#### [`SpanPreview`][SpanPreview] module
-
-An experimental preview of the `InputSpan` type, a dual to `OutputSpan`. While `OutputSpan` is primarily focused on safe in-place initialization of storage, `InputSpan` is mostly for safe in-place consumption/destruction of items in storage.  
-
-- [`struct InputSpan<Element>`][InputSpan] is a reference to a contiguous region of consumable items.
-
-[SpanPreview]: https://swiftpackageindex.com/apple/swift-collections/documentation/spanpreview
-[InputSpan]: https://github.com/apple/swift-collections/blob/main/Sources/SpanPreview/Types/InputSpan.swift
-
 #### [`Collections`][CollectionsModule] module
 
 This module makes the contents of the following modules available with a single import statement:
@@ -153,17 +144,13 @@ These features are disabled by default. The package provides several package tra
 
 This trait enables the following types in the [`ContainersPreview`][ContainersPreview] and [`SpanPreview`][SpanPreview] modules:
 
-- [`struct InputSpan<Element>`][InputSpan] is a reference to a contiguous region of consumable items.
-- [`struct Ref<Target>`][Ref] represents a borrowing reference to an item.
-- [`struct MutableRef<Target>`][MutableRef] represents a mutating reference to an item.
-
-- [`protocol Iterable<Element>`][Iterable] models borrowing sequences with ephemeral lifetimes.
-- [`protocol BorrowingIteratorProtocol<Element>`][BorrowingIteratorProtocol] models borrowing iterators with ephemeral elements.
+- [`struct InputSpan<Element>`][InputSpan] (in `SpanPreview`) is a reference to a contiguous memory region of in-place consumable items.
 - [`protocol Container<Element>`][Container] models containers, or constructs that physically store their contents.
 - [`protocol BidirectionalContainer<Element>`][BidirectionalContainer] is the container analogue of `BidirectionalCollection`.
 - [`protocol RandomAccessContainer<Element>`][RandomAccessContainer] is the container analogue of `RandomAccessCollection`.
 - [`protocol PermutableContainer<Element>`][PermutableContainer] models a container that allows items to be arbitrarily reordered (sorted, reversed, etc).
 - [`protocol MutableContainer<Element>`][MutableContainer] refines `PermutableContainer` to also support arbitrary element replacements/mutations, like `MutableCollection`.
+- [`protocol DrainableContainer<Element>`][DrainableContainer] models a container that allows partial in-place consumption (and removal) of its contents.
 - [`protocol RangeReplaceableContainer<Element>`][RangeReplaceableContainer] models a (potentially fixed capacity) container with insert/append/replace operations.
 - [`protocol DynamicContainer<Element>`][DynamicContainer] refines `RangeReplaceableContainer` to add operations that require dynamic storage sizing.
 - [`protocol Producer<Element, Failure>`][Producer] models a generative iterator -- an abstraction for producing items on demand.
@@ -172,15 +159,12 @@ This trait enables the following types in the [`ContainersPreview`][ContainersPr
 - [`protocol ContainerDrain<Element>`][ContainerDrain] refines `Drain` to allow retrieving a valid index after the items have been drained.
 - [`protocol RangeExpression2<Bound>`][RangeExpression2] refines the standard `RangeExpression` to support container subranges.
 
-[Ref]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Types/Ref.swift
-[MutableRef]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Types/MutableRef.swift
-[Iterable]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Iterable.swift
-[BorrowingIteratorProtocol]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/BorrowingIteratorProtocol.swift
 [Container]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Container/Container.swift
 [BidirectionalContainer]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Container/Container.swift
 [RandomAccessContainer]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Container/RandomAccessContainer.swift
 [PermutableContainer]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Container/PermutableContainer.swift
 [MutableContainer]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Container/MutableContainer.swift
+[DrainableContainer]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Container/DrainableContainer.swift
 [RangeReplaceableContainer]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Container/RangeReplaceableContainer.swift
 [DynamicContainer]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Container/DynamicContainer.swift
 [Producer]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Producer.swift

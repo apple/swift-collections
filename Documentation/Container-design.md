@@ -82,18 +82,12 @@ Crucially, Swift needs to satisfy this need without resorting to unsafe interfac
 
 As of Swift 6.4, we have implemented a small but quickly growing list of useful data structures that follow these new design priorities:
 
-- Members of the nonescapable span family provide safe, direct access to "somebody else's" contiguous pieces of memory.
-  - [`Span`][Span], a read-only reference to fully initialized memory
-  - [`MutableSpan`][MutableSpan], a mutable reference to fully initialized memory
-  - [`OutputSpan`][OutputSpan], a safe reference to a fixed-capacity buffer of initializable memory
-  - (in swift-collections) [`InputSpan`][InputSpan], a safe reference to a fixed-capacity buffer of consumable memory
-- We also have ownership-aware implementations of some basic data structures.
-    - [`InlineArray`][InlineArray] is a homogeneous tuple/vector type
-    - [`UniqueArray`][UniqueArray] is a dynamically resizing array type
-    - (in swift-collections) [`RigidArray`][RigidArray] is a fixed-capacity array type
-    - (in swift-collections) [`RigidDeque`][RigidDeque] and [`UniqueDeque`][UniqueDeque] implement ring buffers
-    - (in swift-collections) [`RigidSet`][RigidSet] and [`UniqueSet`][UniqueSet] are hashed sets of unique items
-    - (in swift-collections) [`RigidDictionary`][RigidDictionary] and [`UniqueDictionary`][UniqueDictionary] are hashed dictionary types
+- [`InlineArray`][InlineArray] is a homogeneous tuple/vector type
+- [`UniqueArray`][UniqueArray] is a dynamically resizing array type
+- (in swift-collections) [`RigidArray`][RigidArray] is a fixed-capacity array type
+- (in swift-collections) [`RigidDeque`][RigidDeque] and [`UniqueDeque`][UniqueDeque] implement ring buffers
+- (in swift-collections) [`RigidSet`][RigidSet] and [`UniqueSet`][UniqueSet] are hashed sets of unique items
+- (in swift-collections) [`RigidDictionary`][RigidDictionary] and [`UniqueDictionary`][UniqueDictionary] are hashed dictionary types
 
 [Span]: https://github.com/swiftlang/swift-evolution/blob/main/proposals/0447-span-access-shared-contiguous-storage.md
 [InlineArray]: https://github.com/swiftlang/swift-evolution/blob/main/proposals/0453-vector.md
@@ -116,12 +110,34 @@ As of Swift 6.4, we have implemented a small but quickly growing list of useful 
 
 At first glance, these types have the basic shape of a Swift `Collection`:
 
-- They have a generic `Element` type
+- Most of them have a generic `Element` type
 - They have the concept of an `Index`, modeling an abstract position within their storage
 - They come with `subscript` operations that provide access to the element at a specific index
 - They provide familiar operations for advancing an index to the next logical position, calculating distances between indices and similar tasks.
 
-However, unlike `Collection`s, these types can contain noncopyable elements, and most of them are noncopyable and/or nonescapable types themselves. These are significant complications, as our classic `Collection` protocols have been built upon the assumption of universal copyability and escapability, and it isn't feasible to factor out these assumptions without breaking the protocols. (The `SubSequence` and `Indices` associated types are particularly problematic.)
+However, unlike collections, these types can contain noncopyable elements, and most of them are noncopyable and/or nonescapable types themselves. These are significant complications, as our classic `Collection` protocols have been built upon the assumption of universal copyability and escapability, and it isn't feasible to factor out these assumptions without breaking the protocols.
+
+Our goal is therefore to construct an ownership-aware analogue of the `Collection` protocol hierarchy, to allow flexible, high-performance and memory-safe access to the contents of in-memory data structures. The container types above all use one or more pieces of contiguous memory regions for element storage. The model we're introducing works by directly exposing these piecewise contiguous storage chunks through lightweight reference reference types Swift calls "spans". (Spans are the memory-safe analogue of an `UnsafeMutableBufferPointer`, or a pointer and a count.) Each span type is addressing a single contiguous memory region, and it provides a specific set of operations that facilitates a particular type of access. Spans come in four flavors:
+
+- [`Span`][Span] allows read-only, borrowing access to items stored in fully initialized memory owned by someone else.
+- [`MutableSpan`][MutableSpan] allows direct mutating access to someone else's fully initialized memory region.
+- [`OutputSpan`][OutputSpan] allows direct in-place initialization of somebody else's storage.
+- [`InputSpan`][InputSpan] allows in-place consumption of items directly from someone else's storage.
+
+We define a container type by its ability to expose its contents as a series of `Span` instances. Mutable containers can also expose their contents as `MutableSpan` instances, allowing their elements to be directly mutated in place, without moving them out of the container. "Drainable" containers allow their elements to be incrementally consumed directly out of their storage, via a series of `InputSpan` instances. Finally, range-replaceable containers implement insertions by exposing a series of `OutputSpan` instances for clients to populate, directly initializing their storage.
+
+Our container primitives are designed to fit together to enable building high-performance generic algorithms to (say) efficiently transfer data from one container to another with minimal fuss. For example, we can use the `DrainableContainer.consumeSubrange(_:)` and `RangeReplaceableContainer.insert(from:at:)` operations to move a subrange of items from one ring buffer and insert them in the middle of another:
+
+```swift
+struct Gadget: ~Copyable {...}
+
+var target: UniqueDeque<Gadget> = ...
+var source: RigidDeque<Gadget> = ...
+
+target.insert(from: source.consumeSubrange(5 ..< 10), at: 2)
+```
+
+Behind the scenes, this is expressed by directly moving data from `InputSpan` instances provided by `source` into `OutputSpan` instances provided by `target`, with no intermediate buffers. For the common case when `Gadget` is a bitwise movable type, this effectively boils down to a few `memcpy` invocations, plus a little administrative work to prepare the moves, and to restore data structure invariants afterwards.
 
 ## Making Sense of the Design Space
 

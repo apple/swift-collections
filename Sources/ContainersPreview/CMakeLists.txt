@@ -25,12 +25,9 @@ else()
 endif()
 
 target_sources(${module_name} PRIVATE
-  "Conformances/Array+Iterable.swift"
-  "Conformances/ClosedRange+Iterable.swift"
   "Conformances/InputSpan+Container.swift"
   "Conformances/MutableSpan+Container.swift"
   "Conformances/OutputSpan+Container.swift"
-  "Conformances/Range+Iterable.swift"
   "Conformances/RigidArray+Container.swift"
   "Conformances/RigidDeque+Container.swift"
   "Conformances/RigidSet+Container.swift"
