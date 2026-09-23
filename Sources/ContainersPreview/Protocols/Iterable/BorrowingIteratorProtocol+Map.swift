@@ -24,6 +24,7 @@ where
   public consuming func map<T: ~Copyable>(
     _ transform: @escaping (borrowing Element) -> T
   ) -> BorrowingMapProducer<Self, T> {
+    // FIXME: `map` should allow `transform` to throw, and not just `Self.Failure`. See `_map2` and `_map3` below.
     BorrowingMapProducer(
       _base: self,
       transform: { v throws(Failure) in
@@ -34,7 +35,7 @@ where
 
   @inlinable
   @_lifetime(copy self)
-  public consuming func map2<T: ~Copyable>( // FIXME: We can't overload on the type of error thrown.
+  public consuming func _map2<T: ~Copyable>( // FIXME: We can't overload on the type of error thrown.
     _ transform: @escaping (borrowing Element) throws(Failure) -> T
   ) -> BorrowingMapProducer<Self, T> {
     BorrowingMapProducer(_base: self, transform: transform)
@@ -42,7 +43,7 @@ where
 
   @inlinable
   @_lifetime(copy self)
-  public consuming func map2<T: ~Copyable, E: Error>( // FIXME: We can't overload on the type of error thrown.
+  public consuming func _map3<T: ~Copyable, E: Error>( // FIXME: We can't overload on the type of error thrown.
     _ transform: @escaping (borrowing Element) throws(E) -> T
   ) -> BorrowingMapProducer<ErrorMappedIterator<Self, E>, T>
   where Failure == Never {
