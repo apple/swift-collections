@@ -180,6 +180,13 @@ public func validateContainer<
        "count": count])
   }
 
+  guard expectedContents.count == count else {
+    throw ValidationError(
+      "`count` must match the number of expected contents",
+      ["count": count,
+       "expectedContents.count": expectedContents.count])
+  }
+
   // *** startIndex, endIndex
   let startIndex = container.startIndex
   let endIndex = container.endIndex
