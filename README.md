@@ -355,12 +355,10 @@ By submitting a pull request, you represent that you have the right to license y
 
 ## Code of Conduct
 
-Like all Swift.org projects, we would like the Swift Collections project to foster a diverse and friendly community. We expect contributors to adhere to the [Swift.org Code of Conduct](https://swift.org/code-of-conduct/). A copy of this document is [available in this repository][coc].
+We expect contributors to adhere to our [Code of Conduct][coc].
 
 [coc]: https://github.com/apple/.github/blob/main/CODE_OF_CONDUCT.md
 
 ## Contact information
 
-The current code owner of this package is Karoy Lorentey ([@lorentey](https://github.com/lorentey)). You can contact him [on the Swift forums](https://forums.swift.org/u/lorentey/summary), or by writing an email to klorentey at apple dot com. (Please keep it related to this project.)
-
-In case of moderation issues, you can also directly contact a member of the [Swift Core Team](https://swift.org/community/#community-structure).
+The current maintainer of this package is Karoy Lorentey ([@lorentey](https://github.com/lorentey)). You can contact him [on the Swift forums](https://forums.swift.org/u/lorentey/summary), or by writing an email to klorentey at apple dot com. (Please keep it related to this project.)
