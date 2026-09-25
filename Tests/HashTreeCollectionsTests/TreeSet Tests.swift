@@ -560,6 +560,35 @@ class TreeSetTests: CollectionTestCase {
     }
   }
 
+  func test_union_pushing_item_into_new_child() {
+    // Regression test: when `union` pushes an existing item down into a newly
+    // created child node, the item has to be positioned using the child's
+    // level rather than the parent's. Using the parent's level files both the
+    // item and the incoming subtree under the wrong path, leaving members that
+    // iteration still reports but `contains` can no longer find.
+    let a1 = RawCollider(1, "A")     // level-0 bucket = 10
+    let a2 = RawCollider(2, "B")     // level-0 bucket = 11
+    let c1 = RawCollider(5, "ACAD")  // same hash → collision node at depth 4
+    let c2 = RawCollider(6, "ACAD")
+
+    let left = TreeSet([a1, a2])
+    let right = TreeSet([c1, c2])
+
+    let union = left.union(right)
+    expectEqual(union.count, 4)
+    expectTrue(union.contains(a1))
+    expectTrue(union.contains(a2))
+    expectTrue(union.contains(c1))
+    expectTrue(union.contains(c2))
+
+    let reversed = right.union(left)
+    expectEqual(reversed.count, 4)
+    expectTrue(reversed.contains(a1))
+    expectTrue(reversed.contains(a2))
+    expectTrue(reversed.contains(c1))
+    expectTrue(reversed.contains(c2))
+  }
+
   func test_union_collision_node_ordering() {
     // Regression test for child ordering issue.
     let a1 = RawCollider(1, "B")  // level-0 bucket = 11
