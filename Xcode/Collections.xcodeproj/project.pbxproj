@@ -28,7 +28,6 @@
 		7D24E98D2FAD53E1005A55EB /* generate_formatters.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = generate_formatters.sh; sourceTree = "<group>"; };
 		7D24E98E2FAD53E1005A55EB /* HEADER.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HEADER.swift; sourceTree = "<group>"; };
 		7D24E98F2FAD53E1005A55EB /* test_formatters.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = test_formatters.py; sourceTree = "<group>"; };
-		7D48BCF52E51651900D7F6F7 /* Package@swift-6.0.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "Package@swift-6.0.swift"; path = "../Package@swift-6.0.swift"; sourceTree = SOURCE_ROOT; };
 		7D5A64D229CCE8CC00CB2595 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		7D5A64D329CCEE9A00CB2595 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		7D9B859C29E4F77D00B291CD /* Collections.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = Collections.xctestplan; sourceTree = "<group>"; };
@@ -37,7 +36,6 @@
 		7DE921A529CA782F004483EB /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = "<group>"; };
 		7DE921A629CA782F004483EB /* CONTRIBUTING.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = CONTRIBUTING.md; path = ../CONTRIBUTING.md; sourceTree = "<group>"; };
 		7DE921A729CA782F004483EB /* CODEOWNERS */ = {isa = PBXFileReference; lastKnownFileType = text; name = CODEOWNERS; path = ../CODEOWNERS; sourceTree = "<group>"; };
-		7DE921A829CA782F004483EB /* CODE_OF_CONDUCT.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = CODE_OF_CONDUCT.md; path = ../CODE_OF_CONDUCT.md; sourceTree = "<group>"; };
 		7DE921A929CA782F004483EB /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Package.swift; path = ../Package.swift; sourceTree = "<group>"; };
 		7DE921AA29CA782F004483EB /* LICENSE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = LICENSE.txt; path = ../LICENSE.txt; sourceTree = "<group>"; };
 		7DE921AB29CA782F004483EB /* CMakeLists.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = CMakeLists.txt; path = ../CMakeLists.txt; sourceTree = "<group>"; };
@@ -167,9 +165,7 @@
 			isa = PBXGroup;
 			children = (
 				7DE921A929CA782F004483EB /* Package.swift */,
-				7D48BCF52E51651900D7F6F7 /* Package@swift-6.0.swift */,
 				7DE921AB29CA782F004483EB /* CMakeLists.txt */,
-				7DE921A829CA782F004483EB /* CODE_OF_CONDUCT.md */,
 				7DE921A729CA782F004483EB /* CODEOWNERS */,
 				7DE921A629CA782F004483EB /* CONTRIBUTING.md */,
 				7DE921AA29CA782F004483EB /* LICENSE.txt */,
