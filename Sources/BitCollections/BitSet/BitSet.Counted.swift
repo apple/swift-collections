@@ -338,7 +338,9 @@ extension BitSet.Counted: SetAlgebra {
 
   @discardableResult
   public mutating func update(with newMember: Int) -> Int? {
-    _bits.update(with: newMember)
+    let old = _bits.update(with: newMember)
+    if old == nil { _count += 1 }
+    return old
   }
 
   @discardableResult
