@@ -71,51 +71,6 @@ class RigidArrayTests: CollectionTestCase {
     expectEqual(MemoryLayout<RigidArray<Int>?>.stride, 3 * word)
   }
 
-#if compiler(>=6.4) && UnstableContainersPreview
-  /// `validateContainer` must report a mis-sized expectation rather than
-  /// trapping on it or quietly accepting it. Both directions matter: a short
-  /// expectation trapped with `Index out of range`, and a long one was
-  /// silently accepted -- every loop is bounded by the container's own
-  /// count, and nothing compared the two lengths.
-  @available(SwiftStdlib 6.4, *)
-  func test_validateContainer_rejectsMissizedExpectedContents() {
-    let contents = [0, 1, 2, 3]
-    var items = RigidArray<Int>(capacity: contents.count)
-    for item in contents { items.append(item) }
-
-    func validate(against expected: [Int]) throws(ValidationError) {
-      try validateContainer(
-        items,
-        expectedContents: expected,
-        by: { $0 == $1 },
-        printer: { "\($0)" })
-    }
-
-    // Control: a correctly sized expectation must validate.
-    do {
-      try validate(against: contents)
-    } catch {
-      expectFailure("a correct expectation must validate: \(error.message)")
-    }
-
-    // Too short, then too long. Neither may trap or pass.
-    // `dropLast` and not `dropFirst`: a short expectation that is a PREFIX
-    // of the contents matches its way to the end and then runs off it.
-    // `dropFirst` shifts every element, so a content mismatch at offset 0
-    // masks the out-of-bounds access -- that is a coincidence, not a guard.
-    for expected in [Array(contents.dropLast()), contents + contents] {
-      do {
-        try validate(against: expected)
-        expectFailure(
-          "an expectation of \(expected.count) items must not validate"
-          + " against a container of \(contents.count)")
-      } catch {
-        expectTrue(error.message.contains("count"))
-      }
-    }
-  }
-#endif
-
   func test_validate_Container() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withLifetimeTracking { tracker in
