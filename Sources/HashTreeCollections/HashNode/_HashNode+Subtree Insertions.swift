@@ -472,10 +472,6 @@ extension _HashNode {
     assert(!isCollisionNode)
     let item = read { $0[item: itemSlot] }
     let hash = _Hash(item.key)
-    // `newChild` is installed as a child of `self` at `bucket`, so it sits one
-    // level below `self`. The item must be inserted using that deeper level,
-    // otherwise it is placed using this node's hash digit rather than the
-    // child's, corrupting the path to it.
     let r = newChild.inserting(level.descend(), item, hash)
     return _copyNodeAndReplaceItemWithNewChild(
       level: level,

@@ -561,11 +561,6 @@ class TreeSetTests: CollectionTestCase {
   }
 
   func test_union_pushing_item_into_new_child() {
-    // Regression test: when `union` pushes an existing item down into a newly
-    // created child node, the item has to be positioned using the child's
-    // level rather than the parent's. Using the parent's level files both the
-    // item and the incoming subtree under the wrong path, leaving members that
-    // iteration still reports but `contains` can no longer find.
     let a1 = RawCollider(1, "A")     // level-0 bucket = 10
     let a2 = RawCollider(2, "B")     // level-0 bucket = 11
     let c1 = RawCollider(5, "ACAD")  // same hash → collision node at depth 4
