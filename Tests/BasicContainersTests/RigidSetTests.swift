@@ -303,9 +303,8 @@ class RigidSetTests: CollectionTestCase {
 
         // Get expected contents by iterating once.
         var expected: [Int] = []
-        var it = items.makeBorrowingIterator()
-        while let v = it.next()?.value.payload {
-          expected.append(v)
+        for v in items {
+          expected.append(v.payload)
         }
 
         //items._dump(bitmap: true)

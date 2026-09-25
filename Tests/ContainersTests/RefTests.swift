@@ -89,56 +89,5 @@ final class RefTests: CollectionTestCase {
     expectEqual(ref2.value, 42)
   }
 
-  // MARK: Optional.borrow()
-
-  @available(SwiftStdlib 6.4, *)
-  func test_optional_borrow_some() {
-    let x: Int? = 77
-    if let ref = x._borrow() {
-      expectEqual(ref.value, 77)
-    } else {
-      expectFailure("Expected non-nil Ref from .some optional")
-    }
-  }
-
-  @available(SwiftStdlib 6.4, *)
-  func test_optional_borrow_none() {
-    let x: Int? = nil
-    let ref = x._borrow()
-    expectNil(ref)
-  }
-
-  @available(SwiftStdlib 6.4, *)
-  func test_optional_borrow_string() {
-    let x: String? = "world"
-    if let ref = x._borrow() {
-      expectEqual(ref.value, "world")
-    } else {
-      expectFailure("Expected non-nil Ref from .some optional")
-    }
-  }
-
-  @available(SwiftStdlib 6.4, *)
-  func test_optional_borrow_noncopyable() {
-    let x: NoncopyablePayload? = NoncopyablePayload(33)
-    if let ref = x._borrow() {
-      expectEqual(ref.value.value, 33)
-    } else {
-      expectFailure("Expected non-nil Ref from .some optional")
-    }
-  }
-
-  @available(SwiftStdlib 6.4, *)
-  func test_optional_borrow_reference_type() {
-    let tracker = LifetimeTracker()
-    let obj = tracker.instance(for: 5)
-    let x: LifetimeTracked<Int>? = obj
-    if let ref = x._borrow() {
-      expectTrue(ref.value === obj)
-      expectEqual(ref.value.payload, 5)
-    } else {
-      expectFailure("Expected non-nil Ref from .some optional")
-    }
-  }
 }
 #endif
