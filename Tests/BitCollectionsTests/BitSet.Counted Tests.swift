@@ -237,6 +237,30 @@ final class BitSetCountedTests: CollectionTestCase {
     expectFalse(a.isStrictSuperset(of: Set(c)))
   }
 
+  func test_update() {
+    let count = 100
+    withEvery("seed", in: 0 ..< 10) { seed in
+      var rng = RepeatableRandomNumberGenerator(seed: seed)
+      var actual: BitSet.Counted = []
+      var expected: Set<Int> = []
+      let input = (0 ..< count).shuffled(using: &rng)
+      withEvery("i", in: input.indices) { i in
+        let v = input[i]
+        // Inserting a new member.
+        expectEqual(actual.update(with: v), expected.update(with: v))
+        expectEqual(actual.count, expected.count)
+        // Updating an existing member must not change the count.
+        expectEqual(actual.update(with: v), expected.update(with: v))
+        expectEqual(actual.count, expected.count)
+        if i % 25 == 0 {
+          expectEqualElements(actual, expected.sorted())
+        }
+      }
+      expectEqualElements(actual, expected.sorted())
+      expectEqual(actual.count, expected.count)
+    }
+  }
+
   func test_isDisjoint() {
     let a: BitSet.Counted = [1, 2, 3, 4]
 
