@@ -80,23 +80,27 @@ extension _HashNode {
         for item in $0.reverseItems {
           precondition(_Hash(item.key) == hash)
         }
-      }
-      var itemSlot: _HashSlot = .zero
-      var childSlot: _HashSlot = .zero
-      for b in 0 ..< UInt(_Bitmap.capacity) {
-        let bucket = _Bucket(b)
-        let path = path.appending(bucket, at: level)
-        if $0.itemMap.contains(bucket) {
-          let key = $0[item: itemSlot].key
-          let hash = _Hash(key)
-          precondition(
-            hash.isEqual(to: path, upTo: level.descend()),
-            "Misplaced key '\(key)': \(path) isn't a prefix of \(hash)")
-          itemSlot = itemSlot.next()
-        }
-        if $0.hasChildren && $0.childMap.contains(bucket) {
-          $0[child: childSlot]._fullInvariantCheck(level.descend(), path)
-          childSlot = childSlot.next()
+      } else {
+        // Note: collision nodes store their item count in `itemMap`/`childMap`
+        // rather than a set of occupied buckets, so the loop below is only
+        // meaningful for regular nodes.
+        var itemSlot: _HashSlot = .zero
+        var childSlot: _HashSlot = .zero
+        for b in 0 ..< UInt(_Bitmap.capacity) {
+          let bucket = _Bucket(b)
+          let path = path.appending(bucket, at: level)
+          if $0.itemMap.contains(bucket) {
+            let key = $0[item: itemSlot].key
+            let hash = _Hash(key)
+            precondition(
+              hash.isEqual(to: path, upTo: level.descend()),
+              "Misplaced key '\(key)': \(path) isn't a prefix of \(hash)")
+            itemSlot = itemSlot.next()
+          }
+          if $0.hasChildren && $0.childMap.contains(bucket) {
+            $0[child: childSlot]._fullInvariantCheck(level.descend(), path)
+            childSlot = childSlot.next()
+          }
         }
       }
     }

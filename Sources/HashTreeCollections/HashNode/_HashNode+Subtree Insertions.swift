@@ -472,7 +472,7 @@ extension _HashNode {
     assert(!isCollisionNode)
     let item = read { $0[item: itemSlot] }
     let hash = _Hash(item.key)
-    let r = newChild.inserting(level, item, hash)
+    let r = newChild.inserting(level.descend(), item, hash)
     return _copyNodeAndReplaceItemWithNewChild(
       level: level,
       r.node,
