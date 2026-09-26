@@ -262,6 +262,22 @@ class SortedSetTests: CollectionTestCase {
     }
   }
 
+  func test_Equatable_Hashable() {
+    let evens = stride(from: 0, to: 42, by: 2)
+    let classes: [[SortedSet<Int>]] = [
+      [[]],
+      [[0]],
+      [[1]],
+      [SortedSet(sortedElements: 0 ..< 20), SortedSet(0 ..< 20)],
+      [SortedSet(sortedElements: 0 ..< 21), SortedSet(0 ..< 21)],
+      [SortedSet(sortedElements: 1 ..< 21), SortedSet(1 ..< 21)],
+      [SortedSet(evens)],
+      [SortedSet(evens.map { $0 == 20 ? 21 : $0 })],
+      [SortedSet(evens.map { $0 == 38 ? 39 : $0 })],
+    ]
+    checkHashable(equivalenceClasses: classes)
+  }
+
   func test_Encodable() throws {
     let s1: SortedSet<Int> = []
     let v1: MinimalEncoder.Value = .array([])
