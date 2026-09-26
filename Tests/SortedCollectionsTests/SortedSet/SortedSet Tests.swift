@@ -64,6 +64,15 @@ class SortedSetTests: CollectionTestCase {
     }
   }
 
+  func test_BidirectionalCollection() {
+    withEvery("count", in: [0, 1, 5, 6, 17, 18, 29, 30]) { count in
+      checkBidirectionalCollection(
+        SortedSet(sortedElements: 0 ..< count), expectedContents: 0 ..< count)
+      checkBidirectionalCollection(
+        SortedSet(0 ..< count), expectedContents: 0 ..< count)
+    }
+  }
+
   func test_firstIndexOf_lastIndexOf() {
     withEvery("count", in: 0 ..< 20) { count in
       let contents = Array(0 ..< count)
