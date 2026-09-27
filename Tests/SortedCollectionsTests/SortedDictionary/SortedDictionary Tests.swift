@@ -376,7 +376,7 @@ final class SortedDictionaryTests: CollectionTestCase {
     ])
   }
 
-  func test_subSequence_Equatable() {
+  func test_subSequence_Equatable_Hashable() {
     let left: SortedDictionary = [
       1: "one",
       2: "two",
@@ -409,6 +409,28 @@ final class SortedDictionaryTests: CollectionTestCase {
     expectEqual(leftSlice, leftSlice)
     expectEqual(leftSlice, rightEqualSlice)
     expectNotEqual(leftSlice, rightUnequalSlice)
+
+    let pairs = (0 ..< 40).map { ($0, "\($0)") }
+    let bulk = SortedDictionary(sortedKeysWithValues: pairs)
+    let inserted = SortedDictionary(keysWithValues: pairs)
+    let valueChanged = SortedDictionary(
+      sortedKeysWithValues: pairs.map { key, value in (key, key == 20 ? "" : value) })
+    let keysShifted = SortedDictionary(
+      sortedKeysWithValues: pairs.map { key, value in (key + 1, value) })
+
+    let classes: [[SortedDictionary<Int, String>.SubSequence]] = [
+      [left.prefix(0), SortedDictionary<Int, String>()[...]],
+      [leftSlice, rightEqualSlice],
+      [rightUnequalSlice],
+      [
+        bulk.dropFirst(10).prefix(20),
+        inserted.dropFirst(10).prefix(20),
+        SortedDictionary(sortedKeysWithValues: pairs[10 ..< 30])[...],
+      ],
+      [valueChanged.dropFirst(10).prefix(20)],
+      [keysShifted.dropFirst(10).prefix(20)],
+    ]
+    checkHashable(equivalenceClasses: classes)
   }
 }
 
