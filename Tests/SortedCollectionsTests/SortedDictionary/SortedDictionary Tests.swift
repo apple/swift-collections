@@ -340,7 +340,7 @@ final class SortedDictionaryTests: CollectionTestCase {
     ])
   }
 
-  func test_values_Equatable() {
+  func test_values_Equatable_Hashable() {
     let left: SortedDictionary = [
       1: "one",
       2: "two",
@@ -361,10 +361,18 @@ final class SortedDictionaryTests: CollectionTestCase {
     expectEqual(left.values, rightEqual.values)
     expectNotEqual(left.values, rightUnequal.values)
 
-    checkEquatable(equivalenceClasses: [
+    let evens = stride(from: 0, to: 42, by: 2).map { ($0, "\($0)") }
+    let valueChanged = evens.map { key, value in (key, key == 20 ? "" : value) }
+
+    checkHashable(equivalenceClasses: [
       [SortedDictionary<Int, String>().values, SortedDictionary<Int, String>().values],
       [left.values, rightEqual.values],
       [rightUnequal.values],
+      [
+        SortedDictionary(sortedKeysWithValues: evens).values,
+        SortedDictionary(keysWithValues: evens.map { key, value in (key + 1, value) }).values,
+      ],
+      [SortedDictionary(sortedKeysWithValues: valueChanged).values],
     ])
   }
 
