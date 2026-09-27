@@ -285,6 +285,25 @@ final class SortedDictionaryTests: CollectionTestCase {
     }
   }
 
+  func test_Equatable_Hashable() {
+    let evens = stride(from: 0, to: 42, by: 2).map { ($0, $0 / 2) }
+    let keyChanged = evens.map { key, value in (key == 20 ? 21 : key, value) }
+    let valueChanged = evens.map { key, value in (key, key == 20 ? -1 : value) }
+    let classes: [[SortedDictionary<Int, Int>]] = [
+      [[:]],
+      [[0: 0]],
+      [[0: 1]],
+      [[1: 0]],
+      [
+        SortedDictionary(sortedKeysWithValues: evens),
+        SortedDictionary(keysWithValues: evens),
+      ],
+      [SortedDictionary(sortedKeysWithValues: keyChanged)],
+      [SortedDictionary(sortedKeysWithValues: valueChanged)],
+    ]
+    checkHashable(equivalenceClasses: classes)
+  }
+
   func test_keys_Equatable() {
     let left: SortedDictionary = [
       1: "one",
