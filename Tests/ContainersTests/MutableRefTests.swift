@@ -17,8 +17,8 @@ import Collections
 #else
 import InternalCollectionsUtilities
 import _CollectionsTestSupport
-import ContainersPreview
 #endif
+import ContainersPreview
 
 #if compiler(>=6.3) && UnstableContainersPreview
 final class MutableRefTests: CollectionTestCase {

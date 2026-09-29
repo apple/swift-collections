@@ -19,6 +19,7 @@ import _CollectionsTestSupport
 import InternalCollectionsUtilities
 import BasicContainers
 #endif
+import ContainersPreview
 
 #if compiler(>=6.4) && UnstableHashedContainers
 class UniqueSetTests: CollectionTestCase {

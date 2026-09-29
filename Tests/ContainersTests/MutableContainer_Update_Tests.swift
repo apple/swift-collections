@@ -18,11 +18,11 @@ import Collections
 #else
 import _CollectionsTestSupport
 import SpanPreview
-import ContainersPreview
 import InternalCollectionsUtilities
 import BasicContainers
 import DequeModule
 #endif
+import ContainersPreview
 
 #if compiler(>=6.4) && UnstableContainersPreview
 #if !COLLECTIONS_SINGLE_MODULE

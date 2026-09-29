@@ -17,8 +17,8 @@ import XCTest
 import Collections
 #else
 import InternalCollectionsUtilities
-import ContainersPreview
 #endif
+import ContainersPreview
 
 #if compiler(>=6.4) && UnstableContainersPreview
 

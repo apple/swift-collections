@@ -16,8 +16,8 @@ import Testing
 import Collections
 #else
 import DequeModule
-import ContainersPreview
 #endif
+import ContainersPreview
 
 #if !os(Android) // Exit tests are not available on this platform
 @Suite("RigidDeque Crash Tests")
