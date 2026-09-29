@@ -59,12 +59,15 @@ struct RigidDequeCrashTests {
       let deque = RigidDeque(copying: [1, 2, 3])
       let _ = deque[3]  // Index out of bounds
     }
-    #if false
+  }
+
+  @available(SwiftStdlib 6.4, *)
+  @Test("Invalid index access borrowElement")
+  func invalidIndexAccess2() async {
     await #expect(processExitsWith: .failure) {
       let deque = RigidDeque(copying: [1, 2, 3])
       let _ = deque.borrowElement(at: 5) // Index out of bounds
     }
-    #endif
   }
 
   @Test("Remove from empty deque")

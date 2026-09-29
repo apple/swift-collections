@@ -147,6 +147,22 @@ extension RigidArray where Element: ~Copyable {
     }
   }
 #endif
+
+  @available(SwiftStdlib 6.4, *)
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  @_lifetime(borrow self)
+  public func borrowElement(at index: Int) -> Ref<Element> {
+    Ref(unsafeAddress: _ptr(to: index), borrowing: self)
+  }
+
+  @available(SwiftStdlib 6.4, *)
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  @_lifetime(&self)
+  public mutating func mutateElement(at index: Int) -> MutableRef<Element> {
+    MutableRef(unsafeAddress: _mutablePtr(to: index), mutating: &self)
+  }
 }
 
 @available(SwiftStdlib 5.0, *)

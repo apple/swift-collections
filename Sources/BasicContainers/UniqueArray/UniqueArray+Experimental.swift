@@ -40,27 +40,6 @@ extension UniqueArray /*where Element: Copyable*/ {
 #endif
 
 #if false // TODO
-extension UniqueArray where Element: ~Copyable {
-  @inlinable
-  @inline(__always)
-  @_lifetime(borrow self)
-  public func borrowElement(at index: Int) -> Ref<Element> {
-    _storage.borrowElement(at: index)
-  }
-}
-#endif
-
-#if false // TODO
-extension UniqueArray where Element: ~Copyable {
-  @inlinable
-  @_lifetime(&self)
-  public mutating func mutateElement(at index: Int) -> Mut<Element> {
-    _storage.mutateElement(at: index)
-  }
-}
-#endif
-
-#if false // TODO
 @available(SwiftStdlib 5.0, *)
 extension UniqueArray where Element: ~Copyable {
   @_alwaysEmitIntoClient

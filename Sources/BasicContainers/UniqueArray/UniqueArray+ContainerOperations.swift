@@ -103,6 +103,22 @@ extension UniqueArray where Element: ~Copyable {
     }
   }
 #endif
+
+  @available(SwiftStdlib 6.4, *)
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  @_lifetime(borrow self)
+  public func borrowElement(at index: Int) -> Ref<Element> {
+    _storage.borrowElement(at: index)
+  }
+
+  @available(SwiftStdlib 6.4, *)
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  @_lifetime(&self)
+  public mutating func mutateElement(at index: Int) -> MutableRef<Element> {
+    _storage.mutateElement(at: index)
+  }
 }
 
 @available(SwiftStdlib 5.0, *)

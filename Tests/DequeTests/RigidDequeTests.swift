@@ -538,6 +538,34 @@ final class RigidDequeTests: CollectionTestCase {
     }
   }
 
+  @available(SwiftStdlib 6.4, *)
+  func test_borrowElement() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withLifetimeTracking { tracker in
+        let d = tracker.rigidDeque(with: layout)
+        for i in 0 ..< layout.count {
+          let item = d.deque.borrowElement(at: i)
+          expectEqual(item.value.payload, i)
+        }
+      }
+    }
+  }
+
+  @available(SwiftStdlib 6.4, *)
+  func test_mutateElement() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withLifetimeTracking { tracker in
+        var d = tracker.rigidDeque(with: layout)
+        for i in 0 ..< layout.count {
+          var item = d.deque.mutateElement(at: i)
+          expectEqual(item.value.payload, i)
+          item.value = tracker.instance(for: -i)
+          expectEqual(tracker.instances, layout.count)
+        }
+      }
+    }
+  }
+
   func test_popFirst() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withLifetimeTracking { tracker in

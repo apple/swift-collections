@@ -46,6 +46,22 @@ extension UniqueDeque where Element: ~Copyable {
     index._advance(by: &n, limitedBy: limit)
   }
 
+  @available(SwiftStdlib 6.4, *)
+  @_alwaysEmitIntoClient
+  @_transparent
+  @_lifetime(borrow self)
+  public func borrowElement(at index: Int) -> Ref<Element> {
+    _storage.borrowElement(at: index)
+  }
+
+  @available(SwiftStdlib 6.4, *)
+  @_alwaysEmitIntoClient
+  @_transparent
+  @_lifetime(&self)
+  public mutating func mutateElement(at index: Int) -> MutableRef<Element> {
+    _storage.mutateElement(at: index)
+  }
+
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
   public func nextSpan(after index: inout Int) -> Span<Element> {

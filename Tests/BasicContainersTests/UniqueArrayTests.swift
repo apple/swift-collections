@@ -364,35 +364,33 @@ class UniqueArrayTests: CollectionTestCase {
     }
   }
 
-#if false // TODO
+  @available(SwiftStdlib 6.4, *)
   func test_borrowElement() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withLifetimeTracking { tracker in
         let a = tracker.uniqueArray(layout: layout)
         for i in 0 ..< layout.count {
           let item = a.borrowElement(at: i)
-          expectEqual(item[].payload, i)
+          expectEqual(item.value.payload, i)
         }
       }
     }
   }
-#endif
 
-#if false // TODO
+  @available(SwiftStdlib 6.4, *)
   func test_mutateElement() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withLifetimeTracking { tracker in
         var a = tracker.uniqueArray(layout: layout)
         for i in 0 ..< layout.count {
           var item = a.mutateElement(at: i)
-          expectEqual(item[].payload, i)
-          item[] = tracker.instance(for: -i)
+          expectEqual(item.value.payload, i)
+          item.value = tracker.instance(for: -i)
           expectEqual(tracker.instances, layout.count)
         }
       }
     }
   }
-#endif
 
   func test_edit() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in

@@ -46,6 +46,26 @@ extension RigidDeque where Element: ~Copyable {
     index._advance(by: &n, limitedBy: limit)
   }
 
+  @available(SwiftStdlib 6.4, *)
+  @_alwaysEmitIntoClient
+  @_transparent
+  @_lifetime(borrow self)
+  public func borrowElement(at index: Int) -> Ref<Element> {
+    _checkItemIndex(index)
+    let slot = _handle.slot(forOffset: index)
+    return Ref(unsafeAddress: _handle.ptr(at: slot), borrowing: self)
+  }
+
+  @available(SwiftStdlib 6.4, *)
+  @_alwaysEmitIntoClient
+  @_transparent
+  @_lifetime(&self)
+  public mutating func mutateElement(at index: Int) -> MutableRef<Element> {
+    _checkItemIndex(index)
+    let slot = _handle.slot(forOffset: index)
+    return MutableRef(unsafeAddress: _handle.mutablePtr(at: slot), mutating: &self)
+  }
+
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
   public func nextSpan(after index: inout Int) -> Span<Element> {

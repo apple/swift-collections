@@ -343,19 +343,18 @@ class RigidArrayTests: CollectionTestCase {
     }
   }
 
-#if false // TODO
+  @available(SwiftStdlib 6.4, *)
   func test_borrowElement() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withLifetimeTracking { tracker in
         let a = tracker.rigidArray(layout: layout)
         for i in 0 ..< layout.count {
           let item = a.borrowElement(at: i)
-          expectEqual(item[].payload, i)
+          expectEqual(item.value.payload, i)
         }
       }
     }
   }
-#endif
 
   func test_mutateElement() {
     func modify(tracker: LifetimeTracker, i: Int, item: inout LifetimeTracked<Int>) {
@@ -374,21 +373,20 @@ class RigidArrayTests: CollectionTestCase {
     }
   }
 
-#if false // TODO
+  @available(SwiftStdlib 6.4, *)
   func test_mutateElement2() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withLifetimeTracking { tracker in
         var a = tracker.rigidArray(layout: layout)
         for i in 0 ..< layout.count {
           var item = a.mutateElement(at: i)
-          expectEqual(item[].payload, i)
-          item[] = tracker.instance(for: -i)
+          expectEqual(item.value.payload, i)
+          item.value = tracker.instance(for: -i)
           expectEqual(tracker.instances, layout.count)
         }
       }
     }
   }
-#endif
 
   func test_equatable() {
     withSomeArrayLayouts("layoutA", ofCapacities: [0, 10, 100]) { layoutA in
