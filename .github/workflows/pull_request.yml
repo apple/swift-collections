@@ -125,5 +125,7 @@ jobs:
         run: xcrun xcodebuild -version
       - name: Swift version
         run: xcrun swift --version
-      - name: Build
+      - name: Build Collections
         run: xcrun xcodebuild -project Xcode/Collections.xcodeproj -scheme Collections
+      - name: Build ContainersPreview
+        run: xcrun xcodebuild -project Xcode/Collections.xcodeproj -scheme ContainersPreview
