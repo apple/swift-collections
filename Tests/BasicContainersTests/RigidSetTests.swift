@@ -18,8 +18,8 @@ import Collections
 import _CollectionsTestSupport
 import InternalCollectionsUtilities
 import BasicContainers
-import ContainersPreview
 #endif
+import ContainersPreview
 
 #if compiler(>=6.4) && UnstableHashedContainers
 

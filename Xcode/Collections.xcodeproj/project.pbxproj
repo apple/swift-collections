@@ -11,6 +11,20 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		7DB98DD0306C5AF000A51DEA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7DE91B1D29CA6721004483EB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7DE91B2529CA6721004483EB;
+			remoteInfo = Collections;
+		};
+		7DB98DD2306C679100A51DEA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7DE91B1D29CA6721004483EB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7DB98D77306C581F00A51DEA;
+			remoteInfo = ContainersPreview;
+		};
 		7DE91B3029CA6721004483EB /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 7DE91B1D29CA6721004483EB /* Project object */;
@@ -31,6 +45,9 @@
 		7D5A64D229CCE8CC00CB2595 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		7D5A64D329CCEE9A00CB2595 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		7D9B859C29E4F77D00B291CD /* Collections.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = Collections.xctestplan; sourceTree = "<group>"; };
+		7DB98D78306C581F00A51DEA /* ContainersPreview.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ContainersPreview.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		7DB98D9B306C58E800A51DEA /* ContainersPreview.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = ContainersPreview.xcconfig; sourceTree = "<group>"; };
+		7DB99653306C6A3900A51DEA /* CMakeLists.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
 		7DE91B2629CA6721004483EB /* Collections.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Collections.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		7DE91B2E29CA6721004483EB /* CollectionsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CollectionsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7DE921A529CA782F004483EB /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = "<group>"; };
@@ -56,55 +73,110 @@
 			);
 			target = 7DE91B2D29CA6721004483EB /* CollectionsTests */;
 		};
-		7D864382303661D500041973 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+		7DB9971B306C6A5100A51DEA /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				BasicContainers/BasicContainers.docc,
-				BasicContainers/CMakeLists.txt,
-				BitCollections/BitCollections.docc,
-				BitCollections/CMakeLists.txt,
 				CMakeLists.txt,
-				"Collections/BitCollections reexports.swift",
-				Collections/CMakeLists.txt,
-				Collections/Collections.docc,
-				"Collections/DequeModule reexports.swift",
-				"Collections/HashTreeCollections reexports.swift",
-				"Collections/HeapModule reexports.swift",
-				"Collections/OrderedCollections reexports.swift",
-				ContainersPreview/CMakeLists.txt,
-				ContainersPreview/ContainersPreview.docc,
-				DequeModule/CMakeLists.txt,
-				DequeModule/DequeModule.docc,
-				HashTreeCollections/CMakeLists.txt,
-				HashTreeCollections/HashTreeCollections.docc,
-				HeapModule/CMakeLists.txt,
-				HeapModule/HeapModule.docc,
-				InternalCollectionsUtilities/CMakeLists.txt,
-				OrderedCollections/CMakeLists.txt,
-				OrderedCollections/OrderedCollections.docc,
-				RopeModule/CMakeLists.txt,
-				SpanPreview/CMakeLists.txt,
-				TrailingElementsModule/CMakeLists.txt,
-				TrailingElementsModule/TrailingElementsModule.docc,
 			);
 			target = 7DE91B2529CA6721004483EB /* Collections */;
 		};
-		7D864383303661D500041973 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+		7DB9979C306C6A6000A51DEA /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				InternalCollectionsUtilities/_SortedCollection.swift,
-				InternalCollectionsUtilities/_UniqueCollection.swift,
+				CMakeLists.txt,
 			);
-			target = 7DE91B2D29CA6721004483EB /* CollectionsTests */;
+			target = 7DE91B2529CA6721004483EB /* Collections */;
+		};
+		7DB997A4306C6A7200A51DEA /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				CMakeLists.txt,
+			);
+			target = 7DE91B2529CA6721004483EB /* Collections */;
+		};
+		7DB99B37306C6A9100A51DEA /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				CMakeLists.txt,
+			);
+			target = 7DE91B2529CA6721004483EB /* Collections */;
+		};
+		7DB99B38306C6A9900A51DEA /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				CMakeLists.txt,
+			);
+			target = 7DE91B2529CA6721004483EB /* Collections */;
+		};
+		7DB99B39306C6A9E00A51DEA /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				CMakeLists.txt,
+			);
+			target = 7DE91B2529CA6721004483EB /* Collections */;
+		};
+		7DB99B3A306C6AA800A51DEA /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				CMakeLists.txt,
+			);
+			target = 7DE91B2529CA6721004483EB /* Collections */;
+		};
+		7DB99B3B306C6AAE00A51DEA /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				CMakeLists.txt,
+			);
+			target = 7DE91B2529CA6721004483EB /* Collections */;
+		};
+		7DB99B3C306C6AB500A51DEA /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				CMakeLists.txt,
+			);
+			target = 7DE91B2529CA6721004483EB /* Collections */;
+		};
+		7DB99B3D306C6ABE00A51DEA /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				CMakeLists.txt,
+			);
+			target = 7DE91B2529CA6721004483EB /* Collections */;
+		};
+		7DB99B3E306C6AC400A51DEA /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				CMakeLists.txt,
+			);
+			target = 7DE91B2529CA6721004483EB /* Collections */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		7D863DD23036557F00041973 /* Tests */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (7D863E413036558000041973 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); name = Tests; path = ../Tests; sourceTree = "<group>"; };
-		7D864134303661D400041973 /* Sources */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (7D864382303661D500041973 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, 7D864383303661D500041973 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); name = Sources; path = ../Sources; sourceTree = "<group>"; };
+		7DB996BB306C6A3E00A51DEA /* BasicContainers */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (7DB9971B306C6A5100A51DEA /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = BasicContainers; sourceTree = "<group>"; };
+		7DB9975D306C6A5700A51DEA /* BitCollections */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (7DB9979C306C6A6000A51DEA /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = BitCollections; sourceTree = "<group>"; };
+		7DB997A0306C6A6500A51DEA /* Collections */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (7DB997A4306C6A7200A51DEA /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = Collections; sourceTree = "<group>"; };
+		7DB997E2306C6A7800A51DEA /* ContainersPreview */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = ContainersPreview; sourceTree = "<group>"; };
+		7DB9984B306C6A8300A51DEA /* DequeModule */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (7DB99B37306C6A9100A51DEA /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = DequeModule; sourceTree = "<group>"; };
+		7DB99855306C6A8300A51DEA /* HeapModule */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (7DB99B39306C6A9E00A51DEA /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = HeapModule; sourceTree = "<group>"; };
+		7DB9988F306C6A8300A51DEA /* SortedCollections */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = SortedCollections; sourceTree = "<group>"; };
+		7DB998B1306C6A8300A51DEA /* InternalCollectionsUtilities */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (7DB99B3A306C6AA800A51DEA /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = InternalCollectionsUtilities; sourceTree = "<group>"; };
+		7DB998B7306C6A8300A51DEA /* TrailingElementsModule */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (7DB99B3E306C6AC400A51DEA /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = TrailingElementsModule; sourceTree = "<group>"; };
+		7DB998FD306C6A8300A51DEA /* OrderedCollections */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (7DB99B3B306C6AAE00A51DEA /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = OrderedCollections; sourceTree = "<group>"; };
+		7DB99958306C6A8300A51DEA /* RopeModule */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (7DB99B3C306C6AB500A51DEA /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = RopeModule; sourceTree = "<group>"; };
+		7DB9995D306C6A8300A51DEA /* SpanPreview */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (7DB99B3D306C6ABE00A51DEA /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = SpanPreview; sourceTree = "<group>"; };
+		7DB999B8306C6A8300A51DEA /* HashTreeCollections */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (7DB99B38306C6A9900A51DEA /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = HashTreeCollections; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		7DB98D75306C581F00A51DEA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		7DE91B2329CA6721004483EB /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -161,6 +233,28 @@
 			path = Debugger;
 			sourceTree = "<group>";
 		};
+		7DB99654306C6A3900A51DEA /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				7DB996BB306C6A3E00A51DEA /* BasicContainers */,
+				7DB9975D306C6A5700A51DEA /* BitCollections */,
+				7DB997A0306C6A6500A51DEA /* Collections */,
+				7DB997E2306C6A7800A51DEA /* ContainersPreview */,
+				7DB9984B306C6A8300A51DEA /* DequeModule */,
+				7DB999B8306C6A8300A51DEA /* HashTreeCollections */,
+				7DB99855306C6A8300A51DEA /* HeapModule */,
+				7DB998B1306C6A8300A51DEA /* InternalCollectionsUtilities */,
+				7DB998FD306C6A8300A51DEA /* OrderedCollections */,
+				7DB99958306C6A8300A51DEA /* RopeModule */,
+				7DB9988F306C6A8300A51DEA /* SortedCollections */,
+				7DB9995D306C6A8300A51DEA /* SpanPreview */,
+				7DB998B7306C6A8300A51DEA /* TrailingElementsModule */,
+				7DB99653306C6A3900A51DEA /* CMakeLists.txt */,
+			);
+			name = Sources;
+			path = ../Sources;
+			sourceTree = "<group>";
+		};
 		7DE91B1C29CA6721004483EB = {
 			isa = PBXGroup;
 			children = (
@@ -170,7 +264,7 @@
 				7DE921A629CA782F004483EB /* CONTRIBUTING.md */,
 				7DE921AA29CA782F004483EB /* LICENSE.txt */,
 				7DE921A529CA782F004483EB /* README.md */,
-				7D864134303661D400041973 /* Sources */,
+				7DB99654306C6A3900A51DEA /* Sources */,
 				7D863DD23036557F00041973 /* Tests */,
 				7DE921AC29CA78B2004483EB /* Utils */,
 				7DEBDB9329CCE4A600ADC226 /* Xcode */,
@@ -183,6 +277,7 @@
 			children = (
 				7DE91B2629CA6721004483EB /* Collections.framework */,
 				7DE91B2E29CA6721004483EB /* CollectionsTests.xctest */,
+				7DB98D78306C581F00A51DEA /* ContainersPreview.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -206,6 +301,7 @@
 			children = (
 				7DEBDB9829CCE4A600ADC226 /* Shared.xcconfig */,
 				7DEBDB9929CCE4A600ADC226 /* Collections.xcconfig */,
+				7DB98D9B306C58E800A51DEA /* ContainersPreview.xcconfig */,
 				7DEBDB9729CCE4A600ADC226 /* CollectionsTests.xcconfig */,
 				7D9B859C29E4F77D00B291CD /* Collections.xctestplan */,
 				7D5A64D229CCE8CC00CB2595 /* README.md */,
@@ -216,6 +312,13 @@
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
+		7DB98D73306C581F00A51DEA /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		7DE91B2129CA6721004483EB /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
@@ -226,6 +329,30 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
+		7DB98D77306C581F00A51DEA /* ContainersPreview */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7DB98D8D306C581F00A51DEA /* Build configuration list for PBXNativeTarget "ContainersPreview" */;
+			buildPhases = (
+				7DB98D73306C581F00A51DEA /* Headers */,
+				7DB98D74306C581F00A51DEA /* Sources */,
+				7DB98D75306C581F00A51DEA /* Frameworks */,
+				7DB98D76306C581F00A51DEA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				7DB98DD1306C5AF000A51DEA /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				7DB997E2306C6A7800A51DEA /* ContainersPreview */,
+			);
+			name = ContainersPreview;
+			packageProductDependencies = (
+			);
+			productName = ContainersPreview;
+			productReference = 7DB98D78306C581F00A51DEA /* ContainersPreview.framework */;
+			productType = "com.apple.product-type.framework";
+		};
 		7DE91B2529CA6721004483EB /* Collections */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 7DE91B3829CA6721004483EB /* Build configuration list for PBXNativeTarget "Collections" */;
@@ -240,7 +367,18 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				7D864134303661D400041973 /* Sources */,
+				7DB996BB306C6A3E00A51DEA /* BasicContainers */,
+				7DB9975D306C6A5700A51DEA /* BitCollections */,
+				7DB997A0306C6A6500A51DEA /* Collections */,
+				7DB9984B306C6A8300A51DEA /* DequeModule */,
+				7DB99855306C6A8300A51DEA /* HeapModule */,
+				7DB9988F306C6A8300A51DEA /* SortedCollections */,
+				7DB998B1306C6A8300A51DEA /* InternalCollectionsUtilities */,
+				7DB998B7306C6A8300A51DEA /* TrailingElementsModule */,
+				7DB998FD306C6A8300A51DEA /* OrderedCollections */,
+				7DB99958306C6A8300A51DEA /* RopeModule */,
+				7DB9995D306C6A8300A51DEA /* SpanPreview */,
+				7DB999B8306C6A8300A51DEA /* HashTreeCollections */,
 			);
 			name = Collections;
 			productName = Collections;
@@ -258,6 +396,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				7DB98DD3306C679100A51DEA /* PBXTargetDependency */,
 				7DE91B3129CA6721004483EB /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
@@ -275,9 +414,12 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1430;
+				LastSwiftUpdateCheck = 2740;
 				LastUpgradeCheck = 2700;
 				TargetAttributes = {
+					7DB98D77306C581F00A51DEA = {
+						CreatedOnToolsVersion = 27.4;
+					};
 					7DE91B2529CA6721004483EB = {
 						CreatedOnToolsVersion = 14.3;
 					};
@@ -300,12 +442,20 @@
 			projectRoot = "";
 			targets = (
 				7DE91B2529CA6721004483EB /* Collections */,
+				7DB98D77306C581F00A51DEA /* ContainersPreview */,
 				7DE91B2D29CA6721004483EB /* CollectionsTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		7DB98D76306C581F00A51DEA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		7DE91B2429CA6721004483EB /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -323,6 +473,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		7DB98D74306C581F00A51DEA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		7DE91B2229CA6721004483EB /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -340,6 +497,16 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		7DB98DD1306C5AF000A51DEA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 7DE91B2529CA6721004483EB /* Collections */;
+			targetProxy = 7DB98DD0306C5AF000A51DEA /* PBXContainerItemProxy */;
+		};
+		7DB98DD3306C679100A51DEA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 7DB98D77306C581F00A51DEA /* ContainersPreview */;
+			targetProxy = 7DB98DD2306C679100A51DEA /* PBXContainerItemProxy */;
+		};
 		7DE91B3129CA6721004483EB /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 7DE91B2529CA6721004483EB /* Collections */;
@@ -348,6 +515,20 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		7DB98D89306C581F00A51DEA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 7DB98D9B306C58E800A51DEA /* ContainersPreview.xcconfig */;
+			buildSettings = {
+			};
+			name = Debug;
+		};
+		7DB98D8A306C581F00A51DEA /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 7DB98D9B306C58E800A51DEA /* ContainersPreview.xcconfig */;
+			buildSettings = {
+			};
+			name = Release;
+		};
 		7DE91B3629CA6721004483EB /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 7DEBDB9829CCE4A600ADC226 /* Shared.xcconfig */;
@@ -393,6 +574,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		7DB98D8D306C581F00A51DEA /* Build configuration list for PBXNativeTarget "ContainersPreview" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7DB98D89306C581F00A51DEA /* Debug */,
+				7DB98D8A306C581F00A51DEA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		7DE91B2029CA6721004483EB /* Build configuration list for PBXProject "Collections" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

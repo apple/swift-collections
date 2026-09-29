@@ -18,8 +18,8 @@ import Collections
 #else
 import InternalCollectionsUtilities
 import _CollectionsTestSupport
-import ContainersPreview
 #endif
+import ContainersPreview
 
 @available(SwiftStdlib 6.4, *)
 final class RefTests: CollectionTestCase {

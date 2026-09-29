@@ -11,7 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !COLLECTIONS_SINGLE_MODULE
+#if COLLECTIONS_SINGLE_MODULE
+import Collections
+#else
 import InternalCollectionsUtilities
 #endif
 

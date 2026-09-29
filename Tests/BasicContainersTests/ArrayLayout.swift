@@ -18,8 +18,8 @@ import Collections
 import _CollectionsTestSupport
 import SpanPreview
 import BasicContainers
-import ContainersPreview
 #endif
+import ContainersPreview
 
 struct ArrayLayout {
   var capacity: Int

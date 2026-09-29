@@ -17,9 +17,9 @@ import Collections
 #else
 import _CollectionsTestSupport
 import SpanPreview
-import ContainersPreview
 import BasicContainers
 #endif
+import ContainersPreview
 
 /// Check if `left` and `right` contain equal elements in the same order.
 @available(SwiftStdlib 5.0, *)
