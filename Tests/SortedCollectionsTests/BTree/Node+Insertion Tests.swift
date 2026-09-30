@@ -15,7 +15,7 @@
 
 #if DEBUG
 import _CollectionsTestSupport
-@_spi(Testing) @testable import SortedCollections
+import SortedCollections
 
 func expectInsertionInTree(
   capacity: Int,
@@ -23,9 +23,9 @@ func expectInsertionInTree(
   inserting key: Int,
   toEqual refTree: NodeTemplate) {
   var btree = tree.toBTree(ofCapacity: capacity)
-  
+
   btree.updateAnyValue(key * 2, forKey: key)
-  
+
   let refMatches = refTree.matches(btree)
   if !refMatches {
     print("Expected: ")
@@ -49,7 +49,7 @@ final class NodeInsertionTests: CollectionTestCase {
         tree { 2 }
       }
     )
-    
+
     expectInsertionInTree(
       capacity: 4,
       tree: tree { 0; 1; 3; 4 },
@@ -60,7 +60,7 @@ final class NodeInsertionTests: CollectionTestCase {
         tree { 3; 4 }
       }
     )
-    
+
     expectInsertionInTree(
       capacity: 5,
       tree: tree { 0; 1; 3; 4; 5 },
@@ -72,7 +72,7 @@ final class NodeInsertionTests: CollectionTestCase {
       }
     )
   }
-  
+
   // MARK: Median Internal Node Insertion
   func test_medianInternalInsertion() {
     expectInsertionInTree(
@@ -99,7 +99,7 @@ final class NodeInsertionTests: CollectionTestCase {
         }
       }
     )
-    
+
     expectInsertionInTree(
       capacity: 3,
       tree: tree {
@@ -128,7 +128,7 @@ final class NodeInsertionTests: CollectionTestCase {
         }
       }
     )
-    
+
     expectInsertionInTree(
       capacity: 4,
       tree: tree {
@@ -161,7 +161,7 @@ final class NodeInsertionTests: CollectionTestCase {
         }
       }
     )
-    
+
     expectInsertionInTree(
       capacity: 5,
       tree: tree {
@@ -199,7 +199,7 @@ final class NodeInsertionTests: CollectionTestCase {
       }
     )
   }
-  
+
   // MARK: Right Leaf Insertion
   func test_rightLeafInsertion() {
     expectInsertionInTree(
@@ -212,7 +212,7 @@ final class NodeInsertionTests: CollectionTestCase {
         tree { 3 }
       }
     )
-    
+
     expectInsertionInTree(
       capacity: 3,
       tree: tree { 1; 2; 4 },
@@ -223,7 +223,7 @@ final class NodeInsertionTests: CollectionTestCase {
         tree { 3; 4 }
       }
     )
-    
+
     expectInsertionInTree(
       capacity: 4,
       tree: tree { 0; 1; 2; 4 },
@@ -234,7 +234,7 @@ final class NodeInsertionTests: CollectionTestCase {
         tree { 3; 4 }
       }
     )
-    
+
     expectInsertionInTree(
       capacity: 5,
       tree: tree { 0; 1; 2; 3; 5 },
@@ -246,7 +246,7 @@ final class NodeInsertionTests: CollectionTestCase {
       }
     )
   }
-  
+
   // MARK: Right Internal Node Insertion
   func test_rightInternalNodeInsertion() {
     expectInsertionInTree(
@@ -273,7 +273,7 @@ final class NodeInsertionTests: CollectionTestCase {
         }
       }
     )
-    
+
     expectInsertionInTree(
       capacity: 3,
       tree: tree {
@@ -373,7 +373,7 @@ final class NodeInsertionTests: CollectionTestCase {
       }
     )
   }
-  
+
   // MARK: Left Leaf Insertion
   func test_leftLeafInsertion() {
     expectInsertionInTree(
@@ -386,7 +386,7 @@ final class NodeInsertionTests: CollectionTestCase {
         tree { 2 }
       }
     )
-    
+
     expectInsertionInTree(
       capacity: 3,
       tree: tree { 1; 2; 3 },
@@ -397,7 +397,7 @@ final class NodeInsertionTests: CollectionTestCase {
         tree { 3 }
       }
     )
-    
+
     expectInsertionInTree(
       capacity: 4,
       tree: tree { 0; 2; 3; 4 },
@@ -408,7 +408,7 @@ final class NodeInsertionTests: CollectionTestCase {
         tree { 3; 4 }
       }
     )
-    
+
     expectInsertionInTree(
       capacity: 5,
       tree: tree { 0; 2; 3; 4; 5 },
@@ -420,7 +420,7 @@ final class NodeInsertionTests: CollectionTestCase {
       }
     )
   }
-  
+
   // MARK: Left Internal Node Insertion
   func test_leftInternalNodeInsertion() {
     expectInsertionInTree(
@@ -447,7 +447,7 @@ final class NodeInsertionTests: CollectionTestCase {
         }
       }
     )
-    
+
     expectInsertionInTree(
       capacity: 3,
       tree: tree {

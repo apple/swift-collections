@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 import CollectionsBenchmark
-@_spi(Testing) import DequeModule
+import DequeModule
 
 @inline(never)
 @_optimize(none)

@@ -13,10 +13,10 @@
 
 import XCTest
 #if COLLECTIONS_SINGLE_MODULE
-@_spi(Testing) import Collections
+import Collections
 #else
 import _CollectionsTestSupport
-@_spi(Testing) import DequeModule
+import DequeModule
 #endif
 
 final class DequeTests: CollectionTestCase {
@@ -376,4 +376,3 @@ final class DequeTests: CollectionTestCase {
   }
 
 }
-

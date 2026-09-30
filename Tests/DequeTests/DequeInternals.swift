@@ -12,10 +12,10 @@
 //===----------------------------------------------------------------------===//
 
 #if COLLECTIONS_SINGLE_MODULE
-@_spi(Testing) import Collections
+import Collections
 #else
 import _CollectionsTestSupport
-@_spi(Testing) import DequeModule
+import DequeModule
 #endif
 
 @available(SwiftStdlib 5.0, *)

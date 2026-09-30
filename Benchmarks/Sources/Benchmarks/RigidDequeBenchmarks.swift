@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 import CollectionsBenchmark
-@_spi(Testing) import DequeModule
+import DequeModule
 
 /// Do nothing and immediately return.
 ///

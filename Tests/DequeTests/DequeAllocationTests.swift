@@ -13,10 +13,10 @@
 
 import XCTest
 #if COLLECTIONS_SINGLE_MODULE
-@_spi(Testing) import Collections
+import Collections
 #else
 import _CollectionsTestSupport
-@_spi(Testing) import DequeModule
+import DequeModule
 #endif
 
 /// Clear box tests for `Deque`'s storage allocation behavior, observed through

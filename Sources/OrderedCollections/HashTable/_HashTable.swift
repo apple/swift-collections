@@ -13,13 +13,13 @@
 
 @usableFromInline
 @frozen
-internal struct _HashTable {
+package struct _HashTable {
   @usableFromInline
-  internal var _storage: Storage
+  package var _storage: Storage
 
   @inlinable
   @inline(__always)
-  internal init(_ storage: Storage) {
+  package init(_ storage: Storage) {
     _storage = storage
   }
 }
@@ -29,7 +29,7 @@ extension _HashTable {
   /// Values in the hash table are offsets into separate element storage, so
   /// this class doesn't need to be generic over `OrderedSet`'s `Element` type.
   @usableFromInline
-  internal final class Storage
+  package final class Storage
   : ManagedBuffer<Header, UInt64>
   {}
 }
@@ -38,7 +38,7 @@ extension _HashTable {
   /// Allocate a new empty hash table buffer of the specified scale.
   @usableFromInline
   @_effects(releasenone)
-  internal init(scale: Int, reservedScale: Int = 0) {
+  package init(scale: Int, reservedScale: Int = 0) {
     assert(scale >= Self.minimumScale && scale <= Self.maximumScale)
     let wordCount = Self.wordCount(forScale: scale)
     let storage = Storage.create(
@@ -65,7 +65,7 @@ extension _HashTable {
   @inlinable
   @inline(never)
   @_effects(releasenone)
-  static func create<C: RandomAccessCollection>(
+  package static func create<C: RandomAccessCollection>(
     uncheckedUniqueElements elements: C,
     scale: Int? = nil,
     reservedScale: Int = 0
@@ -90,7 +90,7 @@ extension _HashTable {
   @inlinable
   @inline(never)
   @_effects(releasenone)
-  static func create<C: RandomAccessCollection>(
+  package static func create<C: RandomAccessCollection>(
     untilFirstDuplicateIn elements: C,
     scale: Int? = nil,
     reservedScale: Int = 0
@@ -139,7 +139,7 @@ extension _HashTable {
   /// scale and seed, and contains the exact same bucket data as the original instance.
   @usableFromInline
   @_effects(releasenone)
-  internal func copy() -> _HashTable {
+  package func copy() -> _HashTable {
     self.read { handle in
       let wordCount = handle.wordCount
       let new = Storage.create(
@@ -158,7 +158,7 @@ extension _HashTable {
 /// also some modification to remove some more generic overhead.
 extension ContiguousArray where Element: Equatable {
   @inlinable
-  func _contains(_ element: Element) -> Bool {
+  internal func _contains(_ element: Element) -> Bool {
     for index in 0..<count {
       if element == self[index] {
         return true
@@ -177,7 +177,7 @@ extension _HashTable {
   ///    the closure call. The closure must not escape it outside the call.
   @inlinable
   @inline(__always)
-  internal func read<R>(_ body: (_UnsafeHashTable) throws -> R) rethrows -> R {
+  package func read<R>(_ body: (_UnsafeHashTable) throws -> R) rethrows -> R {
     try _storage.withUnsafeMutablePointers { header, elements in
       let handle = _UnsafeHashTable(header: header, buckets: elements, readonly: true)
       return try body(handle)
@@ -190,7 +190,7 @@ extension _HashTable {
   ///    the closure call. The closure must not escape it outside the call.
   @inlinable
   @inline(__always)
-  internal func update<R>(_ body: (_UnsafeHashTable) throws -> R) rethrows -> R {
+  package func update<R>(_ body: (_UnsafeHashTable) throws -> R) rethrows -> R {
     try _storage.withUnsafeMutablePointers { header, elements in
       let handle = _UnsafeHashTable(header: header, buckets: elements, readonly: false)
       return try body(handle)
@@ -200,35 +200,35 @@ extension _HashTable {
 
 extension _HashTable {
   @inlinable
-  internal var header: Header {
+  package var header: Header {
     get { _storage.header }
     @inline(__always) // https://github.com/apple/swift-collections/issues/164
     nonmutating _modify { yield &_storage.header }
   }
 
   @inlinable
-  internal var capacity: Int {
+  package var capacity: Int {
     _storage.header.capacity
   }
 
   @inlinable
-  internal var minimumCapacity: Int {
+  package var minimumCapacity: Int {
     if scale == reservedScale { return 0 }
     return Self.minimumCapacity(forScale: scale)
   }
 
   @inlinable
-  internal var scale: Int {
+  package var scale: Int {
     _storage.header.scale
   }
 
   @inlinable
-  internal var reservedScale: Int {
+  package var reservedScale: Int {
     _storage.header.reservedScale
   }
 
   @inlinable
-  internal var bias: Int {
+  package var bias: Int {
     _storage.header.bias
   }
 }

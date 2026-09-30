@@ -13,9 +13,9 @@
 
 import XCTest
 #if COLLECTIONS_SINGLE_MODULE
-@_spi(Testing) import Collections
+import Collections
 #else
-@_spi(Testing) import OrderedCollections
+import OrderedCollections
 import _CollectionsTestSupport
 #endif
 
@@ -1570,4 +1570,3 @@ class OrderedDictionaryTests: CollectionTestCase {
     expectEqualElements(d2m, ["a": 2, "b": 2, "c": 1] as KeyValuePairs)
   }
 }
-
