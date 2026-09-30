@@ -41,18 +41,18 @@ extension _Node {
   /// Check ``_Node.hasValues`` before performing such operations. Note that element-wise
   /// operations of the handle already perform such value checks and this step is not necessary.
   @usableFromInline
-  internal struct UnsafeHandle {
+  package struct UnsafeHandle {
     @usableFromInline
-    internal let header: UnsafeMutablePointer<Header>
-    
+    package let header: UnsafeMutablePointer<Header>
+
     @usableFromInline
-    internal let keys: UnsafeMutablePointer<Key>
-    
+    package let keys: UnsafeMutablePointer<Key>
+
     @usableFromInline
-    internal let values: UnsafeMutablePointer<Value>?
-    
+    package let values: UnsafeMutablePointer<Value>?
+
     @usableFromInline
-    internal let children: UnsafeMutablePointer<_Node<Key, Value>>?
+    package let children: UnsafeMutablePointer<_Node<Key, Value>>?
     
     @inlinable
     @inline(__always)
@@ -139,7 +139,7 @@ extension _Node {
     /// The number of elements immediately stored in the node
     @inlinable
     @inline(__always)
-    internal var elementCount: Int {
+    package var elementCount: Int {
       get { header.pointee.count }
       nonmutating set { assertMutable(); header.pointee.count = newValue }
     }
@@ -147,7 +147,7 @@ extension _Node {
     /// The total number of elements that this node directly or indirectly stores
     @inlinable
     @inline(__always)
-    internal var subtreeCount: Int {
+    package var subtreeCount: Int {
       get { header.pointee.subtreeCount }
       nonmutating set {
         assertMutable(); header.pointee.subtreeCount = newValue
@@ -157,7 +157,7 @@ extension _Node {
     /// The depth of the node represented as the number of nodes below the current one.
     @inlinable
     @inline(__always)
-    internal var depth: Int {
+    package var depth: Int {
       get { header.pointee.depth }
       nonmutating set {
         assertMutable(); header.pointee.depth = newValue
@@ -168,7 +168,7 @@ extension _Node {
     /// - Warning: Do not access on a leaf, else will panic.
     @inlinable
     @inline(__always)
-    internal var childCount: Int {
+    package var childCount: Int {
       assert(!isLeaf, "Cannot access the child count on a leaf.")
       return elementCount &+ 1
     }
@@ -179,37 +179,37 @@ extension _Node {
     /// calling certain operations which depend on children may trap.
     @inlinable
     @inline(__always)
-    internal var isLeaf: Bool { children == nil }
+    package var isLeaf: Bool { children == nil }
     
     /// A lower bound on the amount of keys we would want a node to contain.
     ///
     /// Defined as `ceil(capacity/2) - 1`.
     @inlinable
     @inline(__always)
-    internal var minimumElementCount: Int { capacity / 2 }
-    
+    package var minimumElementCount: Int { capacity / 2 }
+
     /// Whether an element can be removed without triggering a rebalance.
     @inlinable
     @inline(__always)
-    internal var isShrinkable: Bool { elementCount > minimumElementCount }
-    
+    package var isShrinkable: Bool { elementCount > minimumElementCount }
+
     /// Whether the node contains at least the minimum number of keys.
     @inlinable
     @inline(__always)
-    internal var isBalanced: Bool { elementCount >= minimumElementCount }
-    
+    package var isBalanced: Bool { elementCount >= minimumElementCount }
+
     /// Whether the immediate node does not have space for an additional element
     @inlinable
     @inline(__always)
-    internal var isFull: Bool { elementCount == capacity }
-    
+    package var isFull: Bool { elementCount == capacity }
+
     
     /// Checks uniqueness of a child.
     ///
     /// - Warning: Will trap if executed on leaf nodes
     @inlinable
     @inline(__always)
-    internal func isChildUnique(atSlot slot: Int) -> Bool {
+    package func isChildUnique(atSlot slot: Int) -> Bool {
       assert(!self.isLeaf, "Cannot access children on leaf.")
       return isKnownUniquelyReferenced(
         &self.pointerToChild(atSlot: slot).pointee._storage
@@ -222,7 +222,7 @@ extension _Node {
     /// still owned by this node, or else it may result in a serious memory leak.
     @inlinable
     @inline(__always)
-    internal func drop() {
+    package func drop() {
       assertMutable()
       assert(self.elementCount == 0, "Cannot drop non-empty node")
       self.header.pointee.children?.deallocate()
@@ -235,7 +235,7 @@ extension _Node {
 extension _Node.UnsafeHandle {
   @inlinable
   @inline(__always)
-  internal subscript(elementAt slot: Int) -> _Node.Element {
+  package subscript(elementAt slot: Int) -> _Node.Element {
     get {
       assert(0 <= slot && slot < self.elementCount,
              "Node element subscript out of bounds.")
@@ -250,7 +250,7 @@ extension _Node.UnsafeHandle {
   
   @inlinable
   @inline(__always)
-  internal func pointerToKey(
+  package func pointerToKey(
     atSlot slot: Int
   ) -> UnsafeMutablePointer<Key> {
     assert(0 <= slot && slot < self.elementCount,
@@ -260,7 +260,7 @@ extension _Node.UnsafeHandle {
   
   @inlinable
   @inline(__always)
-  internal subscript(keyAt slot: Int) -> Key {
+  package subscript(keyAt slot: Int) -> Key {
     get {
       assert(0 <= slot && slot < self.elementCount,
              "Node key subscript out of bounds.")
@@ -271,7 +271,7 @@ extension _Node.UnsafeHandle {
   
   @inlinable
   @inline(__always)
-  internal func pointerToValue(
+  package func pointerToValue(
     atSlot slot: Int
   ) -> UnsafeMutablePointer<Value> {
     assert(0 <= slot && slot < elementCount,
@@ -282,7 +282,7 @@ extension _Node.UnsafeHandle {
   
   @inlinable
   @inline(__always)
-  internal subscript(valueAt slot: Int) -> Value {
+  package subscript(valueAt slot: Int) -> Value {
     get {
       assert(0 <= slot && slot < self.elementCount,
              "Node values subscript out of bounds.")
@@ -303,7 +303,7 @@ extension _Node.UnsafeHandle {
   
   @inlinable
   @inline(__always)
-  internal func pointerToChild(
+  package func pointerToChild(
     atSlot slot: Int
   ) -> UnsafeMutablePointer<_Node> {
     assert(0 <= slot && slot < self.childCount,
@@ -316,7 +316,7 @@ extension _Node.UnsafeHandle {
   /// - Warning: During mutations, re-accessing the same child slot is invalid.
   @inlinable
   @inline(__always)
-  internal subscript(childAt slot: Int) -> _Node {
+  package subscript(childAt slot: Int) -> _Node {
     get {
       assert(!isLeaf, "Cannot access children of leaf node.")
       assert(0 <= slot && slot < self.childCount,
@@ -346,7 +346,7 @@ extension _Node.UnsafeHandle {
   /// - Returns: Either the slot if the first instance of the key, otherwise
   ///     the valid insertion point for the key.
   @inlinable
-  internal func startSlot(forKey key: Key) -> Int {
+  package func startSlot(forKey key: Key) -> Int {
     var start: Int = 0
     var end: Int = self.elementCount
     
@@ -370,7 +370,7 @@ extension _Node.UnsafeHandle {
   /// - Returns: Either the slot after the last instance of the key, otherwise
   ///     the valid insertion point for the key.
   @inlinable
-  internal func endSlot(forKey key: Key) -> Int {
+  package func endSlot(forKey key: Key) -> Int {
     var start: Int = 0
     var end: Int = self.elementCount
     
@@ -403,7 +403,7 @@ extension _Node.UnsafeHandle {
   /// - Warning: This does not adjust the buffer counts.
   @inlinable
   @inline(__always)
-  internal func moveInitializeElements(
+  package func moveInitializeElements(
     count: Int,
     fromSlot sourceSlot: Int,
     toSlot destinationSlot: Int,
@@ -446,7 +446,7 @@ extension _Node.UnsafeHandle {
   /// - Warning: This will trap if either the source and destination handles are leaves.
   @inlinable
   @inline(__always)
-  internal func moveInitializeChildren(
+  package func moveInitializeChildren(
     count: Int,
     fromSlot sourceSlot: Int,
     toSlot destinationSlot: Int,
@@ -485,7 +485,7 @@ extension _Node.UnsafeHandle {
   /// - Warning: This does not adjust the buffer counts.
   @inlinable
   @inline(__always)
-  internal func initializeElement(
+  package func initializeElement(
     atSlot slot: Int,
     to element: _Node.Element,
     withRightChild rightChild: _Node?
@@ -518,7 +518,7 @@ extension _Node.UnsafeHandle {
   /// - Warning: This does not adjust the buffer counts.
   @inlinable
   @inline(__always)
-  internal func initializeElement(
+  package func initializeElement(
     atSlot slot: Int,
     to element: _Node.Element,
     withLeftChild leftChild: _Node?
@@ -546,7 +546,7 @@ extension _Node.UnsafeHandle {
   /// - Warning: This does not adjust the buffer counts.
   @inlinable
   @inline(__always)
-  internal func initializeElement(atSlot slot: Int, to element: _Node.Element) {
+  package func initializeElement(atSlot slot: Int, to element: _Node.Element) {
     assertMutable()
     assert(0 <= slot && slot < self.capacity,
            "Cannot insert beyond node capacity.")
@@ -570,7 +570,7 @@ extension _Node.UnsafeHandle {
   /// - Warning: This does not adjust buffer counts
   @inlinable
   @inline(__always)
-  internal func moveElement(atSlot slot: Int) -> _Node.Element {
+  package func moveElement(atSlot slot: Int) -> _Node.Element {
     assertMutable()
     assert(0 <= slot && slot < self.elementCount,
            "Attempted to move out-of-bounds element.")
@@ -593,7 +593,7 @@ extension _Node.UnsafeHandle {
   /// - Warning: This does not adjust buffer counts
   @inlinable
   @inline(__always)
-  internal func moveChild(atSlot slot: Int) -> _Node {
+  package func moveChild(atSlot slot: Int) -> _Node {
     assertMutable()
     assert(!self.isLeaf, "Can only move a child on a non-leaf node.")
     assert(0 <= slot && slot < self.childCount,
@@ -605,7 +605,7 @@ extension _Node.UnsafeHandle {
   /// Appends a new element.
   @inlinable
   @inline(__always)
-  internal func appendElement(_ element: _Node.Element) {
+  package func appendElement(_ element: _Node.Element) {
     assertMutable()
     assert(elementCount < capacity, "Cannot append into full node")
     assert(elementCount == 0 || self[keyAt: elementCount - 1] <= element.key,
@@ -621,7 +621,7 @@ extension _Node.UnsafeHandle {
   /// Appends a new element with a provided right child.
   @inlinable
   @inline(__always)
-  internal func appendElement(
+  package func appendElement(
     _ element: _Node.Element,
     withRightChild rightChild: _Node)  {
     assertMutable()
@@ -648,7 +648,7 @@ extension _Node.UnsafeHandle {
   @inlinable
   @inline(__always)
   @discardableResult
-  internal func exchangeElement(
+  package func exchangeElement(
     atSlot slot: Int,
     with newElement: _Node.Element
   ) -> _Node.Element {
@@ -669,7 +669,7 @@ extension _Node.UnsafeHandle {
   @inlinable
   @inline(__always)
   @discardableResult
-  internal func exchangeChild(
+  package func exchangeChild(
     atSlot slot: Int,
     with newChild: _Node
   ) -> _Node {
@@ -700,7 +700,7 @@ extension _Node.UnsafeHandle {
   /// - Warning: This performs neither balancing, rotation, or count updates.
   @inlinable
   @inline(__always)
-  internal func removeChild(atSlot slot: Int) -> _Node {
+  package func removeChild(atSlot slot: Int) -> _Node {
     assertMutable()
     assert(0 <= slot && slot < self.childCount,
            "Attempt to remove out-of-bounds child.")
@@ -732,7 +732,7 @@ extension _Node.UnsafeHandle {
   @inlinable
   @inline(__always)
   @discardableResult
-  internal func removeElement(atSlot slot: Int) -> _Node.Element {
+  package func removeElement(atSlot slot: Int) -> _Node.Element {
     assertMutable()
     assert(0 <= slot && slot < self.elementCount,
            "Attempt to remove out-of-bounds element.")
@@ -767,7 +767,7 @@ extension _Node.UnsafeHandle {
   @inlinable
   @inline(__always)
   @discardableResult
-  internal func removeElementWithoutValue(atSlot slot: Int) -> Key {
+  package func removeElementWithoutValue(atSlot slot: Int) -> Key {
     assertMutable()
     assert(0 <= slot && slot < self.elementCount,
            "Attempt to remove out-of-bounds element.")

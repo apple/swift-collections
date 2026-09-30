@@ -14,8 +14,12 @@
 #if UnstableSortedCollections
 
 import XCTest
+#if COLLECTIONS_SINGLE_MODULE
+import Collections
+#else
 import SortedCollections
 import _CollectionsTestSupport
+#endif
 
 class SortedSetTests: CollectionTestCase {
   func test_init_sortedElements() {

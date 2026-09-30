@@ -13,9 +13,12 @@
 
 #if UnstableSortedCollections
 
-#if DEBUG
+#if COLLECTIONS_SINGLE_MODULE
+import Collections
+#else
 import _CollectionsTestSupport
 import SortedCollections
+#endif
 
 final class NodeBalancingTests: CollectionTestCase {
   func test_collapseAtSlot() {
@@ -239,6 +242,4 @@ final class NodeBalancingTests: CollectionTestCase {
     )
   }
 }
-#endif
-
 #endif

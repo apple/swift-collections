@@ -13,9 +13,12 @@
 
 #if UnstableSortedCollections
 
-#if DEBUG
+#if COLLECTIONS_SINGLE_MODULE
+import Collections
+#else
 import _CollectionsTestSupport
 import SortedCollections
+#endif
 
 func nodeFromKeys(_ keys: [Int], capacity: Int) -> _Node<Int, Int> {
   let kvPairs = keys.map { (key: $0, value: $0 * 2) }
@@ -146,6 +149,4 @@ final class NodeTests: CollectionTestCase {
     }
   }
 }
-#endif
-
 #endif

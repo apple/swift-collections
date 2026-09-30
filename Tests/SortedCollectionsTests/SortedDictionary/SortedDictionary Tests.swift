@@ -13,9 +13,12 @@
 
 #if UnstableSortedCollections
 
-#if DEBUG
+#if COLLECTIONS_SINGLE_MODULE
+import Collections
+#else
 import _CollectionsTestSupport
 import SortedCollections
+#endif
 
 final class SortedDictionaryTests: CollectionTestCase {
   func test_empty() {
@@ -376,7 +379,5 @@ final class SortedDictionaryTests: CollectionTestCase {
     expectNotEqual(leftSlice, rightUnequalSlice)
   }
 }
-
-#endif
 
 #endif

@@ -34,10 +34,10 @@
 /// Refer to ``_Node.UnsafeHandle`` for the APIs available when operating on a node in such a
 /// manner.
 @usableFromInline
-internal struct _Node<Key: Comparable, Value> {
+package struct _Node<Key: Comparable, Value> {
   @usableFromInline
-  typealias Element = (key: Key, value: Value)
-  
+  package typealias Element = (key: Key, value: Value)
+
   /// An optional parameter to the storage. Use ``storage`` instead
   ///
   /// This will never be `nil` during a valid access of ``_Node``. However, to support moving the
@@ -213,7 +213,7 @@ extension _Node {
   /// - Returns: A new node containing both the right and left node combined. This may or may not be
   ///     referentially identical to one of the old nodes.
   @inlinable
-  internal static func join(
+  package static func join(
     _ leftNode: inout _Node,
     with rightNode: inout _Node,
     separatedBy separator: __owned _Node.Element,
@@ -302,7 +302,7 @@ extension _Node {
   /// - Returns: The value the closure body returns, if any.
   @inlinable
   @inline(__always)
-  internal func read<R>(_ body: (UnsafeHandle) throws -> R) rethrows -> R {
+  package func read<R>(_ body: (UnsafeHandle) throws -> R) rethrows -> R {
     return try self.storage.read(body)
   }
   
@@ -312,7 +312,7 @@ extension _Node {
   /// - Returns: The value the closure body returns, if any.
   @inlinable
   @inline(__always)
-  internal mutating func update<R>(
+  package mutating func update<R>(
     _ body: (UnsafeHandle) throws -> R
   ) rethrows -> R {
     self.ensureUnique()
@@ -329,7 +329,7 @@ extension _Node {
   /// - Returns: The value the closure body returns, if any.
   @inlinable
   @inline(__always)
-  internal mutating func update<R>(
+  package mutating func update<R>(
     isUnique: Bool,
     _ body: (UnsafeHandle) throws -> R
   ) rethrows -> R {
@@ -346,7 +346,7 @@ extension _Node {
   /// Ensure that this storage refers to a uniquely held buffer by copying
   /// elements if necessary.
   @inlinable
-  internal mutating func ensureUnique() {
+  package mutating func ensureUnique() {
     if !isKnownUniquelyReferenced(&self._storage) {
       self = _Node(copyingFrom: self)
     }
@@ -359,7 +359,7 @@ extension _Node: Equatable {
   /// - Warning: This **does not** compare the keys at all.
   @inlinable
   @inline(__always)
-  internal static func ==(lhs: _Node, rhs: _Node) -> Bool {
+  package static func ==(lhs: _Node, rhs: _Node) -> Bool {
     return lhs.storage === rhs.storage
   }
 }

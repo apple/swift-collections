@@ -15,7 +15,7 @@
 
 extension _BTree {
   @usableFromInline
-  internal struct SubSequence {
+  package struct SubSequence {
     @usableFromInline
     internal let _base: _BTree
     
@@ -42,14 +42,14 @@ extension _BTree {
 
 extension _BTree.SubSequence: Sequence {
   @usableFromInline
-  internal typealias Element = _BTree.Element
-  
+  package typealias Element = _BTree.Element
+
   
   @usableFromInline
-  internal struct Iterator: IteratorProtocol {
+  package struct Iterator: IteratorProtocol {
     @usableFromInline
-    internal typealias Element = SubSequence.Element
-    
+    package typealias Element = SubSequence.Element
+
     @usableFromInline
     internal var _iterator: _BTree.Iterator
     
@@ -65,7 +65,7 @@ extension _BTree.SubSequence: Sequence {
     
     @inlinable
     @inline(__always)
-    internal mutating func next() -> Element? {
+    package mutating func next() -> Element? {
       if distanceRemaining == 0 {
         return nil
       } else {
@@ -77,7 +77,7 @@ extension _BTree.SubSequence: Sequence {
   
   @inlinable
   @inline(__always)
-  internal func makeIterator() -> Iterator {
+  package func makeIterator() -> Iterator {
     let it = _BTree.Iterator(forTree: _base, startingAt: _startIndex)
     let distance = _base.distance(from: _startIndex, to: _endIndex)
     return Iterator(_iterator: it, distance: distance)
@@ -86,89 +86,89 @@ extension _BTree.SubSequence: Sequence {
 
 extension _BTree.SubSequence: BidirectionalCollection {
   @usableFromInline
-  internal typealias Index = _BTree.Index
-  
+  package typealias Index = _BTree.Index
+
   @usableFromInline
-  internal typealias SubSequence = Self
-  
-  
-  @inlinable
-  @inline(__always)
-  internal var startIndex: Index { _startIndex }
+  package typealias SubSequence = Self
+
   
   @inlinable
   @inline(__always)
-  internal var endIndex: Index { _endIndex }
-  
+  package var startIndex: Index { _startIndex }
+
   @inlinable
   @inline(__always)
-  internal var count: Int { _base.distance(from: _startIndex, to: _endIndex) }
-  
+  package var endIndex: Index { _endIndex }
+
   @inlinable
   @inline(__always)
-  internal func distance(from start: Index, to end: Index) -> Int {
+  package var count: Int { _base.distance(from: _startIndex, to: _endIndex) }
+
+  @inlinable
+  @inline(__always)
+  package func distance(from start: Index, to end: Index) -> Int {
     _base.distance(from: start, to: end)
   }
   
   @inlinable
   @inline(__always)
-  internal func index(before i: Index) -> Index {
+  package func index(before i: Index) -> Index {
     _base.index(before: i)
   }
   
   @inlinable
   @inline(__always)
-  internal func formIndex(before i: inout Index) {
+  package func formIndex(before i: inout Index) {
     _base.formIndex(before: &i)
   }
   
   
   @inlinable
   @inline(__always)
-  internal func index(after i: Index) -> Index {
+  package func index(after i: Index) -> Index {
     _base.index(after: i)
   }
   
   @inlinable
   @inline(__always)
-  internal func formIndex(after i: inout Index) {
+  package func formIndex(after i: inout Index) {
     _base.formIndex(after: &i)
   }
   
   @inlinable
   @inline(__always)
-  internal func index(_ i: Index, offsetBy distance: Int) -> Index {
+  package func index(_ i: Index, offsetBy distance: Int) -> Index {
     _base.index(i, offsetBy: distance)
   }
   
   @inlinable
   @inline(__always)
-  internal func formIndex(_ i: inout Index, offsetBy distance: Int) {
+  package func formIndex(_ i: inout Index, offsetBy distance: Int) {
     _base.formIndex(&i, offsetBy: distance)
   }
   
   @inlinable
   @inline(__always)
-  internal func index(_ i: Index, offsetBy distance: Int, limitedBy limit: Index) -> Index? {
+  package func index(_ i: Index, offsetBy distance: Int, limitedBy limit: Index) -> Index? {
     _base.index(i, offsetBy: distance, limitedBy: limit)
   }
   
   @inlinable
   @inline(__always)
-  internal func formIndex(_ i: inout Index, offsetBy distance: Int, limitedBy limit: Self.Index) -> Bool {
+  package func formIndex(_ i: inout Index, offsetBy distance: Int, limitedBy limit: Self.Index) -> Bool {
     _base.formIndex(&i, offsetBy: distance, limitedBy: limit)
   }
 
   
   @inlinable
   @inline(__always)
-  internal subscript(position: Index) -> Element {
+  package subscript(position: Index) -> Element {
     _failEarlyRangeCheck(position, bounds: startIndex..<endIndex)
     return _base[position]
   }
   
   @inlinable
-  public subscript(bounds: Range<Index>) -> SubSequence {
+  package subscript(bounds: Range<Index>) -> SubSequence {
     _failEarlyRangeCheck(bounds, bounds: startIndex..<endIndex)
     return _base[bounds]
   }
@@ -177,13 +177,13 @@ extension _BTree.SubSequence: BidirectionalCollection {
   
   @inlinable
   @inline(__always)
-  public func _failEarlyRangeCheck(_ index: Index, bounds: Range<Index>) {
+  package func _failEarlyRangeCheck(_ index: Index, bounds: Range<Index>) {
     _base._failEarlyRangeCheck(index, bounds: bounds)
   }
 
   @inlinable
   @inline(__always)
-  public func _failEarlyRangeCheck(_ range: Range<Index>, bounds: Range<Index>) {
+  package func _failEarlyRangeCheck(_ range: Range<Index>, bounds: Range<Index>) {
     _base._failEarlyRangeCheck(range, bounds: bounds)
   }
 }

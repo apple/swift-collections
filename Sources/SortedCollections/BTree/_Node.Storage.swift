@@ -15,7 +15,7 @@
 
 extension _Node {
   @usableFromInline
-  internal struct Header {
+  package struct Header {
     @inlinable
     internal init(
       capacity: Int,
@@ -51,7 +51,7 @@ extension _Node {
     /// Refers to the amount of keys in the node.
     @inlinable
     @inline(__always)
-    internal var count: Int {
+    package var count: Int {
       get { Int((_internalCounts & 0xFFFFFFF000000000) >> 40) }
       set {
         assert(0 <= newValue && newValue <= 0xFFFFFFF, "Invalid count.")
@@ -64,7 +64,7 @@ extension _Node {
     /// The total amount of keys possible to store within the node.
     @inlinable
     @inline(__always)
-    internal var capacity: Int {
+    package var capacity: Int {
       get { Int((_internalCounts & 0x0000000FFFFFFF00) >> 8) }
       set {
         assert(0 <= newValue && newValue <= 0xFFFFFFF, "Invalid capacity.")
@@ -77,7 +77,7 @@ extension _Node {
     /// The depth of the node represented as the number of nodes below the current one.
     @inlinable
     @inline(__always)
-    internal var depth: Int {
+    package var depth: Int {
       get { Int(_internalCounts & 0x00000000000000FF) }
       set {
         assert(0 <= newValue && newValue <= 0xFF, "Invalid depth.")
@@ -88,15 +88,15 @@ extension _Node {
     
     /// The total amount of elements contained underneath this node
     @usableFromInline
-    internal var subtreeCount: Int
-    
+    package var subtreeCount: Int
+
     /// Pointer to the buffer containing the corresponding values.
     @usableFromInline
-    internal var values: UnsafeMutablePointer<Value>?
-    
+    package var values: UnsafeMutablePointer<Value>?
+
     /// Pointer to the buffer containing the elements.
     @usableFromInline
-    internal var children: UnsafeMutablePointer<_Node<Key, Value>>?
+    package var children: UnsafeMutablePointer<_Node<Key, Value>>?
   }
   
   /// Represents the underlying data for a node.

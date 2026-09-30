@@ -16,7 +16,7 @@
 extension _Node {
   /// Represents the result of a overfilled node's split.
   @usableFromInline
-  internal struct Splinter {
+  package struct Splinter {
     @inlinable
     @inline(__always)
     internal init(element: Element, rightChild: _Node<Key, Value>) {

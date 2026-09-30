@@ -13,9 +13,12 @@
 
 #if UnstableSortedCollections
 
-#if DEBUG
+#if COLLECTIONS_SINGLE_MODULE
+import Collections
+#else
 import _CollectionsTestSupport
 import SortedCollections
+#endif
 
 func expectNodeJoin(
   capacity: Int,
@@ -108,6 +111,4 @@ final class NodeJoinTests: CollectionTestCase {
     )
   }
 }
-#endif
-
 #endif

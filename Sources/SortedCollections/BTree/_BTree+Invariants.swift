@@ -91,7 +91,7 @@ extension _BTree {
   
   @inline(never)
   @usableFromInline
-  internal func checkInvariants() {
+  package func checkInvariants() {
     checkInvariants(
       for: root,
       expectedDepth: root.storage.header.depth,
@@ -101,7 +101,7 @@ extension _BTree {
   #else
   @inlinable
   @inline(__always)
-  internal func checkInvariants() {}
+  package func checkInvariants() {}
   #endif // COLLECTIONS_INTERNAL_CHECKS
 }
 

@@ -13,9 +13,12 @@
 
 #if UnstableSortedCollections
 
-#if DEBUG
+#if COLLECTIONS_SINGLE_MODULE
+import Collections
+#else
 import _CollectionsTestSupport
 import SortedCollections
+#endif
 
 func expectInsertionInTree(
   capacity: Int,
@@ -548,6 +551,4 @@ final class NodeInsertionTests: CollectionTestCase {
     )
   }
 }
-#endif
-
 #endif
