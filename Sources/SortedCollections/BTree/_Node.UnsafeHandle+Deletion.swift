@@ -243,7 +243,7 @@ extension _Node.UnsafeHandle {
   /// - Parameter slot: The slot containing the child to balance.
   @inlinable
   @inline(__always)
-  internal func rotateRight(atSlot slot: Int) {
+  package func rotateRight(atSlot slot: Int) {
     assertMutable()
     assert(0 <= slot && slot < self.elementCount,
            "Cannot rotate out-of-bounds slot.")
@@ -315,7 +315,7 @@ extension _Node.UnsafeHandle {
   /// - Parameter slot: The slot containing the child to balance.
   @inlinable
   @inline(__always)
-  internal func rotateLeft(atSlot slot: Int) {
+  package func rotateLeft(atSlot slot: Int) {
     assertMutable()
     assert(0 <= slot && slot < self.elementCount,
            "Cannot rotate out-of-bounds slot.")
@@ -391,7 +391,7 @@ extension _Node.UnsafeHandle {
   /// - Warning: Calling this may result in empty nodes and a state which breaks the
   ///     B-Tree invariants, ensure the tree is further balanced after this.`
   @inlinable
-  internal func collapse(atSlot slot: Int) {
+  package func collapse(atSlot slot: Int) {
     assertMutable()
     assert(0 <= slot && slot < self.elementCount,
            "Cannot collapse out-of-bounds slot")

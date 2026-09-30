@@ -16,7 +16,7 @@ import XCTest
 import Collections
 #else
 import _CollectionsTestSupport
-@_spi(Testing) import DequeModule
+import DequeModule
 #endif
 
 final class MutableCollectiontests: CollectionTestCase {

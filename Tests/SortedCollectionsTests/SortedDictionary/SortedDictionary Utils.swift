@@ -13,8 +13,12 @@
 
 #if UnstableSortedCollections
 
+#if COLLECTIONS_SINGLE_MODULE
+import Collections
+#else
 import _CollectionsTestSupport
 import SortedCollections
+#endif
 
 extension LifetimeTracker {
   func sortedDictionary<Keys: Sequence>(

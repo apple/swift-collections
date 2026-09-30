@@ -13,9 +13,12 @@
 
 #if UnstableSortedCollections
 
-#if DEBUG
+#if COLLECTIONS_SINGLE_MODULE
+import Collections
+#else
 import _CollectionsTestSupport
-@_spi(Testing) @testable import SortedCollections
+import SortedCollections
+#endif
 
 final class SortedDictionaryTests: CollectionTestCase {
   func test_empty() {
@@ -23,7 +26,7 @@ final class SortedDictionaryTests: CollectionTestCase {
     expectEqualElements(d, [])
     expectEqual(d.count, 0)
   }
-  
+
   func test_keysWithValues_unique() {
     let items: KeyValuePairs<Int, String> = [
       3: "three",
@@ -39,7 +42,7 @@ final class SortedDictionaryTests: CollectionTestCase {
       (key: 3, value: "three")
     ])
   }
-  
+
   func test_keysWithValues_bulk() {
     withEvery("count", in: [0, 1, 2, 4, 8, 16, 32, 64, 128, 1024, 4096]) { count in
       let kvs = (0..<count).map { (key: $0, value: $0) }
@@ -47,7 +50,7 @@ final class SortedDictionaryTests: CollectionTestCase {
       expectEqual(sortedDictionary.count, count)
     }
   }
-  
+
   func test_keysWithValues_duplicates() {
     let items: KeyValuePairs<Int, String> = [
       3: "three",
@@ -65,7 +68,7 @@ final class SortedDictionaryTests: CollectionTestCase {
       (key: 3, value: "three-1")
     ])
   }
-  
+
   func test_grouping_initializer() {
     let items: [String] = [
       "one", "two", "three", "four", "five",
@@ -78,7 +81,7 @@ final class SortedDictionaryTests: CollectionTestCase {
       (key: 5, value: ["three", "seven", "eight"]),
     ])
   }
-  
+
   func test_ExpressibleByDictionaryLiteral() {
     let d0: SortedDictionary<Int, String> = [:]
     expectTrue(d0.isEmpty)
@@ -92,7 +95,7 @@ final class SortedDictionaryTests: CollectionTestCase {
     expectEqualElements(d1.map { $0.key }, [1, 2, 3, 4])
     expectEqualElements(d1.map { $0.value }, ["one", "two", "three", "four"])
   }
-  
+
   func test_counts() {
     withEvery("count", in: 0 ..< 30) { count in
       withLifetimeTracking { tracker in
@@ -103,12 +106,12 @@ final class SortedDictionaryTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_bidirectionalCollection() {
     withEvery("count", in: [1, 2, 4, 8, 16, 32, 64]) { count in
       withLifetimeTracking { tracker in
         let (d, kvs) = tracker.sortedDictionary(keys: 0 ..< count)
-        
+
         checkBidirectionalCollection(
           d,
           expectedContents: kvs,
@@ -117,73 +120,73 @@ final class SortedDictionaryTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_orderedInsertion() {
     withEvery("count", in: [0, 1, 2, 3, 4, 8, 16, 64]) { count in
       var sortedDictionary: SortedDictionary<Int, Int> = [:]
-      
+
       for i in 0..<count {
         sortedDictionary[i] = i * 2
       }
-      
+
       expectEqual(sortedDictionary.count, count)
       expectEqual(sortedDictionary.underestimatedCount, count)
       expectEqual(sortedDictionary.isEmpty, count == 0)
-      
+
       for i in 0..<count {
         expectEqual(sortedDictionary[i], i * 2)
       }
     }
   }
-  
+
   func test_reversedInsertion() {
     withEvery("count", in: [0, 1, 2, 3, 4, 8, 16, 64]) { count in
       var sortedDictionary: SortedDictionary<Int, Int> = [:]
-      
+
       for i in (0..<count).reversed() {
         sortedDictionary[i] = i * 2
       }
-      
+
       expectEqual(sortedDictionary.count, count)
       expectEqual(sortedDictionary.underestimatedCount, count)
       expectEqual(sortedDictionary.isEmpty, count == 0)
-      
+
       for i in 0..<count {
         expectEqual(sortedDictionary[i], i * 2)
       }
     }
   }
-  
+
   func test_arbitraryInsertion() {
     withEvery("count", in: [0, 1, 2, 3, 4, 8, 16, 64]) { count in
       for i in 0...count {
         let kvs = (0..<count).map { (key: $0 * 2 + 1, value: $0) }
         var sortedDictionary = SortedDictionary<Int, Int>(keysWithValues: kvs)
         sortedDictionary[i * 2] = -i
-        
+
         var comparison = Array(kvs)
         comparison.insert((key: i * 2, value: -i), at: i)
-        
+
         expectEqualElements(comparison, sortedDictionary)
       }
     }
   }
-  
+
   func test_subscriptSet() {
     withEvery("count", in: [1, 2, 4, 8, 16, 32, 64, 512]) { count in
       var sortedDictionary: SortedDictionary<Int, Int> = [:]
-      
+
       for i in 0..<count {
         sortedDictionary[i] = i
         sortedDictionary[i] = -sortedDictionary[i]!
       }
-      
+
       for i in 0..<count {
         expectEqual(sortedDictionary[i], -i)
       }
     }
   }
-  
+
   func test_modifyValue_forKey_default_closure_update() {
     withEvery("count", in: 0 ..< 30) { count in
       withEvery("offset", in: 0 ..< count) { offset in
@@ -236,24 +239,24 @@ final class SortedDictionaryTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_modifySubscriptRemoval() {
     func modify(_ value: inout Int?, setTo newValue: Int?) {
       value = newValue
     }
-    
+
     withEvery("count", in: [1, 2, 4, 8, 16, 32, 64, 512]) { count in
       let kvs = (0..<count).map { (key: $0, value: -$0) }
-      
+
       withEvery("key", in: 0..<count) { key in
         var d = SortedDictionary<Int, Int>(keysWithValues: kvs)
-        
+
         withEvery("isShared", in: [false, true]) { isShared in
           withHiddenCopies(if: isShared, of: &d) { d in
             modify(&d[key], setTo: nil)
             var comparisonKeys = Array(0..<count)
             comparisonKeys.remove(at: key)
-          
+
             expectEqual(d.count, count - 1)
             expectEqualElements(d.map { $0.key }, comparisonKeys)
           }
@@ -261,7 +264,7 @@ final class SortedDictionaryTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_modifySubscriptInsertUpdate() {
     func modify(_ value: inout Int?, setTo newValue: Int?) {
       value = newValue
@@ -376,7 +379,5 @@ final class SortedDictionaryTests: CollectionTestCase {
     expectNotEqual(leftSlice, rightUnequalSlice)
   }
 }
-
-#endif
 
 #endif

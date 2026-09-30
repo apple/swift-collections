@@ -15,7 +15,7 @@
 
 extension _BTree: Sequence {
   @inlinable
-  internal func forEach(_ body: (Element) throws -> Void) rethrows {
+  package func forEach(_ body: (Element) throws -> Void) rethrows {
     func loop(node: Unmanaged<Node.Storage>) throws {
       try node._withUnsafeGuaranteedRef { storage in
         try storage.read { handle in
@@ -40,7 +40,7 @@ extension _BTree: Sequence {
   }
   
   @usableFromInline
-  internal struct Iterator: IteratorProtocol {
+  package struct Iterator: IteratorProtocol {
     @usableFromInline
     internal let tree: _BTree
     
@@ -53,7 +53,7 @@ extension _BTree: Sequence {
     /// Creates an iterator to the element within a tree corresponding to a specific index
     @inlinable
     @inline(__always)
-    internal init(forTree tree: _BTree, startingAt index: Index) {
+    package init(forTree tree: _BTree, startingAt index: Index) {
       self.tree = tree
       
       if _slowPath(self.tree.isEmpty || index.slot == -1) {
@@ -87,7 +87,7 @@ extension _BTree: Sequence {
     /// Creates an iterator to the first element within a tree.
     @inlinable
     @inline(__always)
-    internal init(forTree tree: _BTree) {
+    package init(forTree tree: _BTree) {
       self.tree = tree
       
       self.slots = []
@@ -117,7 +117,7 @@ extension _BTree: Sequence {
     
     @inlinable
     @inline(__always)
-    internal mutating func _advanceState(withLeaf handle: Node.UnsafeHandle) {
+    package mutating func _advanceState(withLeaf handle: Node.UnsafeHandle) {
       // If we're not a leaf, descend to the next child
       if !handle.isLeaf {
         // Go to the right child
@@ -166,7 +166,7 @@ extension _BTree: Sequence {
     
     @inlinable
     @inline(never)
-    internal mutating func next() -> Element? {
+    package mutating func next() -> Element? {
       // Check slot sentinel value for end of tree.
       if _slowPath(path.isEmpty) {
         return nil
@@ -187,7 +187,7 @@ extension _BTree: Sequence {
   }
   
   @inlinable
-  internal func makeIterator() -> Iterator {
+  package func makeIterator() -> Iterator {
     return Iterator(forTree: self)
   }
 }

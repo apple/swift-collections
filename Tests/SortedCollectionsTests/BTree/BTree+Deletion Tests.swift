@@ -13,9 +13,12 @@
 
 #if UnstableSortedCollections
 
-#if DEBUG
+#if COLLECTIONS_SINGLE_MODULE
+import Collections
+#else
 import _CollectionsTestSupport
-@_spi(Testing) @testable import SortedCollections
+import SortedCollections
+#endif
 
 final class NodeDeletionTests: CollectionTestCase {
   func test_singleDeletion() {
@@ -23,10 +26,10 @@ final class NodeDeletionTests: CollectionTestCase {
       withEvery("key", in: 0..<size) { key in
         btreeOfSize(size) { tree, kvs in
           tree.removeAnyElement(forKey: key)
-          
+
           var comparisonKeys = Array(0..<size)
           comparisonKeys.remove(at: key)
-          
+
           expectEqual(tree.count, size - 1)
           expectEqualElements(tree.map { $0.key }, comparisonKeys)
         }
@@ -58,6 +61,4 @@ final class NodeDeletionTests: CollectionTestCase {
     }
   }
 }
-#endif
-
 #endif

@@ -12,7 +12,8 @@
 //===----------------------------------------------------------------------===//
 
 extension FixedWidthInteger {
-  internal func _squareRoot() -> Self {
+  @_alwaysEmitIntoClient
+  package func _squareRoot() -> Self {
     // Newton's method
     precondition(self >= 0)
     guard self != 0 else { return 0 }

@@ -19,7 +19,7 @@ extension _BTree {
   /// - Warning: This has the capability to perform safety checks, however they must be explicitly be
   ///     performed using the validation methods.
   @usableFromInline
-  internal struct Index {
+  package struct Index {
     /// A fixed-size array large enough to represent all offsets within a B-Tree index
     @usableFromInline
     internal typealias Offsets = _FixedSizeArray<Slot>
@@ -43,7 +43,7 @@ extension _BTree {
     
     /// The absolute offset of the path's element in the entire tree.
     @usableFromInline
-    internal var offset: Int
+    package var offset: Int
     
     /// The tree that this index references.
     @usableFromInline
@@ -131,7 +131,7 @@ extension _BTree.Index: Comparable {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  internal static func ==(lhs: Self, rhs: Self) -> Bool {
+  package static func ==(lhs: Self, rhs: Self) -> Bool {
     return lhs.offset == rhs.offset
   }
   
@@ -140,7 +140,7 @@ extension _BTree.Index: Comparable {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  internal static func <(lhs: Self, rhs: Self) -> Bool {
+  package static func <(lhs: Self, rhs: Self) -> Bool {
     return lhs.offset < rhs.offset
   }
 }

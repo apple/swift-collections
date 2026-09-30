@@ -15,7 +15,7 @@ import XCTest
 #if COLLECTIONS_SINGLE_MODULE
 import Collections
 #else
-@_spi(Testing) import OrderedCollections
+import OrderedCollections
 import _CollectionsTestSupport
 #endif
 
@@ -36,7 +36,7 @@ class OrderedDictionaryValueTests: CollectionTestCase {
     expectEqual(left.values, left.values) // Identity fast path
     expectEqual(left.values, right.values) // Linear algorithm
   }
-  
+
   func test_values_getter_not_equal() {
     let left: OrderedDictionary = [
       "one": 1,
@@ -53,7 +53,7 @@ class OrderedDictionaryValueTests: CollectionTestCase {
     ]
     expectNotEqual(left.values, right.values)
   }
-  
+
   func test_values_getter_equal_elements() {
     let d: OrderedDictionary = [
       "one": 1,

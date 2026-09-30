@@ -29,16 +29,16 @@ extension _HashTable {
   ///     iterator values outside the closure call that produced the original
   ///     hash table.
   @usableFromInline
-  internal struct BucketIterator {
+  package struct BucketIterator {
     @usableFromInline
-    internal typealias Bucket = _HashTable.Bucket
+    package typealias Bucket = _HashTable.Bucket
 
     /// The hash table we are iterating over.
     internal let _hashTable: _UnsafeHashTable
 
     /// The current position within the hash table.
     @usableFromInline
-    internal var _currentBucket: Bucket
+    package var _currentBucket: Bucket
 
     /// The raw bucket value corresponding to `_currentBucket`.
     internal var _currentRawValue: UInt64
@@ -54,7 +54,7 @@ extension _HashTable {
     /// Create a new iterator starting at the specified bucket.
     @_effects(releasenone)
     @usableFromInline
-    internal init(hashTable: _UnsafeHashTable, startingAt bucket: Bucket) {
+    package init(hashTable: _UnsafeHashTable, startingAt bucket: Bucket) {
       assert(hashTable.scale >= _HashTable.minimumScale)
       assert(bucket.offset >= 0 && bucket.offset < hashTable.bucketCount)
       self._hashTable = hashTable
@@ -67,18 +67,18 @@ extension _HashTable {
 
 extension _HashTable.UnsafeHandle {
   @usableFromInline
-  internal typealias BucketIterator = _HashTable.BucketIterator
+  package typealias BucketIterator = _HashTable.BucketIterator
 
   @_effects(releasenone)
   @inlinable
   @inline(__always)
-  internal func idealBucket(forHashValue hashValue: Int) -> Bucket {
+  package func idealBucket(forHashValue hashValue: Int) -> Bucket {
     return Bucket(offset: hashValue & (bucketCount - 1))
   }
 
   @inlinable
   @inline(__always)
-  internal func idealBucket<Element: Hashable>(for element: Element) -> Bucket {
+  package func idealBucket<Element: Hashable>(for element: Element) -> Bucket {
     let hashValue = element._rawHashValue(seed: seed)
     return idealBucket(forHashValue: hashValue)
   }
@@ -87,7 +87,7 @@ extension _HashTable.UnsafeHandle {
   /// to the specified value.
   @inlinable
   @inline(__always)
-  internal func bucketIterator<Element: Hashable>(for element: Element) -> BucketIterator {
+  package func bucketIterator<Element: Hashable>(for element: Element) -> BucketIterator {
     let bucket = idealBucket(for: element)
     return bucketIterator(startingAt: bucket)
   }
@@ -95,13 +95,13 @@ extension _HashTable.UnsafeHandle {
   /// Return a bucket iterator for the chain starting at the specified bucket.
   @inlinable
   @inline(__always)
-  internal func bucketIterator(startingAt bucket: Bucket) -> BucketIterator {
+  package func bucketIterator(startingAt bucket: Bucket) -> BucketIterator {
     BucketIterator(hashTable: self, startingAt: bucket)
   }
 
   @usableFromInline
   @_effects(releasenone)
-  internal func startFind(
+  package func startFind(
     _ startBucket: Bucket
   ) -> (iterator: BucketIterator, currentValue: Int?) {
     let iterator = bucketIterator(startingAt: startBucket)
@@ -110,7 +110,7 @@ extension _HashTable.UnsafeHandle {
 
   @_effects(readonly)
   @usableFromInline
-  internal func _startIterator(
+  package func _startIterator(
     bucket: Bucket
   ) -> (currentBits: UInt64, nextBits: UInt64, remainingBitCount: Int) {
     // The `scale == 5` case is special because the last word is only half filled there,
@@ -154,10 +154,22 @@ extension _HashTable.BucketIterator {
   /// The current position within the hash table.
   @inlinable
   @inline(__always)
-  internal var currentBucket: Bucket { _currentBucket }
+  package var currentBucket: Bucket { _currentBucket }
+
+  // For testing
+  @usableFromInline
+  package func isIdentical(to other: Self) -> Bool {
+    self._hashTable.isIdentical(to: other._hashTable)
+    && self.currentBucket == other.currentBucket
+    && self._currentRawValue == other._currentRawValue
+    && self.currentValue == other.currentValue
+    && self._nextBits == other._nextBits
+    && self._remainingBitCount == other._remainingBitCount
+    && self._wrappedAround == other._wrappedAround
+  }
 
   @usableFromInline
-  internal var isOccupied: Bool {
+  package var isOccupied: Bool {
     @_effects(readonly)
     @inline(__always)
     get {
@@ -170,7 +182,7 @@ extension _HashTable.BucketIterator {
   ///
   /// A nil value indicates an empty bucket.
   @usableFromInline
-  internal var currentValue: Int? {
+  package var currentValue: Int? {
     @inline(__always)
     @_effects(readonly)
     get { _hashTable._value(forBucketContents: _currentRawValue) }
@@ -205,7 +217,7 @@ extension _HashTable.BucketIterator {
   /// time it needs to wrap around to the beginning of the table.
   @usableFromInline
   @_effects(releasenone)
-  internal mutating func advance() {
+  package mutating func advance() {
     // Advance to next bucket, checking for wraparound condition.
     _currentBucket.offset &+= 1
     if _currentBucket.offset == _hashTable.bucketCount {
@@ -240,7 +252,7 @@ extension _HashTable.BucketIterator {
 
   @usableFromInline
   @_effects(releasenone)
-  internal mutating func findNext() -> Int? {
+  package mutating func findNext() -> Int? {
     advance()
     return currentValue
   }
@@ -249,7 +261,7 @@ extension _HashTable.BucketIterator {
   /// specified value, or an unoccupied bucket -- whichever comes first.
   @inlinable
   @_effects(releasenone)
-  internal mutating func advance(until expected: Int) {
+  package mutating func advance(until expected: Int) {
     while isOccupied && currentValue != expected {
       advance()
     }
@@ -259,7 +271,7 @@ extension _HashTable.BucketIterator {
   /// Useful when inserting an element that we know isn't already in the table.
   @inlinable
   @_effects(releasenone)
-  internal mutating func advanceToNextUnoccupiedBucket() {
+  package mutating func advanceToNextUnoccupiedBucket() {
     while isOccupied {
       advance()
     }

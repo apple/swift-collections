@@ -13,9 +13,12 @@
 
 #if UnstableSortedCollections
 
-#if DEBUG
+#if COLLECTIONS_SINGLE_MODULE
+import Collections
+#else
 import _CollectionsTestSupport
-@_spi(Testing) @testable import SortedCollections
+import SortedCollections
+#endif
 
 final class BTreeBuilderTests: CollectionTestCase {
   func test_append() {
@@ -65,6 +68,4 @@ final class BTreeBuilderTests: CollectionTestCase {
     expectEqualElements(btree, (0...12).map { (key: $0, value: $0 * 2) })
   }
 }
-#endif
-
 #endif

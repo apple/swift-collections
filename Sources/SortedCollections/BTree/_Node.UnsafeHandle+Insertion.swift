@@ -17,7 +17,7 @@
 extension _Node.UnsafeHandle {
   @usableFromInline
   @frozen
-  internal enum UpdateResult {
+  package enum UpdateResult {
     case updated(previousElement: _Node.Element)
     case splintered(_Node.Splinter)
     case inserted
@@ -50,7 +50,7 @@ extension _Node.UnsafeHandle {
   /// - Returns: A representation of the possible results of the update/insertion.
   @inlinable
   @inline(__always)
-  internal func updateAnyValue(
+  package func updateAnyValue(
     _ value: Value,
     forKey key: Key,
     updatingKey: Bool
@@ -126,7 +126,7 @@ extension _Node.UnsafeHandle {
   /// - Warning: Ensure you insert the node in a valid order as to not break the node's
   ///     sorted invariant.
   @inlinable
-  internal func insertElement(
+  package func insertElement(
     _ element: _Node.Element,
     withRightChild rightChild: _Node?,
     atSlot insertionSlot: Int
@@ -309,7 +309,7 @@ extension _Node.UnsafeHandle {
   /// - Returns: Another splinter which may need to be propagated upward
   @inlinable
   @inline(__always)
-  internal func insertSplinter(
+  package func insertSplinter(
     _ splinter: _Node.Splinter,
     atSlot insertionSlot: Int
   ) -> _Node.Splinter? {
@@ -331,7 +331,7 @@ extension _Node.UnsafeHandle {
   /// - Parameter rightHandle: A handle to the right-half of the split.
   @inlinable
   @inline(__always)
-  internal func _adjustSubtreeCount(
+  package func _adjustSubtreeCount(
     afterSplittingTo rightHandle: _Node.UnsafeHandle
   ) {
     assertMutable()
@@ -369,7 +369,7 @@ extension _Node.UnsafeHandle {
   ///   - separatedBy: A separator greater than or equal to all keys in the current node.
   /// - Returns: A splinter if the node could not contain both elements.
   @inlinable
-  internal func concatenateWith(
+  package func concatenateWith(
     node rightNode: inout _Node,
     separatedBy separator: __owned _Node.Element
   ) -> _Node.Splinter? {

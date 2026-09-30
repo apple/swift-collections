@@ -17,7 +17,7 @@ extension _HashTable.Bucket: CustomStringConvertible {
 }
 
 extension _UnsafeHashTable {
-  internal func debugOccupiedCount() -> Int {
+  package func debugOccupiedCount() -> Int {
     var count = 0
     var it = bucketIterator(startingAt: Bucket(offset: 0))
     repeat {
@@ -29,11 +29,11 @@ extension _UnsafeHashTable {
     return count
   }
 
-  internal func debugLoadFactor() -> Double {
+  package func debugLoadFactor() -> Double {
     return Double(debugOccupiedCount()) / Double(bucketCount)
   }
 
-  internal func debugContents() -> [Int?] {
+  package func debugContents() -> [Int?] {
     var result: [Int?] = []
     result.reserveCapacity(bucketCount)
     var it = bucketIterator(startingAt: Bucket(offset: 0))
@@ -47,7 +47,7 @@ extension _UnsafeHashTable {
 
 extension _UnsafeHashTable.BucketIterator: CustomStringConvertible {
   @usableFromInline
-  var description: String {
+  package var description: String {
     func pad(_ s: String, to length: Int, by padding: Character = " ") -> String {
       let c = s.count
       guard c < length else { return s }

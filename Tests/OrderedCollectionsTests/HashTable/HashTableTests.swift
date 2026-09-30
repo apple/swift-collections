@@ -16,10 +16,10 @@ import XCTest
 #if DEBUG // These unit tests use internal decls
 
 #if COLLECTIONS_SINGLE_MODULE
-@_spi(Testing) @testable import Collections
+import Collections
 #else
 import _CollectionsTestSupport
-@_spi(Testing) @testable import OrderedCollections
+import OrderedCollections
 #endif
 
 class HashTableTests: CollectionTestCase {
@@ -366,7 +366,7 @@ class HashTableTests: CollectionTestCase {
       withSampleHashTable(scale: scale) { hashTable, contents in
         var expected = hashTable.bucketIterator(startingAt: Bucket(offset: 0))
         // Start a new iterator at every bucket and check that its initial
-        // state is match exactly what we'd get by starting at the first
+        // state matches exactly what we'd get by starting at the first
         // bucket and advancing step by step to the same position.
         withEvery("start", in: 0 ..< hashTable.bucketCount) { start in
           let bucket = Bucket(offset: start)
@@ -374,14 +374,7 @@ class HashTableTests: CollectionTestCase {
 
           expectEqual(expected.currentBucket, bucket)
           expectEqual(expected.currentValue, contents[start])
-
-          expectEqual(actual.currentBucket, bucket)
-          expectEqual(actual.currentValue, contents[start])
-
-          expectEqual(actual._currentBucket, expected._currentBucket)
-          expectEqual(actual._currentRawValue, expected._currentRawValue)
-          expectEqual(actual._nextBits, expected._nextBits)
-          expectEqual(actual._remainingBitCount, expected._remainingBitCount)
+          expectTrue(actual.isIdentical(to: expected))
 
           expected.advance()
         }
@@ -414,10 +407,7 @@ class HashTableTests: CollectionTestCase {
                 expectEqual(actual.currentBucket, bucket)
                 expectEqual(actual.currentValue, contents[start])
 
-                expectEqual(actual._currentBucket, expected._currentBucket)
-                expectEqual(actual._currentRawValue, expected._currentRawValue)
-                expectEqual(actual._nextBits, expected._nextBits)
-                expectEqual(actual._remainingBitCount, expected._remainingBitCount)
+                expectTrue(actual.isIdentical(to: expected))
 
                 expected.advance()
               }

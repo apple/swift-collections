@@ -13,9 +13,12 @@
 
 #if UnstableSortedCollections
 
-#if DEBUG
+#if COLLECTIONS_SINGLE_MODULE
+import Collections
+#else
 import _CollectionsTestSupport
-@_spi(Testing) @testable import SortedCollections
+import SortedCollections
+#endif
 
 final class NodeBalancingTests: CollectionTestCase {
   func test_collapseAtSlot() {
@@ -58,7 +61,7 @@ final class NodeBalancingTests: CollectionTestCase {
     print(btree.debugDescription)
 //    print(SortedDictionary<Int, Int>(_rootedAt: btree))
   }
-  
+
   // MARK: Right Rotation
   func test_internalRightRotation() {
     let t = tree {
@@ -74,10 +77,10 @@ final class NodeBalancingTests: CollectionTestCase {
         tree { 10; 11 }
       }
     }
-    
+
     var node = t.toNode(ofCapacity: 2)
     node.update { $0.rotateRight(atSlot: 0) }
-    
+
     expectTrue(
       tree {
         tree {
@@ -94,17 +97,17 @@ final class NodeBalancingTests: CollectionTestCase {
       }.matches(node)
     )
   }
-  
+
   func test_leafRightRotation() {
     let t = tree {
       tree { 0; 1 }
       2
       tree { 3 }
     }
-    
+
     var node = t.toNode(ofCapacity: 2)
     node.update { $0.rotateRight(atSlot: 0) }
-    
+
     expectTrue(
       tree {
         tree { 0 }
@@ -113,7 +116,7 @@ final class NodeBalancingTests: CollectionTestCase {
       }.matches(node)
     )
   }
-  
+
   // MARK: Left Rotation
   func test_internalLeftRotation() {
     let t = tree {
@@ -129,10 +132,10 @@ final class NodeBalancingTests: CollectionTestCase {
         tree { 10; 11 }
       }
     }
-    
+
     var node = t.toNode(ofCapacity: 2)
     node.update { $0.rotateLeft(atSlot: 0) }
-    
+
     expectTrue(
       tree {
         tree {
@@ -149,17 +152,17 @@ final class NodeBalancingTests: CollectionTestCase {
       }.matches(node)
     )
   }
-  
+
   func test_leafLeftRotation() {
     let t = tree {
       tree { 0 }
       1
       tree { 2; 3 }
     }
-    
+
     var node = t.toNode(ofCapacity: 2)
     node.update { $0.rotateLeft(atSlot: 0) }
-    
+
     expectTrue(
       tree {
         tree { 0; 1 }
@@ -168,17 +171,17 @@ final class NodeBalancingTests: CollectionTestCase {
       }.matches(node)
     )
   }
-  
+
   func test_emptyLeafLeftRotation() {
     let t = tree {
       tree { }
       1
       tree { 2; 3 }
     }
-    
+
     var node = t.toNode(ofCapacity: 2)
     node.update { $0.rotateLeft(atSlot: 0) }
-    
+
     expectTrue(
       tree {
         tree { 1 }
@@ -187,7 +190,7 @@ final class NodeBalancingTests: CollectionTestCase {
       }.matches(node)
     )
   }
-  
+
   // MARK: Collapse
   func test_internalCollapse() {
     let t = tree {
@@ -201,10 +204,10 @@ final class NodeBalancingTests: CollectionTestCase {
         tree { 6; 7 }
       }
     }
-    
+
     var node = t.toNode(ofCapacity: 2)
     node.update { $0.collapse(atSlot: 0) }
-    
+
     expectTrue(
       tree {
         tree {
@@ -217,7 +220,7 @@ final class NodeBalancingTests: CollectionTestCase {
       }.matches(node)
     )
   }
-  
+
   func test_leafCollapse() {
     let t = tree {
       tree { }
@@ -229,7 +232,7 @@ final class NodeBalancingTests: CollectionTestCase {
 
     var node = t.toNode(ofCapacity: 2)
     node.update { $0.collapse(atSlot: 0) }
-    
+
     expectTrue(
       tree {
         tree { 2; 3 }
@@ -239,6 +242,4 @@ final class NodeBalancingTests: CollectionTestCase {
     )
   }
 }
-#endif
-
 #endif
