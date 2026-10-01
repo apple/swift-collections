@@ -108,7 +108,7 @@ let availabilityMacros: KeyValuePairs<String, String> = [
 ]
 
 let extraSettings: [SwiftSetting] = [
-  //  .strictMemorySafety(),
+  .strictMemorySafety(),
   .enableUpcomingFeature("MemberImportVisibility"),
   .enableExperimentalFeature("BuiltinModule"),
   .enableExperimentalFeature("Lifetimes"),

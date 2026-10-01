@@ -34,6 +34,7 @@ SWIFT_VERSION = 5.10 // FIXME: _modify accessors in RopeModule seem to be broken
 
 SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES
 OTHER_SWIFT_FLAGS = $(inherited) \
+  -package-name CollectionsInternal \
   -enable-experimental-feature BuiltinModule \
   -enable-experimental-feature Lifetimes \
   -enable-experimental-feature InoutLifetimeDependence \
@@ -54,6 +55,9 @@ OTHER_SWIFT_FLAGS = $(inherited) \
   -enable-experimental-feature "AvailabilityMacro=SwiftStdlib 6.3: macOS 26.4, iOS 26.4, watchOS 26.4, tvOS 26.4, visionOS 26.4" \
   -enable-experimental-feature "AvailabilityMacro=SwiftStdlib 6.4: macOS 27.0, iOS 27.0, watchOS 27.0, tvOS 27.0, visionOS 27.0" \
   -enable-experimental-feature "AvailabilityMacro=SwiftStdlib 6.5: macOS 9999, iOS 9999, watchOS 9999, tvOS 9999, visionOS 9999"
+
+SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES
+SWIFT_STRICT_MEMORY_SAFETY = YES
 
 ONLY_ACTIVE_ARCH[config=Debug] = YES
 
