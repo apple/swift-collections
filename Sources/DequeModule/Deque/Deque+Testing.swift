@@ -71,15 +71,15 @@ extension Deque {
     let buffer = _DequeBuffer<Element>.create(minimumCapacity: capacity) { _ in
       _DequeBufferHeader(capacity: capacity, count: contents.count, startSlot: startSlot)
     }
-    let storage = Deque<Element>._Storage(unsafeDowncast(buffer, to: _DequeBuffer.self))
+    let storage = unsafe Deque<Element>._Storage(unsafeDowncast(buffer, to: _DequeBuffer.self))
     if contents.count > 0 {
       contents.withUnsafeBufferPointer { source in
-        storage.update { target in
-          let segments = target.mutableSegments()
-          let c = segments.first.count
-          segments.first.initializeAll(fromContentsOf: source.prefix(c))
-          if let second = segments.second {
-            second.initializeAll(fromContentsOf: source.dropFirst(c))
+        unsafe storage.update { target in
+          let segments = unsafe target.mutableSegments()
+          let c = unsafe segments.first.count
+          unsafe segments.first.initializeAll(fromContentsOf: source.prefix(c))
+          if let second = unsafe segments.second {
+            unsafe second.initializeAll(fromContentsOf: source.dropFirst(c))
           }
         }
       }

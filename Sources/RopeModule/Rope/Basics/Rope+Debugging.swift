@@ -18,7 +18,7 @@ import InternalCollectionsUtilities
 extension Rope._UnmanagedLeaf: CustomStringConvertible {
   @usableFromInline
   internal var description: String {
-    _addressString(for: _ref.toOpaque())
+    _addressString(for: unsafe _ref.toOpaque())
   }
 }
 
@@ -33,7 +33,9 @@ extension Rope._Node {
   @inlinable
   internal var nodeCount: Int {
     guard !isLeaf else { return 1 }
-    return readInner { $0.children.reduce(into: 1) { $0 += $1.nodeCount } }
+    return unsafe readInner {
+      unsafe $0.children.reduce(into: 1) { $0 += $1.nodeCount }
+    }
   }
 }
 
@@ -75,20 +77,20 @@ extension Rope._Node {
     guard heightLimit > 0 else { return }
     
     if height > 0 {
-      readInner {
-        let c = $0.children
+      unsafe readInner {
+        let c = unsafe $0.children
         for slot in 0 ..< c.count {
-          c[slot].dump(
+          unsafe c[slot].dump(
             heightLimit: heightLimit - 1,
             firstPrefix: "\(restPrefix)\(slot): ",
             restPrefix: "\(restPrefix)   ")
         }
       }
     } else {
-      readLeaf {
-        let c = $0.children
+      unsafe readLeaf {
+        let c = unsafe $0.children
         for slot in 0 ..< c.count {
-          print("\(restPrefix)\(slot): \(c[slot])")
+          print("\(restPrefix)\(slot): \(unsafe c[slot])")
         }
       }
     }

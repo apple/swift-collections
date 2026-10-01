@@ -11,6 +11,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
+import InternalCollectionsUtilities
+#endif
+
 /// Represents memory containing a header value followed by some extra padding
 /// following it. Values of this type own the underlying memory, and are
 /// non-copyable to ensure that ownership of that memory is unique. Memory
@@ -27,9 +31,11 @@
 /// type, whose count is computable from the header, use
 /// `IntrusiveManagedPointer` instead.
 @frozen
+@safe
 public struct TrailingPadding<Header: ~Copyable>: ~Copyable {
   /// Pointer to the header, followed by the padding.
   @usableFromInline
+  @unsafe
   let _pointer: UnsafeMutablePointer<Header>
 
   /// Create a new instance with the given header and total size. The total
@@ -39,10 +45,10 @@ public struct TrailingPadding<Header: ~Copyable>: ~Copyable {
   public init(header: consuming Header, totalSize size: Int) {
     precondition(size >= MemoryLayout<Header>.size,
                  "must allocate enough storage for the underlying stored type")
-    _pointer = UnsafeMutableRawPointer
+    unsafe _pointer = UnsafeMutableRawPointer
       .allocate(byteCount: size, alignment: MemoryLayout<Header>.alignment)
       .assumingMemoryBound(to: Header.self)
-    _pointer.initialize(to: header)
+    unsafe _pointer.initialize(to: header)
   }
 
   /// Take ownership over a pointer to memory containing the header followed
@@ -52,44 +58,46 @@ public struct TrailingPadding<Header: ~Copyable>: ~Copyable {
   /// deinitialized and freed.
   @_alwaysEmitIntoClient
   public init(consuming pointer: UnsafeMutablePointer<Header>) {
-    self._pointer = pointer
+    unsafe self._pointer = pointer
   }
 
   /// Deinitializes the header, then deallocates the underlying memory.
   @_alwaysEmitIntoClient
   deinit {
-    _pointer.deinitialize(count: 1)
-    _pointer.deallocate()
+    unsafe _pointer.deinitialize(count: 1)
+    unsafe _pointer.deallocate()
   }
 
   /// Access the header portion of the value.
   @_alwaysEmitIntoClient
   public var header: Header {
     unsafeAddress {
-      UnsafePointer(_pointer)
+      unsafe UnsafePointer(_pointer)
     }
 
     unsafeMutableAddress {
-      _pointer
+      unsafe _pointer
     }
   }
 
   /// Executes the given closure with the pointer to the header itself.
   @_alwaysEmitIntoClient
+  @unsafe
   public func withUnsafeMutablePointerToHeader<R: ~Copyable, E>(
     _ body: (UnsafeMutablePointer<Header>) throws(E) -> R
   ) throws(E) -> R {
-    return try body(_pointer)
+    return unsafe try body(_pointer)
   }
 
   /// Take ownership over the stored memory, returning its pointer. The
   /// underlying storage will not be freed by the `TrailingPadding` instance,
   /// as it is the responsibility of the caller.
   @_alwaysEmitIntoClient
+  @unsafe
   public consuming func leakStorage() -> UnsafeMutablePointer<Header> {
-    let pointer = self._pointer
+    let pointer = unsafe self._pointer
     discard self
-    return pointer
+    return unsafe pointer
   }
 }
 
@@ -112,32 +120,21 @@ extension TrailingPadding where Header: Copyable {
                  "must allocate enough storage for the underlying stored type")
 
     // Allocate temporary storage large enough for the value we need.
-    let result: Result<R, E> = withUnsafeTemporaryAllocation(
+    return try _withUnsafeTemporaryAllocation(
       byteCount: size,
       alignment: MemoryLayout<Header>.alignment
-    ) { buffer in
+    ) { buffer throws(E) in
       /// Create a tail-allocated storage over that temporary storage.
-      let pointer = buffer.baseAddress!.assumingMemoryBound(to: Header.self)
-      pointer.initialize(to: header)
-      var tailAllocated = TrailingPadding(consuming: pointer)
-
-      do throws(E) {
-        let result = try body(&tailAllocated)
-
+      let pointer = unsafe buffer.baseAddress!.assumingMemoryBound(to: Header.self)
+      unsafe pointer.initialize(to: header)
+      var tailAllocated: Optional = unsafe TrailingPadding(consuming: pointer)
+      defer {
+        let tailAllocated = tailAllocated.take()!
         // Tell the tail-allocated buffer not to free the storage.
-        let finalPointer = tailAllocated.leakStorage()
-        precondition(finalPointer == pointer)
-
-        return .success(result)
-      } catch {
-        // Tell the tail-allocated buffer not to free the storage.
-        let finalPointer = tailAllocated.leakStorage()
-        precondition(finalPointer == pointer)
-
-        return .failure(error)
+        let finalPointer = unsafe tailAllocated.leakStorage()
+        precondition(unsafe finalPointer == pointer)
       }
+      return try body(&tailAllocated!)
     }
-
-    return try result.get()
   }
 }

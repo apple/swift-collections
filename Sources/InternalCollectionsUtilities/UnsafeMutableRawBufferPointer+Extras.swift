@@ -16,8 +16,9 @@ extension UnsafeMutableRawBufferPointer {
   /// `UnsafeMutableRawBufferPointer` instances refer to the same region in
   /// memory.
   @inlinable @inline(__always)
+  @safe
   package func _isIdentical(to other: Self) -> Bool {
-    (self.baseAddress == other.baseAddress) && (self.count == other.count)
+    unsafe (self.baseAddress == other.baseAddress) && (self.count == other.count)
   }
 }
 

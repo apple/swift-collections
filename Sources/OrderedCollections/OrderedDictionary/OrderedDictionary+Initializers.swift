@@ -352,7 +352,7 @@ extension OrderedDictionary {
     self.init()
     reserveCapacity(keysAndValues.underestimatedCount)
     for (key, value) in keysAndValues {
-      _keys._appendNew(key)
+      unsafe _keys._appendNew(key)
       _values.append(value)
     }
     _checkInvariants()

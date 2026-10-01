@@ -66,14 +66,14 @@ extension BitArray {
     var result: String
     if #available(macOS 11.0, iOS 14.0, watchOS 7.0, tvOS 14.0, *) {
       result = String(unsafeUninitializedCapacity: self.count + 2) { target in
-        target.initializeElement(at: count + 1, to: ._asciiGT)
+        unsafe target.initializeElement(at: count + 1, to: ._asciiGT)
         var i = count
         for v in self {
-          target.initializeElement(at: i, to: v ? ._ascii1 : ._ascii0)
+          unsafe target.initializeElement(at: i, to: v ? ._ascii1 : ._ascii0)
           i &-= 1
         }
         assert(i == 0)
-        target.initializeElement(at: 0, to: ._asciiLT)
+        unsafe target.initializeElement(at: 0, to: ._asciiLT)
         return count + 2
       }
     } else {

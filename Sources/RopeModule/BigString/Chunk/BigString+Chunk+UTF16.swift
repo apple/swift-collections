@@ -129,28 +129,28 @@ extension BigString._Chunk {
 
     var utf16Count = 0
     let utf8Offset = j.utf8Offset - i.utf8Offset
-    var readPtr = _bytes.baseAddress.unsafelyUnwrapped + i.utf8Offset
-    let endPtr = readPtr + utf8Offset
+    var readPtr = unsafe _bytes.baseAddress.unsafelyUnwrapped + i.utf8Offset
+    let endPtr = unsafe readPtr + utf8Offset
 
-    while readPtr < endPtr {
-      let byte = readPtr.pointee
+    while unsafe readPtr < endPtr {
+      let byte = unsafe readPtr.pointee
 
       if !UTF8.isContinuation(byte) {
         break
       }
 
-      readPtr += 1
+      unsafe readPtr += 1
     }
 
-    while readPtr < endPtr {
-      let byte = readPtr.pointee
+    while unsafe readPtr < endPtr {
+      let byte = unsafe readPtr.pointee
       let len = utf8ScalarLength(byte)
 
-      if readPtr + len <= endPtr {
+      if unsafe readPtr + len <= endPtr {
         utf16Count += len == 4 ? 2 : 1
       }
 
-      readPtr += len
+      unsafe readPtr += len
     }
 
     switch (i.isUTF16TrailingSurrogate, j.isUTF16TrailingSurrogate) {

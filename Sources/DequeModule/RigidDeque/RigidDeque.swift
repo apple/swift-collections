@@ -126,18 +126,18 @@ public struct RigidDeque<Element: ~Copyable>: ~Copyable {
   @_alwaysEmitIntoClient
   @inline(__always)
   package init(_handle: consuming _UnsafeHandle) {
-    self._handle = _handle
+    unsafe self._handle = _handle
   }
 
   @inlinable
   @inline(__always)
   deinit {
-    _handle.dispose()
+    unsafe _handle.dispose()
   }
 
   @inlinable @inline(__always)
   package mutating func _takeHandle() -> _UnsafeHandle {
-    exchange(&_handle, with: .allocate(capacity: 0))
+    unsafe exchange(&_handle, with: .allocate(capacity: 0))
   }
 }
 
@@ -167,7 +167,7 @@ extension RigidDeque where Element: ~Copyable {
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   @_transparent
-  public var capacity: Int { _assumeNonNegative(_handle.capacity) }
+  public var capacity: Int { unsafe _handle.capacity }
 
   /// The number of additional elements that can be added to this deque without
   /// exceeding its storage capacity.
@@ -203,14 +203,14 @@ extension RigidDeque where Element: ~Copyable {
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   @_transparent
-  public var isEmpty: Bool { _handle.count == 0 }
+  public var isEmpty: Bool { count == 0 }
 
   /// The number of elements in this deque.
   ///
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   @_transparent
-  public var count: Int { _handle.count }
+  public var count: Int { unsafe _handle.count }
 
   /// The position of the first element in a nonempty deque. This is always zero.
   ///
@@ -226,7 +226,7 @@ extension RigidDeque where Element: ~Copyable {
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   @_transparent
-  public var endIndex: Int { _handle.count }
+  public var endIndex: Int { self.count }
 
   /// The range of indices that are valid for subscripting this deque.
   ///
@@ -239,7 +239,7 @@ extension RigidDeque where Element: ~Copyable {
   @_transparent
   package func _checkItemIndex(_ index: Int) {
     precondition(
-      UInt(bitPattern: index) < UInt(bitPattern: _handle.count),
+      UInt(bitPattern: index) < UInt(bitPattern: count),
       "Index out of bounds")
   }
 
@@ -247,7 +247,7 @@ extension RigidDeque where Element: ~Copyable {
   @_transparent
   package func _checkValidIndex(_ index: Int) {
     precondition(
-      UInt(bitPattern: index) <= UInt(bitPattern: _handle.count),
+      UInt(bitPattern: index) <= UInt(bitPattern: count),
       "Index out of bounds")
   }
 
@@ -255,7 +255,7 @@ extension RigidDeque where Element: ~Copyable {
   @_transparent
   package func _checkValidBounds(_ subrange: Range<Int>) {
     precondition(
-      subrange.lowerBound >= 0 && subrange.upperBound <= _handle.count,
+      subrange.lowerBound >= 0 && subrange.upperBound <= count,
       "Index range out of bounds")
   }
 
@@ -267,16 +267,16 @@ extension RigidDeque where Element: ~Copyable {
     @_unsafeSelfDependentResult
     borrow {
       _checkItemIndex(position)
-      let slot = _handle.slot(forOffset: position)
-      return _handle.ptr(at: slot).pointee
+      let slot = unsafe _handle.slot(forOffset: position)
+      return unsafe _handle.ptr(at: slot).pointee
     }
     @inline(__always)
     @_transparent
     @_unsafeSelfDependentResult
     mutate {
       _checkItemIndex(position)
-      let slot = _handle.slot(forOffset: position)
-      return &_handle.mutablePtr(at: slot).pointee
+      let slot = unsafe _handle.slot(forOffset: position)
+      return unsafe &_handle.mutablePtr(at: slot).pointee
     }
   }
 #else
@@ -286,15 +286,15 @@ extension RigidDeque where Element: ~Copyable {
     @_transparent
     unsafeAddress {
       _checkItemIndex(position)
-      let slot = _handle.slot(forOffset: position)
-      return _handle.ptr(at: slot)
+      let slot = unsafe _handle.slot(forOffset: position)
+      return unsafe _handle.ptr(at: slot)
     }
     @inline(__always)
     @_transparent
     unsafeMutableAddress {
       _checkItemIndex(position)
-      let slot = _handle.slot(forOffset: position)
-      return _handle.mutablePtr(at: slot)
+      let slot = unsafe _handle.slot(forOffset: position)
+      return unsafe _handle.mutablePtr(at: slot)
     }
   }
 #endif
@@ -315,7 +315,7 @@ extension RigidDeque where Element: ~Copyable {
   public mutating func swapAt(_ i: Int, _ j: Int) {
     _checkItemIndex(i)
     _checkItemIndex(j)
-    _handle.uncheckedSwapAt(i, j)
+    unsafe _handle.uncheckedSwapAt(i, j)
   }
 }
 
@@ -336,7 +336,7 @@ extension RigidDeque where Element: ~Copyable {
   /// - Complexity: O(`count`)
   @inlinable
   public mutating func setCapacity(_ newCapacity: Int) {
-    _handle.reallocate(capacity: newCapacity)
+    unsafe _handle.reallocate(capacity: newCapacity)
   }
 
   /// Ensure that the deque has capacity to store the specified number of
@@ -364,7 +364,7 @@ extension RigidDeque {
   /// - Complexity: O(`count`)
   @_alwaysEmitIntoClient
   public func clone() -> Self {
-    RigidDeque(_handle: _handle.allocateCopy(capacity: count))
+    unsafe RigidDeque(_handle: _handle.allocateCopy(capacity: count))
   }
 
   /// Copy the contents of this deque into a newly allocated rigid deque
@@ -376,7 +376,7 @@ extension RigidDeque {
   /// - Complexity: O(`count`)
   @_alwaysEmitIntoClient
   public func clone(capacity: Int) -> Self {
-    RigidDeque(_handle: _handle.allocateCopy(capacity: capacity))
+    unsafe RigidDeque(_handle: _handle.allocateCopy(capacity: capacity))
   }
 }
 

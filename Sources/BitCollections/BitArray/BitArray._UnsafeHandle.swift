@@ -20,24 +20,29 @@ extension BitArray {
   /// primitives.
   @usableFromInline
   @frozen
+  @unsafe
   internal struct _UnsafeHandle {
     @usableFromInline
     internal typealias _BitPosition = _UnsafeBitSet.Index
 
     @usableFromInline
+    @unsafe
     internal let _words: UnsafeBufferPointer<_Word>
 
     @usableFromInline
+    @unsafe // Setter
     internal var _count: UInt
 
 #if DEBUG
     /// True when this handle does not support table mutations.
     /// (This is only checked in debug builds.)
     @usableFromInline
+    @safe
     internal let _mutable: Bool
 #endif
 
     @inline(__always)
+    @safe
     internal func ensureMutable() {
 #if DEBUG
       assert(_mutable)
@@ -46,7 +51,7 @@ extension BitArray {
 
     internal var _mutableWords: UnsafeMutableBufferPointer<_Word> {
       ensureMutable()
-      return UnsafeMutableBufferPointer(mutating: _words)
+      return unsafe UnsafeMutableBufferPointer(mutating: _words)
     }
 
     @inlinable
@@ -58,8 +63,8 @@ extension BitArray {
     ) {
       assert(count <= words.count * _Word.capacity)
       assert(count > (words.count - 1) * _Word.capacity)
-      self._words = words
-      self._count = count
+      unsafe self._words = words
+      unsafe self._count = count
 #if DEBUG
       self._mutable = mutable
 #endif
@@ -72,7 +77,7 @@ extension BitArray {
       count: UInt,
       mutable: Bool
     ) {
-      self.init(
+      unsafe self.init(
         words: UnsafeBufferPointer(words),
         count: count,
         mutable: mutable)
@@ -81,42 +86,45 @@ extension BitArray {
 }
 
 extension BitArray._UnsafeHandle {
+  @safe
+  @_transparent
   internal var count: Int {
-    Int(_count)
+    unsafe Int(_count)
   }
 
+  @safe
   internal var end: _BitPosition {
-    _BitPosition(_count)
+    unsafe _BitPosition(_count)
   }
 
   internal func set(at position: Int) {
     ensureMutable()
-    assert(position >= 0 && position < _count)
+    assert(position >= 0 && position < count)
     let (word, bit) = _BitPosition(UInt(position)).split
-    _mutableWords[word].insert(bit)
+    unsafe _mutableWords[word].insert(bit)
   }
 
   internal func clear(at position: Int) {
     ensureMutable()
-    assert(position >= 0 && position < _count)
+    assert(position >= 0 && position < count)
     let (word, bit) = _BitPosition(UInt(position)).split
-    _mutableWords[word].remove(bit)
+    unsafe _mutableWords[word].remove(bit)
   }
 
   internal subscript(position: Int) -> Bool {
     get {
-      assert(position >= 0 && position < _count)
+      assert(position >= 0 && position < count)
       let (word, bit) = _BitPosition(UInt(position)).split
-      return _words[word].contains(bit)
+      return unsafe _words[word].contains(bit)
     }
     set {
       ensureMutable()
-      assert(position >= 0 && position < _count)
+      assert(position >= 0 && position < count)
       let (word, bit) = _BitPosition(UInt(position)).split
       if newValue {
-        _mutableWords[word].insert(bit)
+        unsafe _mutableWords[word].insert(bit)
       } else {
-        _mutableWords[word].remove(bit)
+        unsafe _mutableWords[word].remove(bit)
       }
     }
   }
@@ -131,16 +139,16 @@ extension BitArray._UnsafeHandle {
     guard range.count > 0 else { return }
     let (lw, lb) = _BitPosition(range.lowerBound).split
     let (uw, ub) = _BitPosition(range.upperBound).endSplit
-    let words = _mutableWords
+    let words = unsafe _mutableWords
     guard lw != uw else {
-      words[lw].formUnion(_Word(from: lb, to: ub))
+      unsafe words[lw].formUnion(_Word(from: lb, to: ub))
       return
     }
-    words[lw].formUnion(_Word(upTo: lb).complement())
+    unsafe words[lw].formUnion(_Word(upTo: lb).complement())
     for w in lw + 1 ..< uw {
-      words[w] = _Word.allBits
+      unsafe words[w] = _Word.allBits
     }
-    words[uw].formUnion(_Word(upTo: ub))
+    unsafe words[uw].formUnion(_Word(upTo: ub))
   }
 
   internal mutating func clear(in range: Range<Int>) {
@@ -151,15 +159,15 @@ extension BitArray._UnsafeHandle {
     guard range.count > 0 else { return }
     let (lw, lb) = _BitPosition(range.lowerBound).split
     let (uw, ub) = _BitPosition(range.upperBound).endSplit
-    let words = _mutableWords
+    let words = unsafe _mutableWords
     guard lw != uw else {
-      words[lw].subtract(_Word(from: lb, to: ub))
+      unsafe words[lw].subtract(_Word(from: lb, to: ub))
       return
     }
-    words[lw].subtract(_Word(upTo: lb).complement())
+    unsafe words[lw].subtract(_Word(upTo: lb).complement())
     for w in lw + 1 ..< uw {
-      words[w] = _Word.empty
+      unsafe words[w] = _Word.empty
     }
-    words[uw].subtract(_Word(upTo: ub))
+    unsafe words[uw].subtract(_Word(upTo: ub))
   }
 }

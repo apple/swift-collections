@@ -28,7 +28,7 @@ extension BigString._Chunk: CustomStringConvertible {
   }
 
   var _identity: String {
-    unsafeBitCast(storage, to: UnsafeRawPointer.self).debugDescription
+    unsafe unsafeBitCast(storage, to: UnsafeRawPointer.self).debugDescription
   }
 
   func _succinctContents(maxLength c: Int) -> String {

@@ -70,7 +70,7 @@ extension UniqueArray where Element: ~Copyable {
     precondition(newItemCount >= 0, "Cannot add a negative number of items")
     // FIXME: Avoid moving the subsequent elements twice on resize.
     _ensureFreeCapacity(newItemCount - subrange.count)
-    return try _storage._uncheckedReplaceSubrange(
+    return unsafe try _storage._uncheckedReplaceSubrange(
       subrange,
       addingCount: newItemCount,
       initializingWith: initializer)
@@ -139,7 +139,7 @@ extension UniqueArray where Element: ~Copyable {
     _storage._checkValidBounds(subrange)
     precondition(newItemCount >= 0, "Cannot add a negative number of items")
     _ensureFreeCapacity(newItemCount - subrange.count)
-    return try _storage._uncheckedReplaceSubrange(
+    return unsafe try _storage._uncheckedReplaceSubrange(
       subrange,
       consumingWith: consumer,
       addingCount: newItemCount,
@@ -181,13 +181,14 @@ extension UniqueArray where Element: ~Copyable {
   /// - Complexity: O(`self.count` + `newElements.count`)
   @_alwaysEmitIntoClient
   @discardableResult
+  @unsafe
   public mutating func replaceSubrange(
     _ subrange: Range<Int>,
     moving newElements: UnsafeMutableBufferPointer<Element>,
   ) -> Range<Int> {
     // FIXME: Avoid moving the subsequent elements twice.
     _ensureFreeCapacity(newElements.count - subrange.count)
-    return _storage.replaceSubrange(subrange, moving: newElements)
+    return unsafe _storage.replaceSubrange(subrange, moving: newElements)
   }
 
 #if UnstableContainersPreview
@@ -381,6 +382,7 @@ extension UniqueArray {
   @_alwaysEmitIntoClient
   @inline(__always)
   @discardableResult
+  @unsafe
   public mutating func replaceSubrange(
     _ subrange: Range<Int>,
     copying newElements: UnsafeBufferPointer<Element>

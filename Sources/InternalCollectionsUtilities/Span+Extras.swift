@@ -13,6 +13,7 @@
 
 @_frozen
 @usableFromInline
+@unsafe
 package struct _ShamSpanIterator {
   // FIXME: Remove this when `Span.BorrowingIterator` becomes actually usable.
   // (I.e., when it exposes this data in a usable way.)
@@ -37,10 +38,10 @@ extension Span.BorrowingIterator where Element: ~Copyable {
     _ body: (borrowing _ShamSpanIterator) -> R
   ) -> R {
     precondition(
-      MemoryLayout<Self>.stride == MemoryLayout<_ShamSpanIterator>.stride)
+      unsafe MemoryLayout<Self>.stride == MemoryLayout<_ShamSpanIterator>.stride)
     return Swift.withUnsafeBytes(of: &self) { buffer in
-      buffer.withMemoryRebound(to: _ShamSpanIterator.self) { shamBuffer in
-        return body(shamBuffer[0])
+      unsafe buffer.withMemoryRebound(to: _ShamSpanIterator.self) { shamBuffer in
+        return unsafe body(shamBuffer[0])
       }
     }
   }
@@ -91,7 +92,7 @@ extension Span where Element: ~Copyable {
     if limit >= index, limit < end {
       end = limit
     }
-    let r = self.extracting(unchecked: Range(uncheckedBounds: (index, end)))
+    let r = unsafe self.extracting(unchecked: Range(uncheckedBounds: (index, end)))
     index = end
     return r
   }
@@ -142,10 +143,10 @@ extension Span where Element: Equatable & ~Copyable {
     return self.withUnsafeBufferPointer { a in
       other.withUnsafeBufferPointer { b in
         guard a.count == b.count else { return false }
-        guard a.baseAddress != b.baseAddress else { return true }
+        guard unsafe a.baseAddress != b.baseAddress else { return true }
         var i = 0
         while i < self.count {
-          guard a[i] == b[i] else { return false }
+          guard unsafe a[i] == b[i] else { return false }
           i &+= 1
         }
         return true
@@ -161,10 +162,10 @@ extension Span where Element: Equatable /* & ~Copyable */ {
     return self.withUnsafeBufferPointer { a in
       other.withUnsafeBufferPointer { b in
         guard a.count == b.count else { return false }
-        guard a.baseAddress != b.baseAddress else { return true }
+        guard unsafe a.baseAddress != b.baseAddress else { return true }
         var i = 0
         while i < self.count {
-          guard a[i] == b[i] else { return false }
+          guard unsafe a[i] == b[i] else { return false }
           i &+= 1
         }
         return true
@@ -183,7 +184,7 @@ extension Span where Element: Hashable & ~Copyable {
     // separately when needed.
     var i = 0
     while i < self.count {
-      hasher.combine(self[unchecked: i])
+      hasher.combine(unsafe self[unchecked: i])
       i &+= 1
     }
 
@@ -198,7 +199,7 @@ extension Span where Element: Hashable /* & ~Copyable */ {
     // separately when needed.
     var i = 0
     while i < self.count {
-      hasher.combine(self[unchecked: i])
+      hasher.combine(unsafe self[unchecked: i])
       i &+= 1
     }
 
@@ -216,23 +217,23 @@ extension Span where Element: ~Copyable {
     let buffer = self.withUnsafeBufferPointer { buffer in
       limits.withUnsafeBufferPointer { limits in
         let start = buffer.baseAddress!
-        let end = start + buffer.count
+        let end = unsafe start + buffer.count
         let limitStart = limits.baseAddress!
-        let limitEnd = limitStart + limits.count
+        let limitEnd = unsafe limitStart + limits.count
 
-        let clampedStart = (
+        let clampedStart = unsafe (
           limitStart > start ? limitStart
           : limitEnd < start ? limitEnd
           : start)
-        let clampedEnd = (
+        let clampedEnd = unsafe (
           limitEnd < end ? limitEnd
           : limitStart > end ? limitStart
           : end)
-        let count = clampedEnd.distance(to: clampedStart)
-        return UnsafeBufferPointer(start: clampedStart, count: count)
+        let count = unsafe clampedEnd.distance(to: clampedStart)
+        return unsafe UnsafeBufferPointer(start: clampedStart, count: count)
       }
     }
-    return _overrideLifetime(Span(_unsafeElements: buffer), copying: self)
+    return unsafe _overrideLifetime(Span(_unsafeElements: buffer), copying: self)
   }
 }
 #endif

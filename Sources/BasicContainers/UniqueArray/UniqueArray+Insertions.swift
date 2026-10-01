@@ -113,13 +113,14 @@ extension UniqueArray where Element: ~Copyable {
   /// - Complexity: O(`self.count` + `items.count`)
   @_alwaysEmitIntoClient
   @discardableResult
+  @unsafe
   public mutating func insert(
     moving items: UnsafeMutableBufferPointer<Element>,
     at index: Int
   ) -> Range<Int> {
     // FIXME: Avoid moving the subsequent elements twice.
     _ensureFreeCapacity(items.count)
-    return _storage.insert(moving: items, at: index)
+    return unsafe _storage.insert(moving: items, at: index)
   }
 
 #if UnstableContainersPreview
@@ -231,6 +232,7 @@ extension UniqueArray {
   /// - Complexity: O(`self.count` + `newElements.count`)
   @inlinable
   @discardableResult
+  @unsafe
   public mutating func insert(
     copying newElements: UnsafeBufferPointer<Element>, at index: Int
   ) -> Range<Int> {
@@ -262,6 +264,7 @@ extension UniqueArray {
   /// - Complexity: O(`self.count` + `newElements.count`)
   @inlinable
   @discardableResult
+  @unsafe
   public mutating func insert(
     copying newElements: UnsafeMutableBufferPointer<Element>,
     at index: Int

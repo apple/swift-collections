@@ -20,35 +20,35 @@ extension _HashNode {
     guard !isCollisionNode else {
       return try _filter_slow(level, isIncluded)
     }
-    return try self.read {
+    return unsafe try self.read {
       var result: Builder = .empty(level)
       var removing = false // true if we need to remove something
 
-      for (bucket, slot) in $0.itemMap {
-        let p = $0.itemPtr(at: slot)
-        let include = try isIncluded(p.pointee)
+      for (bucket, slot) in unsafe $0.itemMap {
+        let p = unsafe $0.itemPtr(at: slot)
+        let include = try isIncluded(unsafe p.pointee)
         switch (include, removing) {
         case (true, true):
-          result.addNewItem(level, p.pointee, at: bucket)
+          unsafe result.addNewItem(level, p.pointee, at: bucket)
         case (false, false):
           removing = true
-          result.copyItems(level, from: $0, upTo: bucket)
+          unsafe result.copyItems(level, from: $0, upTo: bucket)
         default:
           break
         }
       }
 
-      for (bucket, slot) in $0.childMap {
-        let branch = try $0[child: slot].filter(level.descend(), isIncluded)
+      for (bucket, slot) in unsafe $0.childMap {
+        let branch = unsafe try $0[child: slot].filter(level.descend(), isIncluded)
         if let branch = branch {
           assert(branch.count < self.count)
           if !removing {
             removing = true
-            result.copyItemsAndChildren(level, from: $0, upTo: bucket)
+            unsafe result.copyItemsAndChildren(level, from: $0, upTo: bucket)
           }
-          result.addNewChildBranch(level, branch, at: bucket)
+          unsafe result.addNewChildBranch(level, branch, at: bucket)
         } else if removing {
-          result.addNewChildNode(level, $0[child: slot], at: bucket)
+          unsafe result.addNewChildNode(level, $0[child: slot], at: bucket)
         }
       }
 
@@ -62,19 +62,19 @@ extension _HashNode {
     _ level: _HashLevel,
     _ isIncluded: (Element) throws -> Bool
   ) rethrows -> Builder? {
-    try self.read {
+    unsafe try self.read {
       var result: Builder = .empty(level)
       var removing = false
 
-      for slot: _HashSlot in stride(from: .zero, to: $0.itemsEndSlot, by: 1) {
-        let p = $0.itemPtr(at: slot)
-        let include = try isIncluded(p.pointee)
+      for slot: _HashSlot in stride(from: .zero, to: unsafe $0.itemsEndSlot, by: 1) {
+        let p = unsafe $0.itemPtr(at: slot)
+        let include = unsafe try isIncluded(p.pointee)
         if include, removing {
-          result.addNewCollision(level, p.pointee, $0.collisionHash)
+          unsafe result.addNewCollision(level, p.pointee, $0.collisionHash)
         }
         else if !include, !removing {
           removing = true
-          result.copyCollisions(from: $0, upTo: slot)
+          unsafe result.copyCollisions(from: $0, upTo: slot)
         }
       }
       guard removing else { return nil }

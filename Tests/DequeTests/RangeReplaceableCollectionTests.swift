@@ -76,7 +76,7 @@ final class RangeReplaceableCollectionTests: CollectionTestCase {
     withEvery("count", in: [0, 1, 2, 10, 100]) { count in
       let contents: [AnyObject] = (0 ..< count).map { _ in NSObject() }
       let array: [AnyObject] = contents.withUnsafeBufferPointer { buffer in
-        NSArray(objects: buffer.baseAddress, count: buffer.count) as [AnyObject]
+        unsafe NSArray(objects: buffer.baseAddress, count: buffer.count) as [AnyObject]
       }
       let deque = Deque(array)
       expectEquivalentElements(deque, contents, by: ===)
@@ -250,7 +250,7 @@ final class RangeReplaceableCollectionTests: CollectionTestCase {
           let extra: [NSObject] = (0 ..< appendCount)
             .map { _ in NSObject() }
             .withUnsafeBufferPointer { buffer in
-              NSArray(objects: buffer.baseAddress, count: buffer.count) as! [NSObject]
+              unsafe NSArray(objects: buffer.baseAddress, count: buffer.count) as! [NSObject]
             }
           withHiddenCopies(if: isShared, of: &deque) { deque in
             contents.append(contentsOf: extra)

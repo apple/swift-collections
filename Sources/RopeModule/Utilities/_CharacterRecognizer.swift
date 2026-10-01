@@ -29,8 +29,8 @@ extension _CharacterRecognizer {
   mutating func firstBreak(
     in str: Substring
   ) -> Range<String.Index>? {
-    let r = str.utf8.withContiguousStorageIfAvailable { buffer in
-      self._firstBreak(inUncheckedUnsafeUTF8Buffer: buffer)
+    let r = unsafe str.utf8.withContiguousStorageIfAvailable { buffer in
+      unsafe self._firstBreak(inUncheckedUnsafeUTF8Buffer: buffer)
     }
     if let r {
       guard let scalarRange = r else { return nil }
@@ -60,9 +60,12 @@ extension _CharacterRecognizer {
     from range: Range<BigString._Chunk.Index>
   ) -> Range<BigString._Chunk.Index>? {
     let bias = range.lowerBound.utf8Offset
-    let r = c.utf8Span(from: range.lowerBound, to: range.upperBound).span.withUnsafeBufferPointer {
-      _firstBreak(inUncheckedUnsafeUTF8Buffer: $0)
-    }
+    let r = c
+      .utf8Span(from: range.lowerBound, to: range.upperBound)
+      .span
+      .withUnsafeBufferPointer {
+        unsafe _firstBreak(inUncheckedUnsafeUTF8Buffer: $0)
+      }
 
     guard let r else {
       return nil

@@ -251,8 +251,8 @@ extension BitArray {
     }
     _count += 1
     if newElement {
-      _update { handle in
-        handle._mutableWords[word].value |= 1 &<< bit
+      unsafe _update { handle in
+        unsafe handle._mutableWords[word].value |= 1 &<< bit
       }
     }
     _checkInvariants()
@@ -288,7 +288,7 @@ extension BitArray {
         maxCount: _Word._capacity - pos.bit)
       guard count > 0 else { return }
       _count += count
-      _update { $0._copy(bits: bits, count: count, to: pos) }
+      unsafe _update { unsafe $0._copy(bits: bits, count: count, to: pos) }
       pos.value += count
     }
     while true {
@@ -297,7 +297,7 @@ extension BitArray {
       assert(pos.bit == 0)
       _storage.append(.empty)
       _count += count
-      _update { $0._copy(bits: bits, count: count, to: pos) }
+      unsafe _update { unsafe $0._copy(bits: bits, count: count, to: pos) }
       pos.value += count
     }
     _checkInvariants()
@@ -363,9 +363,9 @@ extension BitArray {
     }
     let c = count
     _count += 1
-    _update { handle in
-      handle.copy(from: i ..< c, to: i + 1)
-      handle[i] = newElement
+    unsafe _update { handle in
+      unsafe handle.copy(from: i ..< c, to: i + 1)
+      unsafe handle[i] = newElement
     }
     _checkInvariants()
   }
@@ -484,7 +484,7 @@ extension BitArray {
       range.lowerBound >= 0 && range.upperBound <= count,
     "Bounds out of range")
     _copy(
-      from: Range(uncheckedBounds: (range.upperBound, count)),
+      from: unsafe Range(uncheckedBounds: (range.upperBound, count)),
       to: range.lowerBound)
     _removeLast(range.count)
     _checkInvariants()

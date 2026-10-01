@@ -158,7 +158,7 @@ extension _HeapNode {
     if last.offset >= limit {
       last.offset = limit &- 1
     }
-    return ClosedRange(uncheckedBounds: (first, last))
+    return unsafe ClosedRange(uncheckedBounds: (first, last))
   }
 }
 

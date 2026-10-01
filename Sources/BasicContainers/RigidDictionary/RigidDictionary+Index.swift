@@ -57,35 +57,39 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
 @available(SwiftStdlib 5.0, *)
 extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
   @frozen
+  @safe
   public struct Element: ~Copyable, ~Escapable {
     // FIXME: See if using (the real) `struct Borrow` would make sense here.
     @_alwaysEmitIntoClient
+    @unsafe
     package var _key: UnsafePointer<Key>
 
     @_alwaysEmitIntoClient
+    @unsafe
     package var _value: UnsafePointer<Value>
     
     @_alwaysEmitIntoClient
     @_lifetime(borrow _base)
+    @safe
     package init(
       _base: borrowing RigidDictionary<Key, Value>,
       bucket: _Bucket
     ) {
       assert(_base._isOccupied(bucket))
-      self._key = .init(_base._keyPtr(at: bucket))
-      self._value = .init(_base._valuePtr(at: bucket))
+      unsafe self._key = .init(_base._keyPtr(at: bucket))
+      unsafe self._value = .init(_base._valuePtr(at: bucket))
     }
     
     @_alwaysEmitIntoClient
     public var key: Key {
-      // FIXME: This should be a borrow accessor
-      unsafeAddress { _key }
+      @_unsafeSelfDependentResult
+      borrow { unsafe _key.pointee }
     }
     
     @_alwaysEmitIntoClient
     public var value: Value {
-      // FIXME: This should be a borrow accessor
-      unsafeAddress { _value }
+      @_unsafeSelfDependentResult
+      borrow { unsafe _value.pointee }
     }
   }
   

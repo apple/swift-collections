@@ -1002,7 +1002,7 @@ class UniqueArrayTests: CollectionTestCase {
 
             var a = tracker.uniqueArray(layout: layout)
             trackedAddition.span.withUnsafeBufferPointer { buffer in
-              _ = a.replaceSubrange(range, copying: buffer)
+              _ = unsafe a.replaceSubrange(range, copying: buffer)
             }
 
             expectUniqueArrayContents(

@@ -134,11 +134,12 @@ extension UniqueDeque where Element: ~Copyable {
   /// - Complexity: O(`self.count` + `items.count`)
   @available(*, deprecated, renamed: "replaceSubrange(_:moving:)")
   @_alwaysEmitIntoClient
+  @unsafe
   public mutating func replace(
     removing subrange: Range<Int>,
     moving items: UnsafeMutableBufferPointer<Element>,
   ) {
-    replaceSubrange(subrange, moving: items)
+    unsafe replaceSubrange(subrange, moving: items)
   }
 
   /// Replaces the specified range of elements by moving the contents of an
@@ -209,11 +210,12 @@ extension UniqueDeque /* where Element: Copyable */ {
   /// - Complexity: O(`self.count` + `items.count`)
   @available(*, deprecated, renamed: "replaceSubrange(_:copying:)")
   @inlinable
+  @unsafe
   public mutating func replace(
     removing subrange: Range<Int>,
     copying items: UnsafeBufferPointer<Element>
   ) {
-    replaceSubrange(subrange, copying: items)
+    unsafe replaceSubrange(subrange, copying: items)
   }
 
   /// Replaces the specified subrange of elements by copying the elements of
@@ -245,11 +247,12 @@ extension UniqueDeque /* where Element: Copyable */ {
   /// - Complexity: O(`self.count` + `items.count`)
   @available(*, deprecated, renamed: "replaceSubrange(_:copying:)")
   @inlinable
+  @unsafe
   public mutating func replace(
     removing subrange: Range<Int>,
     copying items: UnsafeMutableBufferPointer<Element>
   ) {
-    replaceSubrange(subrange, copying: items)
+    unsafe replaceSubrange(subrange, copying: items)
   }
 
   /// Replaces the specified subrange of elements by copying the elements of

@@ -26,6 +26,7 @@ extension _RawHashNode {
   /// by them) do not escape the closure call that received them.
   @usableFromInline
   @frozen
+  @unsafe
   internal struct UnsafeHandle {
     @usableFromInline
     internal let _header: UnsafePointer<_HashNodeHeader>
@@ -38,8 +39,8 @@ extension _RawHashNode {
       _ header: UnsafePointer<_HashNodeHeader>,
       _ memory: UnsafeRawPointer
     ) {
-      self._header = header
-      self._memory = memory
+      unsafe self._header = header
+      unsafe self._memory = memory
     }
   }
 }
@@ -50,9 +51,9 @@ extension _RawHashNode.UnsafeHandle {
     _ node: _UnmanagedHashNode,
     _ body: (Self) throws -> R
   ) rethrows -> R {
-    try node.ref._withUnsafeGuaranteedRef { storage in
-      try storage.withUnsafeMutablePointers { header, elements in
-        try body(Self(header, UnsafeRawPointer(elements)))
+    unsafe try node.ref._withUnsafeGuaranteedRef { storage in
+      unsafe try storage.withUnsafeMutablePointers { header, elements in
+        unsafe try body(Self(header, UnsafeRawPointer(elements)))
       }
     }
   }
@@ -61,58 +62,58 @@ extension _RawHashNode.UnsafeHandle {
 extension _RawHashNode.UnsafeHandle {
   @inline(__always)
   internal var isCollisionNode: Bool {
-    _header.pointee.isCollisionNode
+    unsafe _header.pointee.isCollisionNode
   }
 
   @inline(__always)
   internal var collisionHash: _Hash {
-    assert(isCollisionNode)
-    return _memory.load(as: _Hash.self)
+    assert(unsafe isCollisionNode)
+    return unsafe _memory.load(as: _Hash.self)
   }
 
   @inline(__always)
   internal var hasChildren: Bool {
-    _header.pointee.hasChildren
+    unsafe _header.pointee.hasChildren
   }
 
   @inline(__always)
   internal var childCount: Int {
-    _header.pointee.childCount
+    unsafe _header.pointee.childCount
   }
 
   @inline(__always)
   internal var childrenEndSlot: _HashSlot {
-    _header.pointee.childrenEndSlot
+    unsafe _header.pointee.childrenEndSlot
   }
 
   @inline(__always)
   internal var hasItems: Bool {
-    _header.pointee.hasItems
+    unsafe _header.pointee.hasItems
   }
 
   @inline(__always)
   internal var itemCount: Int {
-    _header.pointee.itemCount
+    unsafe _header.pointee.itemCount
   }
 
   @inline(__always)
   internal var itemsEndSlot: _HashSlot {
-    _header.pointee.itemsEndSlot
+    unsafe _header.pointee.itemsEndSlot
   }
 
   @inline(__always)
   internal var _childrenStart: UnsafePointer<_RawHashNode> {
-    _memory.assumingMemoryBound(to: _RawHashNode.self)
+    unsafe _memory.assumingMemoryBound(to: _RawHashNode.self)
   }
 
   internal subscript(child slot: _HashSlot) -> _RawHashNode {
     unsafeAddress {
-      assert(slot < childrenEndSlot)
-      return _childrenStart + slot.value
+      assert(unsafe slot < childrenEndSlot)
+      return unsafe _childrenStart + slot.value
     }
   }
 
   internal var children: UnsafeBufferPointer<_RawHashNode> {
-    UnsafeBufferPointer(start: _childrenStart, count: childCount)
+    unsafe UnsafeBufferPointer(start: _childrenStart, count: childCount)
   }
 }

@@ -26,7 +26,7 @@ extension BitSet {
   /// - Complexity: O(1)
   @usableFromInline
   internal func _contains(_ member: UInt) -> Bool {
-    _read { $0.contains(member) }
+    unsafe _read { unsafe $0.contains(member) }
   }
 
   /// Returns a Boolean value that indicates whether the given element exists
@@ -64,7 +64,7 @@ extension BitSet {
   @usableFromInline
   internal mutating func _insert(_ newMember: UInt) -> Bool {
     _ensureCapacity(forValue: newMember)
-    return _update { $0.insert(newMember) }
+    return unsafe _update { unsafe $0.insert(newMember) }
   }
 
   /// Inserts the given element in the set if it is not already present.
@@ -114,8 +114,8 @@ extension BitSet {
   @discardableResult
   @usableFromInline
   internal mutating func _remove(_ member: UInt) -> Bool {
-    _updateThenShrink { handle, shrink in
-      shrink = handle.remove(member)
+    unsafe _updateThenShrink { handle, shrink in
+      shrink = unsafe handle.remove(member)
       return shrink
     }
   }

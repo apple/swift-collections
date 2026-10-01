@@ -37,12 +37,12 @@ extension BorrowingIteratorProtocol
   @inlinable
   @_transparent
   package mutating func _copyContents(into target: inout OutputSpan<Element>) throws(Failure) {
-    try target.withUnsafeMutableBufferPointer { (dst, dstCount) throws(Failure) -> Void in
-      var tail = dst._extracting(droppingFirst: dstCount)
+    unsafe try target.withUnsafeMutableBufferPointer { (dst, dstCount) throws(Failure) -> Void in
+      var tail = unsafe dst._extracting(droppingFirst: dstCount)
       while !tail.isEmpty {
         let src = try nextSpan(maxCount: tail.count)
         if src.isEmpty { break }
-        tail._initializeAndDropPrefix(copying: src)
+        unsafe tail._initializeAndDropPrefix(copying: src)
         dstCount += src.count
       }
     }

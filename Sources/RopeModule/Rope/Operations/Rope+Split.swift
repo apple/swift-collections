@@ -28,12 +28,12 @@ extension Rope {
     var node = root
     _root = nil
     while !node.isLeaf {
-      let r = node.readInner { $0.findSlot(at: position, in: metric) }
+      let r = unsafe node.readInner { unsafe $0.findSlot(at: position, in: metric) }
       position = r.remaining
       node._innerSplit(at: r.slot, into: &builder)
     }
 
-    let r = node.readLeaf { $0.findSlot(at: position, in: metric) }
+    let r = unsafe node.readLeaf { unsafe $0.findSlot(at: position, in: metric) }
     var item = node._leafSplit(at: r.slot, into: &builder)
     let index = metric.index(at: r.remaining, in: item.value)
     let suffix = item.split(at: index)

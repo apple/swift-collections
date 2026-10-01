@@ -15,7 +15,8 @@ extension UnsafeRawBufferPointer {
   /// Returns a Boolean value indicating whether two `UnsafeRawBufferPointer`
   /// instances refer to the same region in memory.
   @inlinable @inline(__always)
-    package func _isIdentical(to other: Self) -> Bool {
-    (self.baseAddress == other.baseAddress) && (self.count == other.count)
+  @safe
+  package func _isIdentical(to other: Self) -> Bool {
+    unsafe (self.baseAddress == other.baseAddress) && (self.count == other.count)
   }
 }

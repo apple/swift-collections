@@ -42,7 +42,7 @@ extension RigidDeque where Element: ~Copyable {
   public mutating func insert(_ item: consuming Element, at index: Int) -> Int {
     precondition(!isFull, "RigidDeque capacity overflow")
     _checkValidIndex(index)
-    return _handle.uncheckedInsert(item, at: index)
+    return unsafe _handle.uncheckedInsert(item, at: index)
   }
 }
 
@@ -104,7 +104,7 @@ extension RigidDeque where Element: ~Copyable {
     precondition(newItemCount >= 0, "Cannot add a negative number of items")
     guard newItemCount > 0 else { return index ..< index }
     precondition(newItemCount <= freeCapacity, "RigidDeque capacity overflow")
-    return try _handle.uncheckedInsert(
+    return unsafe try _handle.uncheckedInsert(
       addingCount: newItemCount, at: index, initializingWith: initializer)
   }
 }
@@ -131,15 +131,16 @@ extension RigidDeque where Element: ~Copyable {
   /// - Complexity: O(`self.count` + `items.count`)
   @_alwaysEmitIntoClient
   @discardableResult
+  @unsafe
   public mutating func insert(
     moving items: UnsafeMutableBufferPointer<Element>,
     at index: Int
   ) -> Range<Int> {
     guard !items.isEmpty else { return index ..< index }
-    var remainder = items
+    var remainder = unsafe items
     let range = insert(addingCount: items.count, at: index) { target in
-      target.withUnsafeMutableBufferPointer { buffer, count in
-        buffer.moveInitializeAll(
+      unsafe target.withUnsafeMutableBufferPointer { buffer, count in
+        unsafe buffer.moveInitializeAll(
           fromContentsOf: remainder._trim(first: buffer.count))
         count = buffer.count
       }
@@ -172,8 +173,8 @@ extension RigidDeque where Element: ~Copyable {
     moving items: inout InputSpan<Element>,
     at index: Int
   ) -> Range<Int> {
-    items.withUnsafeMutableBufferPointer { buffer, count in
-      let source = buffer._extracting(last: count)
+    unsafe items.withUnsafeMutableBufferPointer { buffer, count in
+      let source = unsafe buffer._extracting(last: count)
       count = 0
       return unsafe self.insert(moving: source, at: index)
     }
@@ -203,8 +204,8 @@ extension RigidDeque where Element: ~Copyable {
     moving items: inout OutputSpan<Element>,
     at index: Int
   ) -> Range<Int> {
-    items.withUnsafeMutableBufferPointer { buffer, count in
-      let source = buffer._extracting(first: count)
+    unsafe items.withUnsafeMutableBufferPointer { buffer, count in
+      let source = unsafe buffer._extracting(first: count)
       count = 0
       return unsafe self.insert(moving: source, at: index)
     }
@@ -240,12 +241,12 @@ extension RigidDeque /* where Element: Copyable */ {
     copying items: UnsafeBufferPointer<Element>, at index: Int
   ) -> Range<Int> {
     guard items.count > 0 else { return index ..< index }
-    var remainder = items
+    var remainder = unsafe items
     let range = insert(addingCount: remainder.count, at: index) { target in
-      target.withUnsafeMutableBufferPointer { buffer, count in
-        buffer.initializeAll(
+      unsafe target.withUnsafeMutableBufferPointer { buffer, count in
+        unsafe buffer.initializeAll(
           fromContentsOf: remainder._extracting(first: buffer.count))
-        remainder = remainder._extracting(droppingFirst: buffer.count)
+        unsafe remainder = remainder._extracting(droppingFirst: buffer.count)
         count = buffer.count
       }
     }
@@ -276,6 +277,7 @@ extension RigidDeque /* where Element: Copyable */ {
   /// - Complexity: O(`count` + `items.count`)
   @inlinable
   @discardableResult
+  @unsafe
   public mutating func insert(
     copying items: UnsafeMutableBufferPointer<Element>,
     at index: Int
@@ -319,7 +321,7 @@ extension RigidDeque /* where Element: Copyable */ {
     newCount: Int
   ) -> Range<Int> {
     let res: Range<Int>? = items.withContiguousStorageIfAvailable { src in
-      self.insert(copying: src, at: index)
+      unsafe self.insert(copying: src, at: index)
     }
     if let res { return res }
 

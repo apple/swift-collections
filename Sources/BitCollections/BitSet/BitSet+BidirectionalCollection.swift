@@ -66,9 +66,9 @@ extension BitSet: Sequence {
     internal init(_ bitset: BitSet) {
       self.bitset = bitset
       self.index = 0
-      self.word = bitset._read { handle in
+      self.word = unsafe bitset._read { handle in
         guard handle.wordCount > 0 else { return .empty }
-        return handle._words[0]
+        return unsafe handle._words[0]
       }
     }
 
@@ -77,10 +77,10 @@ extension BitSet: Sequence {
       self.bitset = _bitset
       let (word, bit) = start._position.split
       self.index = word
-      self.word = bitset._read { handle in
+      self.word = unsafe bitset._read { handle in
         precondition(word <= handle.wordCount, "Invalid index")
         guard word < handle.wordCount else { return .empty }
-        var w = handle._words[word]
+        var w = unsafe handle._words[word]
         w.removeAll(upTo: bit)
         return w
       }
@@ -103,10 +103,10 @@ extension BitSet: Sequence {
         let i = _UnsafeHandle.Index(word: index, bit: bit)
         return Int(truncatingIfNeeded: i.value)
       }
-      return bitset._read { handle in
+      return unsafe bitset._read { handle in
         while (index + 1) < handle.wordCount {
           index += 1
-          word = handle._words[index]
+          word = unsafe handle._words[index]
           if let bit = word.next() {
             let i = _UnsafeHandle.Index(word: index, bit: bit)
             return Int(truncatingIfNeeded: i.value)
@@ -135,7 +135,7 @@ extension BitSet: Collection, BidirectionalCollection {
   /// - Note: `BitSet.Counted` is a variant of this type that keeps a running
   ///    total of its element count, for use cases that require an O(1) count.
   public var count: Int {
-    return _read { $0.count }
+    return unsafe _read { unsafe $0.count }
   }
 
   /// The position of the first element in a nonempty set, or `endIndex`
@@ -143,7 +143,7 @@ extension BitSet: Collection, BidirectionalCollection {
   ///
   /// - Complexity: O(*min*) where *min* is the value of the first element.
   public var startIndex: Index {
-    Index(_position: _read { $0.startIndex })
+    Index(_position: unsafe _read { unsafe $0.startIndex })
   }
 
   /// The collection's "past the end" position--that is, the position one step
@@ -185,9 +185,9 @@ extension BitSet: Collection, BidirectionalCollection {
   ///   (Each call needs to search for the next `true` bit in the underlying
   ///   storage.)
   public func index(after index: Index) -> Index {
-    _read { handle in
-      assert(handle._isReachable(index._position), "Invalid index")
-      let pos = handle.index(after: index._position)
+    unsafe _read { handle in
+      assert(unsafe handle._isReachable(index._position), "Invalid index")
+      let pos = unsafe handle.index(after: index._position)
       return Index(_position: pos)
     }
   }
@@ -205,9 +205,9 @@ extension BitSet: Collection, BidirectionalCollection {
   ///   (Each call needs to search for the next `true` bit in the underlying
   ///   storage.)
   public func index(before index: Index) -> Index {
-    _read { handle in
-      assert(handle._isReachable(index._position), "Invalid index")
-      let pos = handle.index(before: index._position)
+    unsafe _read { handle in
+      assert(unsafe handle._isReachable(index._position), "Invalid index")
+      let pos = unsafe handle.index(before: index._position)
       return Index(_position: pos)
     }
   }
@@ -223,10 +223,10 @@ extension BitSet: Collection, BidirectionalCollection {
   /// - Complexity: O(*d*), where *d* is the difference of the values
   ///    addressed by the two input indices.
   public func distance(from start: Index, to end: Index) -> Int {
-    _read { handle in
-      assert(handle._isReachable(start._position), "Invalid start index")
-      assert(handle._isReachable(end._position), "Invalid end index")
-      return handle.distance(from: start._position, to: end._position)
+    unsafe _read { handle in
+      assert(unsafe handle._isReachable(start._position), "Invalid start index")
+      assert(unsafe handle._isReachable(end._position), "Invalid end index")
+      return unsafe handle.distance(from: start._position, to: end._position)
     }
   }
 
@@ -247,9 +247,9 @@ extension BitSet: Collection, BidirectionalCollection {
   /// - Complexity: O(*d*), where *d* is the difference of the values
   ///    addressed by `index` and the returned result.
   public func index(_ index: Index, offsetBy distance: Int) -> Index {
-    _read { handle in
-      assert(handle._isReachable(index._position), "Invalid index")
-      let pos = handle.index(index._position, offsetBy: distance)
+    unsafe _read { handle in
+      assert(unsafe handle._isReachable(index._position), "Invalid index")
+      let pos = unsafe handle.index(index._position, offsetBy: distance)
       return Index(_position: pos)
     }
   }
@@ -277,10 +277,10 @@ extension BitSet: Collection, BidirectionalCollection {
   public func index(
     _ i: Index, offsetBy distance: Int, limitedBy limit: Index
   ) -> Index? {
-    _read { handle in
-      assert(handle._isReachable(i._position), "Invalid index")
-      assert(handle._isReachable(limit._position), "Invalid limit index")
-      return handle.index(
+    unsafe _read { handle in
+      assert(unsafe handle._isReachable(i._position), "Invalid index")
+      assert(unsafe handle._isReachable(limit._position), "Invalid limit index")
+      return unsafe handle.index(
         i._position, offsetBy: distance, limitedBy: limit._position
       ).map { Index(_position: $0) }
     }

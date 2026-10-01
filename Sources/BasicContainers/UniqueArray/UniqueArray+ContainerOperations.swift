@@ -95,11 +95,11 @@ extension UniqueArray where Element: ~Copyable {
   public subscript(position: Int) -> Element {
     @inline(__always)
     unsafeAddress {
-      _storage._ptr(to: position)
+      unsafe _storage._ptr(to: position)
     }
     @inline(__always)
     unsafeMutableAddress {
-      _storage._mutablePtr(to: position)
+      unsafe _storage._mutablePtr(to: position)
     }
   }
 #endif

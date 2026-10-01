@@ -21,12 +21,12 @@ import SpanPreview
 extension RigidArray where Element: ~Copyable {
   @_lifetime(&self)
   public mutating func _consumeAll() -> InputSpan<Element> {
-    let buffer = _items
-    self._count = 0
-    let result = InputSpan(
+    let buffer = unsafe _items
+    unsafe self._count = 0
+    let result = unsafe InputSpan(
       buffer: buffer,
       initializedCount: buffer.count)
-    return _overrideLifetime(result, mutating: &self)
+    return unsafe _overrideLifetime(result, mutating: &self)
   }
 
   /// Remove the specified subrange of items from this array,
@@ -54,13 +54,13 @@ extension RigidArray where Element: ~Copyable {
       return subrange.lowerBound
     }
     let buffer = unsafe _storage.extracting(subrange)
-    var span = InputSpan(buffer: buffer, initializedCount: buffer.count)
+    var span = unsafe InputSpan(buffer: buffer, initializedCount: buffer.count)
 
     consumer(&span)
     _ = consume span
 
-    _closeGap(at: subrange.lowerBound, count: subrange.count)
-    _count -= subrange.count
+    unsafe _closeGap(at: subrange.lowerBound, count: subrange.count)
+    unsafe _count -= subrange.count
     return subrange.lowerBound
   }
 
@@ -133,9 +133,9 @@ extension RigidArray where Element: ~Copyable {
     consumingWith consumer: (inout InputSpan<Element>) -> Void
   ) {
     precondition(
-      n >= 0 && n <= _count,
+      n >= 0 && n <= self.count,
       "Count of elements to consume is out of bounds")
-    self.consumeSubrange(_count &- n ..< _count, consumingWith: consumer)
+    self.consumeSubrange(self.count &- n ..< self.count, consumingWith: consumer)
   }
 }
 #endif
@@ -157,40 +157,44 @@ extension RigidArray where Element: ~Copyable {
 extension RigidArray where Element: ~Copyable {
   @available(SwiftStdlib 5.0, *)
   @frozen
+  @safe
   public struct SubrangeConsumer: ~Copyable, ~Escapable {
     // FIXME: We have to use our own MutableRef because the standard one
     // provides no access to the underlying pointer. See deinit why we need it.
     @usableFromInline
+    @unsafe
     internal var _base: _MutableRef<RigidArray>
 
     @usableFromInline
+    @unsafe
     internal var _offsetRange: Range<Int>
 
     @usableFromInline
+    @unsafe
     internal var _remainder: UnsafeMutableBufferPointer<Element>
 
     @_alwaysEmitIntoClient
     @inline(__always)
     @_lifetime(&_base)
     internal init(_base: inout RigidArray, offsetRange: Range<Int>) {
-
-      self._remainder = _base._storage._extracting(unchecked: offsetRange)
-      self._base = _MutableRef(&_base)
-      self._offsetRange = offsetRange
+      _base._checkValidBounds(offsetRange)
+      unsafe self._remainder = _base._storage._extracting(unchecked: offsetRange)
+      unsafe self._base = _MutableRef(&_base)
+      unsafe self._offsetRange = offsetRange
     }
 
     @inlinable
     deinit {
-      self._remainder.deinitialize()
+      unsafe self._remainder.deinitialize()
 
       // FIXME: This needs to be written as
       //    self._base.value.closeGap(offsets: self._offsetRange)
       // but unfortunately we cannot mutate self in deinit yet.
       // MutableRef's dereferencing operation is necessarily declared mutating
       // to avoid exclusivity violations.
-      self._base._pointer.pointee
+      unsafe self._base._pointer.pointee
         ._closeGap(at: _offsetRange.lowerBound, count: _offsetRange.count)
-      self._base._pointer.pointee._count -= _offsetRange.count
+      unsafe self._base._pointer.pointee._count -= _offsetRange.count
     }
   }
 }
@@ -201,25 +205,25 @@ extension RigidArray.SubrangeConsumer where Element: ~Copyable {
 
   @inlinable
   public var count: Int {
-    _remainder.count
+    unsafe _remainder.count
   }
 
   @inlinable
   @_lifetime(&self)
   @_lifetime(self: copy self)
   public mutating func drainNext(maxCount: Int) -> InputSpan<Element> {
-    if _remainder.isEmpty {
+    if unsafe _remainder.isEmpty {
       return .init()
     }
-    let buffer = _remainder._trim(first: maxCount)
-    return _overrideLifetime(
+    let buffer = unsafe _remainder._trim(first: maxCount)
+    return unsafe _overrideLifetime(
       InputSpan(buffer: buffer, initializedCount: buffer.count),
       mutating: &self)
   }
 
   @inlinable
   public consuming func finalize() -> Index {
-    _offsetRange.lowerBound
+    unsafe _offsetRange.lowerBound
   }
 }
 #endif

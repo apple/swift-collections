@@ -24,7 +24,7 @@ extension Rope {
   @discardableResult
   public mutating func remove(at index: inout Index) -> Element {
     let (old, path) = _remove(at: index)
-    index = Index(version: _version, path: path, leaf: _unmanagedLeaf(at: path))
+    index = unsafe Index(version: _version, path: path, leaf: _unmanagedLeaf(at: path))
     return old
   }
 
@@ -38,7 +38,7 @@ extension Rope {
       _root = nil
       assert(r.pathIsAtEnd)
     } else if root.childCount == 1, root.height > 0 {
-      root = root.readInner { $0.children.first! }
+      root = unsafe root.readInner { unsafe $0.children.first! }
       path.popRoot()
     }
     _invalidateIndices()
@@ -59,7 +59,7 @@ extension Rope._Node {
       let r = _removeItem(at: slot)
       return (r.removed, r.delta, self.isUndersized, slot == childCount)
     }
-    let r = updateInner { $0.mutableChildren[slot].remove(at: &path) }
+    let r = unsafe updateInner { unsafe $0.mutableChildren[slot].remove(at: &path) }
     self.summary.subtract(r.delta)
     var isAtEnd = r.pathIsAtEnd
     if r.needsFixing {
@@ -88,12 +88,12 @@ extension Rope {
     if root.isEmpty {
       _root = nil
     } else if root.childCount == 1, root.height > 0 {
-      root = root.readInner { $0.children.first! }
+      root = unsafe root.readInner { unsafe $0.children.first! }
     }
     if r.pathIsAtEnd {
       return (r.removed.value, endIndex)
     }
-    let i = Index(version: _version, path: path, leaf: nil)
+    let i = Index(version: _version, path: path)
     return (r.removed.value, i)
   }
 }
@@ -117,18 +117,18 @@ extension Rope._Node {
     ensureUnique()
     let h = height
     guard h > 0 else {
-      let (slot, remaining) = readLeaf {
-        $0.findSlot(at: position, in: metric, preferEnd: false)
+      let (slot, remaining) = unsafe readLeaf {
+        unsafe $0.findSlot(at: position, in: metric, preferEnd: false)
       }
       precondition(remaining == 0, "Element to be removed doesn't fall on an element boundary")
       path[h] = slot
       let r = _removeItem(at: slot)
       return (r.removed, r.delta, self.isUndersized, slot == childCount)
     }
-    let r = updateInner {
-      let (slot, remaining) = $0.findSlot(at: position, in: metric, preferEnd: false)
+    let r = unsafe updateInner {
+      let (slot, remaining) = unsafe $0.findSlot(at: position, in: metric, preferEnd: false)
       path[h] = slot
-      return $0.mutableChildren[slot].remove(at: remaining, in: metric, initializing: &path)
+      return unsafe $0.mutableChildren[slot].remove(at: remaining, in: metric, initializing: &path)
     }
     self.summary.subtract(r.delta)
     var isAtEnd = r.pathIsAtEnd
@@ -152,21 +152,21 @@ extension Rope._Node {
   @discardableResult
   internal mutating func fixDeficiency(on path: inout _Path) -> Bool {
     assert(isUnique())
-    return updateInner {
-      let c = $0.mutableChildren
-      let h = $0.height
+    return unsafe updateInner {
+      let c = unsafe $0.mutableChildren
+      let h = unsafe $0.height
       let slot = path[h]
-      assert(c[slot].isUndersized)
+      assert(unsafe c[slot].isUndersized)
       guard c.count > 1 else { return true }
       let prev = slot - 1
       let prevSum: Int
       if prev >= 0 {
-        let prevCount = c[prev].childCount
-        prevSum = prevCount + c[slot].childCount
+        let prevCount = unsafe c[prev].childCount
+        prevSum = unsafe prevCount + c[slot].childCount
         if prevSum <= Summary.maxNodeSize {
-          Self.redistributeChildren(&c[prev], &c[slot], to: prevSum)
-          assert(c[slot].isEmpty)
-          _ = $0._removeChild(at: slot)
+          unsafe Self.redistributeChildren(&c[prev], &c[slot], to: prevSum)
+          assert(unsafe c[slot].isEmpty)
+          _ = unsafe $0._removeChild(at: slot)
           path[h] = prev
           path[h - 1] += prevCount
           return true
@@ -178,12 +178,12 @@ extension Rope._Node {
       let next = slot + 1
       let nextSum: Int
       if next < c.count {
-        let nextCount = c[next].childCount
-        nextSum = c[slot].childCount + nextCount
+        let nextCount = unsafe c[next].childCount
+        nextSum = unsafe c[slot].childCount + nextCount
         if nextSum <= Summary.maxNodeSize {
-          Self.redistributeChildren(&c[slot], &c[next], to: nextSum)
-          assert(c[next].isEmpty)
-          _ = $0._removeChild(at: next)
+          unsafe Self.redistributeChildren(&c[slot], &c[next], to: nextSum)
+          assert(unsafe c[next].isEmpty)
+          _ = unsafe $0._removeChild(at: next)
           // `path` doesn't need updating.
           return false
         }
@@ -192,20 +192,20 @@ extension Rope._Node {
       }
 
       if prev >= 0 {
-        assert(c[prev].childCount > Summary.minNodeSize)
-        let origCount = c[slot].childCount
-        Self.redistributeChildren(&c[prev], &c[slot], to: prevSum / 2)
-        path[h - 1] += c[slot].childCount - origCount
-        assert(!c[prev].isUndersized)
-        assert(!c[slot].isUndersized)
+        assert(unsafe c[prev].childCount > Summary.minNodeSize)
+        let origCount = unsafe c[slot].childCount
+        unsafe Self.redistributeChildren(&c[prev], &c[slot], to: prevSum / 2)
+        path[h - 1] += unsafe c[slot].childCount - origCount
+        assert(unsafe !c[prev].isUndersized)
+        assert(unsafe !c[slot].isUndersized)
         return true
       }
       assert(next < c.count)
-      assert(c[next].childCount > Summary.minNodeSize)
-      Self.redistributeChildren(&c[slot], &c[next], to: nextSum / 2)
+      assert(unsafe c[next].childCount > Summary.minNodeSize)
+      unsafe Self.redistributeChildren(&c[slot], &c[next], to: nextSum / 2)
       // `path` doesn't need updating.
-      assert(!c[slot].isUndersized)
-      assert(!c[next].isUndersized)
+      assert(unsafe !c[slot].isUndersized)
+      assert(unsafe !c[next].isUndersized)
       return false
     }
   }

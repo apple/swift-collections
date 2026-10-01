@@ -52,7 +52,7 @@ extension RigidDeque where Element: ~Copyable {
   @_alwaysEmitIntoClient
   public mutating func remove(at index: Int) -> Element {
     _checkItemIndex(index)
-    return _handle.uncheckedRemove(at: index)
+    return unsafe _handle.uncheckedRemove(at: index)
   }
 
   /// Removes all elements from the deque, preserving its allocated capacity.
@@ -60,7 +60,7 @@ extension RigidDeque where Element: ~Copyable {
   /// - Complexity: O(`count`)
   @_alwaysEmitIntoClient
   public mutating func removeAll() {
-    _handle.uncheckedRemoveAll()
+    unsafe _handle.uncheckedRemoveAll()
   }
 
   /// Removes and returns the first element of the deque.
@@ -74,13 +74,13 @@ extension RigidDeque where Element: ~Copyable {
   @_alwaysEmitIntoClient
   public mutating func removeFirst() -> Element {
     precondition(!isEmpty, "Cannot remove first element of an empty RigidDeque")
-    return _handle.uncheckedRemoveFirst()
+    return unsafe _handle.uncheckedRemoveFirst()
   }
 
   @_alwaysEmitIntoClient
   public mutating func _customRemoveLast() -> Element? {
     precondition(!isEmpty, "Cannot remove last element of an empty RigidDeque")
-    return _handle.uncheckedRemoveLast()
+    return unsafe _handle.uncheckedRemoveLast()
   }
 
   /// Removes and returns the last element of the deque.
@@ -94,7 +94,7 @@ extension RigidDeque where Element: ~Copyable {
   @_alwaysEmitIntoClient
   public mutating func removeLast() -> Element {
     precondition(!isEmpty, "Cannot remove last element of an empty RigidDeque")
-    return _handle.uncheckedRemoveLast()
+    return unsafe _handle.uncheckedRemoveLast()
   }
 
   /// Removes and discards the specified number of elements from the start of
@@ -112,14 +112,14 @@ extension RigidDeque where Element: ~Copyable {
   public mutating func removeFirst(_ k: Int) {
     precondition(k >= 0, "Cannot remove a negative number of elements")
     precondition(k <= count, "Cannot remove more elements than there are in the container")
-    _handle.uncheckedRemoveFirst(k)
+    unsafe _handle.uncheckedRemoveFirst(k)
   }
 
   @_alwaysEmitIntoClient
   public mutating func _customRemoveLast(_ n: Int) -> Bool {
     precondition(n >= 0, "Cannot remove a negative number of elements")
     precondition(n <= count, "Cannot remove more elements than there are in the container")
-    _handle.uncheckedRemoveLast(n)
+    unsafe _handle.uncheckedRemoveLast(n)
     return true
   }
 
@@ -138,7 +138,7 @@ extension RigidDeque where Element: ~Copyable {
   public mutating func removeLast(_ n: Int) {
     precondition(n >= 0, "Cannot remove a negative number of elements")
     precondition(n <= count, "Cannot remove more elements than there are in the container")
-    _handle.uncheckedRemoveLast(n)
+    unsafe _handle.uncheckedRemoveLast(n)
   }
 
   /// Removes the specified subrange of elements from the deque.
@@ -154,7 +154,7 @@ extension RigidDeque where Element: ~Copyable {
     precondition(
       bounds.lowerBound >= 0 && bounds.upperBound <= count,
       "Subrange out of bounds")
-    return _handle.uncheckedRemove(offsets: bounds)
+    return unsafe _handle.uncheckedRemove(offsets: bounds)
   }
 }
 
@@ -169,7 +169,7 @@ extension RigidDeque where Element: ~Copyable {
   @_alwaysEmitIntoClient
   public mutating func popFirst() -> Element? {
     guard !isEmpty else { return nil }
-    return _handle.uncheckedRemoveFirst()
+    return unsafe _handle.uncheckedRemoveFirst()
   }
 
   /// Removes and returns the last element of the deque, if there is one.
@@ -183,6 +183,6 @@ extension RigidDeque where Element: ~Copyable {
     // FIXME: Remove this algorithm; it is already provided by
     // RangeReplaceableContainer, albeit with stricter availability.
     guard !isEmpty else { return nil }
-    return _handle.uncheckedRemoveLast()
+    return unsafe _handle.uncheckedRemoveLast()
   }
 }

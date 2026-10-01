@@ -28,12 +28,12 @@ extension _HashTable.Header: CustomStringConvertible {
 extension _HashTable.UnsafeHandle: CustomStringConvertible {
   package func _description(type: String) -> String {
     var d = """
-      \(type)\(_header.pointee._description)
-        load factor: \(debugLoadFactor())
+      \(type)\(unsafe _header.pointee._description)
+        load factor: \(unsafe debugLoadFactor())
       """
-    if bucketCount < 128 {
+    if unsafe bucketCount < 128 {
       d += "\n  "
-      d += debugContents()
+      d += unsafe debugContents()
         .lazy
         .map { $0 == nil ? "_" : "\($0!)" }
         .joined(separator: " ")
@@ -43,21 +43,21 @@ extension _HashTable.UnsafeHandle: CustomStringConvertible {
 
   @usableFromInline
   package var description: String {
-    _description(type: "_HashTable.UnsafeHandle")
+    unsafe _description(type: "_HashTable.UnsafeHandle")
   }
 }
 
 extension _HashTable: CustomStringConvertible {
   @usableFromInline
   package var description: String {
-    self.read { $0._description(type: "_HashTable") }
+    unsafe self.read { unsafe $0._description(type: "_HashTable") }
   }
 }
 
 extension _HashTable.Storage: CustomStringConvertible {
   @usableFromInline
   package var description: String {
-    _HashTable(self).read { $0._description(type: "_HashTable.Storage") }
+    unsafe _HashTable(self).read { unsafe $0._description(type: "_HashTable.Storage") }
   }
 }
 

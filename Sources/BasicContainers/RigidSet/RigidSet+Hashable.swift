@@ -40,7 +40,7 @@ extension RigidSet where Element: ~Copyable {
       let next = it.nextSpan()
       var i = 0
       while i < next.count {
-        hash ^= next[unchecked: i]._rawHashValue(seed: seed)
+        hash ^= unsafe next[unchecked: i]._rawHashValue(seed: seed)
         i &+= 1
       }
     }

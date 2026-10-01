@@ -74,22 +74,22 @@ extension RigidSet where Element: ~Copyable {
 
   @inlinable
   public var startIndex: Index {
-    if _table.isSmall { return Index(_bucket: _Bucket(offset: 0)) }
-    guard let b = _table.bitmap.firstOccupiedBucket(from: _Bucket(offset: 0))
+    if _isSmall { return Index(_bucket: _Bucket(offset: 0)) }
+    guard let b = unsafe _table.bitmap.firstOccupiedBucket(from: _Bucket(offset: 0))
     else { return endIndex }
     return Index(_bucket: b)
   }
 
   @inlinable
   public var endIndex: Index {
-    if _table.isSmall { return Index(_offset: count) }
-    return Index(_bucket: _table.endBucket)
+    if _isSmall { return Index(_offset: count) }
+    return unsafe Index(_bucket: _table.endBucket)
   }
   
   @_alwaysEmitIntoClient
   @_transparent
   package func _isOccupied(_ bucket: _Bucket) -> Bool {
-    _table.isValid(bucket) && _table.isOccupied(bucket)
+    unsafe _table.isValid(bucket) && _table.isOccupied(bucket)
   }
 
   @_alwaysEmitIntoClient
@@ -115,13 +115,13 @@ extension RigidSet where Element: ~Copyable {
   @inlinable
   public func index(after index: Index) -> Index {
     _checkItemIndex(index)
-    if _table.isSmall {
+    if _isSmall {
       return Index(_bucket: _Bucket(offset: index._bucket._offset &+ 1))
     }
     var start = index._bucket
     start._offset &+= 1
-    guard start < _table.endBucket else { return Index(_bucket: start) }
-    guard let b = _table.bitmap.firstOccupiedBucket(from: start)
+    guard unsafe start < _table.endBucket else { return Index(_bucket: start) }
+    guard let b = unsafe _table.bitmap.firstOccupiedBucket(from: start)
     else { return endIndex }
     return Index(_bucket: b)
   }
@@ -131,7 +131,7 @@ extension RigidSet where Element: ~Copyable {
     @_unsafeSelfDependentResult
     borrow {
       _checkItemIndex(index)
-      return _memberPtr(at: index._bucket).pointee
+      return unsafe _memberPtr(at: index._bucket).pointee
     }
   }
 
@@ -142,20 +142,20 @@ extension RigidSet where Element: ~Copyable {
   ) -> Span<Element> {
     _checkValidIndex(index)
     if index == endIndex { return .init() }
-    if _table.isSmall {
+    if _isSmall {
       let start = Int(index._offset)
-      let end = _table.count
-      let items = _memberBuf.extracting(start ..< end)
+      let end = self.count
+      let items = unsafe _memberBuf.extracting(start ..< end)
       index = Index(_offset: end)
-      let span = Span(_unsafeElements: items)
-      return _overrideLifetime(span, borrowing: self)
+      let span = unsafe Span(_unsafeElements: items)
+      return unsafe _overrideLifetime(span, borrowing: self)
     }
-    let buckets = _table.bitmap.nextOccupiedRegion(
+    let buckets = unsafe _table.bitmap.nextOccupiedRegion(
       from: &index._bucket, maxCount: .max, limit: _table.endBucket)
-    let span = Span(
+    let span = unsafe Span(
       _unsafeStart: _memberPtr(at: buckets.lowerBound),
       count: buckets._offsets.count)
-    return _overrideLifetime(span, borrowing: self)
+    return unsafe _overrideLifetime(span, borrowing: self)
   }
 
   @inlinable
@@ -168,22 +168,22 @@ extension RigidSet where Element: ~Copyable {
     precondition(maxCount > 0, "maxCount must be positive")
     if index == endIndex { return .init() }
     let limit = limit._offset < index._offset ? endIndex : limit
-    if _table.isSmall {
+    if _isSmall {
       let start = Int(index._offset)
-      var c = Swift.min(maxCount, _table.count - start)
+      var c = unsafe Swift.min(maxCount, _table.count - start)
       var end = start
       end._advance(by: &c, limitedBy: Int(limit._offset))
-      let items = _memberBuf.extracting(start ..< end)
+      let items = unsafe _memberBuf.extracting(start ..< end)
       index = Index(_offset: end)
-      let span = Span(_unsafeElements: items)
-      return _overrideLifetime(span, borrowing: self)
+      let span = unsafe Span(_unsafeElements: items)
+      return unsafe _overrideLifetime(span, borrowing: self)
     }
-    let buckets = _table.bitmap.nextOccupiedRegion(
+    let buckets = unsafe _table.bitmap.nextOccupiedRegion(
       from: &index._bucket, maxCount: maxCount, limit: limit._bucket)
-    let span = Span(
+    let span = unsafe Span(
       _unsafeStart: _memberPtr(at: buckets.lowerBound),
       count: buckets._offsets.count)
-    return _overrideLifetime(span, borrowing: self)
+    return unsafe _overrideLifetime(span, borrowing: self)
   }
 }
 

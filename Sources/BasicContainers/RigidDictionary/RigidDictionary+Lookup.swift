@@ -44,7 +44,7 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
     forKey key: borrowing Key
   ) -> Ref<Value>? {
     guard let bucket = self._find(key).bucket else { return nil }
-    return Ref(unsafeAddress: _valuePtr(at: bucket), borrowing: self)
+    return unsafe Ref(unsafeAddress: _valuePtr(at: bucket), borrowing: self)
   }
 
   /// Checks if the given key is present in the `RigidDictionary`, and returns
@@ -60,7 +60,7 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
     forKey key: borrowing Key
   ) -> MutableRef<Value>? {
     guard let bucket = self._find(key).bucket else { return nil }
-    return MutableRef(unsafeAddress: _valuePtr(at: bucket), mutating: &self)
+    return unsafe MutableRef(unsafeAddress: _valuePtr(at: bucket), mutating: &self)
   }
 
   /// A stand-in for a `struct Ref`-returning lookup operation.
@@ -73,23 +73,23 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
     _ body: (borrowing Value) throws(E) -> R?
   ) throws(E) -> R? {
     guard let bucket = self._find(key).bucket else { return nil }
-    return try body(_valueBuf[bucket])
+    return unsafe try body(_valueBuf[bucket])
   }
   
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
   package func _borrowKey(at bucket: _Bucket) -> Ref<Key> {
-    assert(_keys._table.isOccupied(bucket))
-    return Ref(unsafeAddress: _keyPtr(at: bucket), borrowing: self)
+    assert(unsafe _keys._table.isOccupied(bucket))
+    return unsafe Ref(unsafeAddress: _keyPtr(at: bucket), borrowing: self)
   }
 
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
   package func _borrowValue(at bucket: _Bucket) -> Ref<Value> {
-    assert(_keys._table.isOccupied(bucket))
-    return Ref(unsafeAddress: _valuePtr(at: bucket), borrowing: self)
+    assert(unsafe _keys._table.isOccupied(bucket))
+    return unsafe Ref(unsafeAddress: _valuePtr(at: bucket), borrowing: self)
   }
 }
 

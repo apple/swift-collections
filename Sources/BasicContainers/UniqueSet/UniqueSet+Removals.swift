@@ -16,12 +16,13 @@
 @available(SwiftStdlib 5.0, *)
 extension UniqueSet where Element: ~Copyable {
   @inlinable
+  @unsafe
   package mutating func _remove(at bucket: _Bucket) -> Element {
     guard self.count <= _HTable.minimumCapacity(forScale: self._scale) else {
-      return _storage._remove(at: bucket)
+      return unsafe _storage._remove(at: bucket)
     }
     // Shrink storage.
-    let result = _storage._punchHole(at: bucket)
+    let result = unsafe _storage._punchHole(at: bucket)
     _resize(minimumCapacity: self.count)
     return result
   }
@@ -30,7 +31,7 @@ extension UniqueSet where Element: ~Copyable {
   public mutating func remove(_ member: borrowing Element) -> Element? {
     let r = _storage._find(member)
     guard let bucket = r.bucket else { return nil }
-    return _remove(at: bucket)
+    return unsafe _remove(at: bucket)
   }
   
   @inlinable

@@ -47,7 +47,7 @@ where
 
         var j = 0
         while j < b.count {
-          guard a[unchecked: i] == b[unchecked: j] else { return false }
+          guard unsafe a[unchecked: i] == b[unchecked: j] else { return false }
           i &+= 1
           j &+= 1
         }
@@ -129,7 +129,7 @@ where
 
         var j = 0
         while j < b.count {
-          guard try areEquivalent(a[unchecked: i], b[unchecked: j])
+          guard unsafe try areEquivalent(a[unchecked: i], b[unchecked: j])
           else { return false }
           i &+= 1
           j &+= 1

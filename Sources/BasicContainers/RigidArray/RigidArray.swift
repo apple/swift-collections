@@ -21,6 +21,7 @@ import InternalCollectionsUtilities
 /// noncopyable elements.
 @frozen
 @available(*, unavailable, message: "RigidArray requires a Swift 6.2 toolchain")
+@safe
 public struct RigidArray<Element: ~Copyable>: ~Copyable {
   @usableFromInline
   internal var _ptr: UnsafeMutablePointer<Element>
@@ -83,33 +84,37 @@ public struct RigidArray<Element: ~Copyable>: ~Copyable {
 /// the use of ``UniqueArray`` rather than `RigidArray`. (For copyable elements,
 /// the standard `Array` is an even more convenient choice.)
 @available(SwiftStdlib 5.0, *)
-@safe
 @frozen
+@safe
 public struct RigidArray<Element: ~Copyable>: ~Copyable {
   @usableFromInline
+  @unsafe
   internal var _ptr: UnsafeMutablePointer<Element>
 
   @usableFromInline
+  @unsafe // Setting this is unsafe
   internal var _capacity: Int
 
   @usableFromInline
+  @unsafe // Setting this is unsafe
   internal var _count: Int
 
   @_alwaysEmitIntoClient
   deinit {
-    if _capacity == 0 {
+    if capacity == 0 {
       return
     }
 
-    unsafe _ptr.deinitialize(count: _count)
+    unsafe _ptr.deinitialize(count: count)
     unsafe _ptr.deallocate()
   }
 
   @_alwaysEmitIntoClient
+  @unsafe
   package init(_storage: UnsafeMutableBufferPointer<Element>, count: Int) {
     unsafe self._ptr = _storage.baseAddress.unsafelyUnwrapped
-    self._capacity = _storage.count
-    self._count = count
+    unsafe self._capacity = _storage.count
+    unsafe self._count = count
   }
 }
 
@@ -122,6 +127,7 @@ extension RigidArray: @unchecked Sendable where Element: Sendable & ~Copyable {}
 extension RigidArray where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
+  @unsafe
   internal var _storage: UnsafeMutableBufferPointer<Element> {
     unsafe UnsafeMutableBufferPointer<Element>(start: _ptr, count: _capacity)
   }
@@ -131,7 +137,7 @@ extension RigidArray where Element: ~Copyable {
   /// - Complexity: O(1)
   @inlinable
   @_transparent
-  public var capacity: Int { _assumeNonNegative(_capacity) }
+  public var capacity: Int { unsafe _assumeNonNegative(_capacity) }
 
   /// The number of additional elements that can be added to this array without
   /// exceeding its storage capacity.
@@ -157,11 +163,13 @@ extension RigidArray where Element: ~Copyable {
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
   @inlinable
+  @unsafe
   internal var _items: UnsafeMutableBufferPointer<Element> {
     unsafe _storage.extracting(Range(uncheckedBounds: (0, _count)))
   }
 
   @inlinable
+  @unsafe
   internal var _freeSpace: UnsafeMutableBufferPointer<Element> {
     unsafe _storage.extracting(Range(uncheckedBounds: (_count, capacity)))
   }
@@ -236,21 +244,21 @@ extension RigidArray where Element: ~Copyable {
   public mutating func edit<E: Error, R: ~Copyable>(
     _ body: (inout OutputSpan<Element>) throws(E) -> R
   ) throws(E) -> R {
-    var span = OutputSpan(buffer: _storage, initializedCount: _count)
+    var span = unsafe OutputSpan(buffer: _storage, initializedCount: _count)
     defer {
-      _count = span.finalize(for: _storage)
+      unsafe _count = unsafe span.finalize(for: _storage)
       span = OutputSpan()
     }
     return try body(&span)
   }
 
   // FIXME: Stop using and remove this in favor of `edit`
-  @unsafe
   @inlinable
+  @unsafe
   internal mutating func _unsafeEdit<E: Error, R: ~Copyable>(
     _ body: (UnsafeMutableBufferPointer<Element>, inout Int) throws(E) -> R
   ) throws(E) -> R {
-    defer { precondition(_count >= 0 && _count <= capacity) }
+    defer { precondition(count >= 0 && count <= capacity) }
     return unsafe try body(_storage, &_count)
   }
 }
@@ -259,14 +267,14 @@ extension RigidArray where Element: ~Copyable {
 extension RigidArray where Element: ~Copyable {
   @inlinable
   internal func _contiguousSubrange(following index: inout Int) -> Range<Int> {
-    precondition(index >= 0 && index <= _count, "Index out of bounds")
-    defer { index = _count }
-    return unsafe Range(uncheckedBounds: (index, _count))
+    precondition(index >= 0 && index <= count, "Index out of bounds")
+    defer { index = count }
+    return unsafe Range(uncheckedBounds: (index, count))
   }
 
   @inlinable
   internal func _contiguousSubrange(preceding index: inout Int) -> Range<Int> {
-    precondition(index >= 0 && index <= _count, "Index out of bounds")
+    precondition(index >= 0 && index <= count, "Index out of bounds")
     defer { index = 0 }
     return unsafe Range(uncheckedBounds: (0, index))
   }
@@ -374,12 +382,12 @@ extension RigidArray where Element: ~Copyable {
     let i = unsafe newStorage.moveInitialize(fromContentsOf: self._items)
     assert(i == count)
 
-    if _capacity != 0 {
+    if capacity != 0 {
       unsafe _storage.deallocate()
     }
 
     unsafe _ptr = newStorage.baseAddress.unsafelyUnwrapped
-    _capacity = newStorage.count
+    unsafe self._capacity = newStorage.count
   }
 
   /// Ensure that the array has capacity to store the specified number of
@@ -423,7 +431,7 @@ extension RigidArray {
     var result = RigidArray<Element>(capacity: capacity)
     let initialized = unsafe result._storage.initialize(fromContentsOf: _items)
     precondition(initialized == count)
-    result._count = count
+    unsafe result._count = count
     return result
   }
 }
@@ -434,6 +442,7 @@ extension RigidArray {
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
   @inlinable
+  @unsafe
   internal mutating func _closeGap(
     at index: Int, count: Int
   ) {
@@ -451,13 +460,13 @@ extension RigidArray where Element: ~Copyable {
   internal mutating func _openGap(
     at index: Int, count: Int
   ) -> UnsafeMutableBufferPointer<Element> {
-    assert(index >= 0 && index <= _count)
+    assert(index >= 0 && index <= self.count)
     assert(count <= freeCapacity)
     guard count > 0 else { return unsafe _storage.extracting(index ..< index) }
     let source = unsafe _storage.extracting(
-      Range(uncheckedBounds: (index, _count)))
+      Range(uncheckedBounds: (index, self.count)))
     let target = unsafe _storage.extracting(
-      Range(uncheckedBounds: (index + count, _count + count)))
+      Range(uncheckedBounds: (index + count, self.count + count)))
     let i = unsafe target.moveInitialize(fromContentsOf: source)
     assert(i == target.count)
     return unsafe _storage.extracting(
@@ -475,16 +484,16 @@ extension RigidArray where Element: ~Copyable {
   internal mutating func _resizeGap(
     in subrange: Range<Int>, to newItemCount: Int
   ) -> UnsafeMutableBufferPointer<Element> {
-    assert(subrange.lowerBound >= 0 && subrange.upperBound <= _count)
+    assert(subrange.lowerBound >= 0 && subrange.upperBound <= self.count)
     assert(newItemCount >= 0 && newItemCount - subrange.count <= freeCapacity)
     if newItemCount > subrange.count {
       _ = unsafe _openGap(
         at: subrange.upperBound, count: newItemCount - subrange.count)
     } else if newItemCount < subrange.count {
-      _closeGap(
+      unsafe _closeGap(
         at: subrange.lowerBound + newItemCount, count: subrange.count - newItemCount)
     }
-    _count += newItemCount - subrange.count
+    unsafe self._count += newItemCount - subrange.count
     let gapRange = unsafe Range(
       uncheckedBounds: (subrange.lowerBound, subrange.lowerBound + newItemCount))
     return unsafe _storage.extracting(gapRange)

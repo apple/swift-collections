@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-@preconcurrency import XCTest
+@unsafe @preconcurrency import XCTest
 #if COLLECTIONS_SINGLE_MODULE
 import Collections
 #else
@@ -25,8 +25,8 @@ class TestBigString: CollectionTestCase {
 
   override class func setUp() {
     // Turn off output buffering.
-    setbuf(stdout, nil)
-    setbuf(stderr, nil)
+    unsafe setbuf(stdout, nil)
+    unsafe setbuf(stderr, nil)
     super.setUp()
   }
 

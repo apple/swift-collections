@@ -42,20 +42,20 @@ struct NodeTemplate {
   }
 
   func matches(_ node: _Node<Int, Int>) -> Bool {
-    return node.read { handle in
-      if self.keys.count != handle.elementCount { return false }
+    return unsafe node.read { handle in
+      if unsafe self.keys.count != handle.elementCount { return false }
       if (self.children == nil) != handle.isLeaf { return false }
 
       if let children = self.children {
         for (i, child) in children.enumerated() {
-          if !child.matches(handle[childAt: i]) {
+          if unsafe !child.matches(handle[childAt: i]) {
             return false
           }
         }
       }
 
       for (i, key) in self.keys.enumerated() {
-        if handle[keyAt: i] != key {
+        if unsafe handle[keyAt: i] != key {
           return false
         }
       }
@@ -77,11 +77,11 @@ struct NodeTemplateBuilder {
       case let c as NodeTemplate:
         children.append(c)
       default:
-        preconditionFailure("NodeTemplate child must be either key or child.")
+        preconditionFailure("NodeTemplate child must be either key or child")
       }
     }
     precondition(children.count == 0 || children.count == keys.count + 1,
-                 "NodeTemplate must be either leaf or internal node.")
+                 "NodeTemplate must be either leaf or internal node")
     return NodeTemplate(keys: keys, children: children.isEmpty ? nil : children)
   }
 }

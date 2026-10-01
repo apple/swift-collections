@@ -105,7 +105,7 @@ extension TreeSet {
     var root = self._root
     for item in other {
       let hash = _Hash(item)
-      _ = root.insert(.top, (item, ()), hash)
+      _ = unsafe root.insert(.top, (item, ()), hash)
     }
     return Self(_new: root)
   }

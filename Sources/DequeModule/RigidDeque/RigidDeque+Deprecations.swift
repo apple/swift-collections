@@ -32,7 +32,7 @@ extension RigidDeque where Element: ~Copyable {
   @available(*, deprecated, renamed: "setCapacity(_:)")
   @_alwaysEmitIntoClient
   public mutating func reallocate(capacity newCapacity: Int) {
-    _handle.reallocate(capacity: newCapacity)
+    unsafe _handle.reallocate(capacity: newCapacity)
   }
 
   /// Replaces the specified range of elements by a given count of new items,
@@ -116,11 +116,12 @@ extension RigidDeque where Element: ~Copyable {
   /// - Complexity: O(`self.count` + `items.count`)
   @available(*, deprecated, renamed: "replaceSubrange(_:moving:)")
   @_alwaysEmitIntoClient
+  @unsafe
   public mutating func replace(
     removing subrange: Range<Int>,
     moving items: UnsafeMutableBufferPointer<Element>,
   ) {
-    replaceSubrange(subrange, moving: items)
+    unsafe replaceSubrange(subrange, moving: items)
   }
 
   /// Replaces the specified range of elements by moving the contents of an
@@ -155,6 +156,7 @@ extension RigidDeque where Element: ~Copyable {
     removing subrange: Range<Int>,
     moving items: inout OutputSpan<Element>
   ) {
+    self.replaceSubrange(subrange, moving: &items)
   }
 }
 
@@ -188,11 +190,12 @@ extension RigidDeque /* where Element: Copyable */ {
   /// - Complexity: O(`self.count` + `items.count`)
   @available(*, deprecated, renamed: "replaceSubrange(_:copying:)")
   @inlinable
+  @unsafe
   public mutating func replace(
     removing subrange: Range<Int>,
     copying items: UnsafeBufferPointer<Element>
   ) {
-    replaceSubrange(subrange, copying: items)
+    unsafe replaceSubrange(subrange, copying: items)
   }
 
   /// Replaces the specified subrange of elements by copying the elements of
@@ -223,11 +226,12 @@ extension RigidDeque /* where Element: Copyable */ {
   /// - Complexity: O(`self.count` + `items.count`)
   @available(*, deprecated, renamed: "replaceSubrange(_:copying:)")
   @inlinable
+  @unsafe
   public mutating func replace(
     removing subrange: Range<Int>,
     copying items: UnsafeMutableBufferPointer<Element>
   ) {
-    replaceSubrange(subrange, copying: items)
+    unsafe replaceSubrange(subrange, copying: items)
   }
 
   /// Replaces the specified subrange of elements by copying the elements of

@@ -34,14 +34,14 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
     scale: UInt8,
     capacity: Int,
   ) {
-    assert(scale != self._keys._table.scale || capacity != self.capacity)
+    assert(unsafe scale != self._keys._table.scale || capacity != self.capacity)
     assert(self.count <= capacity)
     assert(capacity <= _HTable.maximumCapacity(forScale: scale))
     assert(capacity >= _HTable.minimumCapacity(forScale: scale))
-    if scale != 0, scale == self._keys._table.scale {
+    if scale != 0, unsafe scale == self._keys._table.scale {
       // Large result with matching scales. We don't need to rehash or
       // reallocate, we just need to update the logical capacity.
-      self._keys._table._capacity = capacity
+      unsafe self._keys._table._capacity = capacity
       return
     }
 
@@ -51,36 +51,36 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
       return
     }
 
-    let sourceKeys = old._keys._members.unsafelyUnwrapped
-    let sourceValues = old._values
-    let targetKeys = self._keys._members.unsafelyUnwrapped
-    let targetValues = self._values
-    if self._keys._table.isSmall {
-      self._keys._table.migrateItems_Small(from: &old._keys._table) { src, dst in
-        (targetKeys + dst.offset).initialize(to: (sourceKeys + src.offset).move())
-        (targetValues + dst.offset).initialize(to: (sourceValues + src.offset).move())
+    let sourceKeys = unsafe old._keys._members.unsafelyUnwrapped
+    let sourceValues = unsafe old._values
+    let targetKeys = unsafe self._keys._members.unsafelyUnwrapped
+    let targetValues = unsafe self._values
+    if self._keys._isSmall {
+      unsafe self._keys._table.migrateItems_Small(from: &old._keys._table) { src, dst in
+        unsafe (targetKeys + dst.offset).initialize(to: (sourceKeys + src.offset).move())
+        unsafe (targetValues + dst.offset).initialize(to: (sourceValues + src.offset).move())
       }
     } else {
       let seed = self._keys._seed
-      var srcKey = sourceKeys
-      var srcValue = sourceValues
-      self._keys._table.migrateItems_Large(
+      var srcKey = unsafe sourceKeys
+      var srcValue = unsafe sourceValues
+      unsafe self._keys._table.migrateItems_Large(
         from: &old._keys._table,
         selector: {
-          srcKey = sourceKeys + $0.offset
-          srcValue = sourceValues + $0.offset
-          return srcKey.pointee._rawHashValue(seed: seed)
+          unsafe srcKey = sourceKeys + $0.offset
+          unsafe srcValue = sourceValues + $0.offset
+          return unsafe srcKey.pointee._rawHashValue(seed: seed)
         },
         hashGenerator: {
-          targetKeys[$0.offset]._rawHashValue(seed: seed)
+          unsafe targetKeys[$0.offset]._rawHashValue(seed: seed)
         },
         swapper: {
-          swap(&srcKey.pointee, &targetKeys[$0.offset])
-          swap(&srcValue.pointee, &targetValues[$0.offset])
+          unsafe swap(&srcKey.pointee, &targetKeys[$0.offset])
+          unsafe swap(&srcValue.pointee, &targetValues[$0.offset])
         },
         finalizer: {
-          (targetKeys + $0.offset).initialize(to: srcKey.move())
-          (targetValues + $0.offset).initialize(to: srcValue.move())
+          unsafe (targetKeys + $0.offset).initialize(to: srcKey.move())
+          unsafe (targetValues + $0.offset).initialize(to: srcValue.move())
         }
       )
     }

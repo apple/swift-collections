@@ -14,6 +14,8 @@ if(COLLECTIONS_SINGLE_MODULE)
 else()
   set(module_name TrailingElementsModule)
   add_library(TrailingElementsModule)
+  target_link_libraries(TrailingElementsModule PRIVATE
+    InternalCollectionsUtilities)
   set_target_properties(TrailingElementsModule PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
 

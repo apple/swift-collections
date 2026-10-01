@@ -43,12 +43,13 @@ extension Rope._Node {
     guard start != end else { return }
 
     if self.isLeaf {
-      self.readLeaf {
-        let l = $0.findSlot(at: start, in: metric, preferEnd: false)
-        let u = $0.findSlot(from: l, offsetBy: end - start, in: metric, preferEnd: true)
-        let c = $0.children
+      unsafe self.readLeaf {
+        let l = unsafe $0.findSlot(at: start, in: metric, preferEnd: false)
+        let u = unsafe $0.findSlot(
+          from: l, offsetBy: end - start, in: metric, preferEnd: true)
+        let c = unsafe $0.children
         if l.slot == u.slot {
-          var item = c[l.slot]
+          var item = unsafe c[l.slot]
           let i = metric.index(at: l.remaining, in: item.value)
           var item2 = item.split(at: i)
           let j = metric.index(
@@ -59,35 +60,36 @@ extension Rope._Node {
           return
         }
         assert(l.slot < u.slot)
-        var left = c[l.slot]
+        var left = unsafe c[l.slot]
         left = left.split(at: metric.index(at: l.remaining, in: left.value))
         builder._insertBeforeTip(left)
         for i in l.slot + 1 ..< u.slot {
-          builder._insertBeforeTip(c[i])
+          unsafe builder._insertBeforeTip(c[i])
         }
-        var right = c[u.slot]
+        var right = unsafe c[u.slot]
         _ = right.split(at: metric.index(at: u.remaining, in: right.value))
         builder._insertBeforeTip(right)
       }
       return
     }
 
-    self.readInner {
-      let l = $0.findSlot(at: start, in: metric, preferEnd: false)
-      let u = $0.findSlot(from: l, offsetBy: end - start, in: metric, preferEnd: true)
-      let c = $0.children
+    unsafe self.readInner {
+      let l = unsafe $0.findSlot(at: start, in: metric, preferEnd: false)
+      let u = unsafe $0.findSlot(from: l, offsetBy: end - start, in: metric, preferEnd: true)
+      let c = unsafe $0.children
       if l.slot == u.slot {
-        c[l.slot].extract(
+        unsafe c[l.slot].extract(
           from: l.remaining, to: u.remaining, in: metric, into: &builder)
         return
       }
       assert(l.slot < u.slot)
-      let lsize = metric._nonnegativeSize(of: c[l.slot].summary)
-      c[l.slot].extract(from: l.remaining, to: lsize, in: metric, into: &builder)
+      let lsize = metric._nonnegativeSize(of: unsafe c[l.slot].summary)
+      unsafe c[l.slot].extract(
+        from: l.remaining, to: lsize, in: metric, into: &builder)
       for i in l.slot + 1 ..< u.slot {
-        builder._insertBeforeTip(c[i])
+        builder._insertBeforeTip(unsafe c[i])
       }
-      c[u.slot].extract(from: 0, to: u.remaining, in: metric, into: &builder)
+      unsafe c[u.slot].extract(from: 0, to: u.remaining, in: metric, into: &builder)
     }
   }
 }

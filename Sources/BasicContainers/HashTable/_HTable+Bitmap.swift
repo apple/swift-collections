@@ -18,6 +18,7 @@ import InternalCollectionsUtilities
 extension _HTable {
   @usableFromInline
   @frozen
+  @safe
   package struct Bitmap: ~Copyable, ~Escapable {
     @usableFromInline
     package typealias Bucket = _HTable.Bucket
@@ -28,7 +29,7 @@ extension _HTable {
     @_alwaysEmitIntoClient
     @_lifetime(borrow table)
     package init(table: borrowing _HTable) {
-      self._words = .init(start: table._bitmap, count: table.wordCount)
+      unsafe self._words = .init(start: table._bitmap, count: table.wordCount)
     }
   }
 }
@@ -39,42 +40,43 @@ extension _HTable.Bitmap {
 
   @_transparent
   @inlinable
+  @safe
   package func isValid(_ bucket: Bucket) -> Bool {
-    bucket.word < _words.count
+    unsafe bucket.word < _words.count
   }
 
   @_transparent
   @inlinable
   package func isOccupied(_ bucket: Bucket) -> Bool {
     assert(isValid(bucket))
-    return _words[bucket.word].contains(bucket.bit)
+    return unsafe _words[bucket.word].contains(bucket.bit)
   }
 
   @_transparent
   @inlinable
   package func setOccupied(_ bucket: Bucket) {
     assert(isValid(bucket))
-    _words[bucket.word].set(bucket.bit)
+    unsafe _words[bucket.word].set(bucket.bit)
   }
 
   @_transparent
   @inlinable
   package func clearOccupied(_ bucket: Bucket) {
     assert(isValid(bucket))
-    _words[bucket.word].clear(bucket.bit)
+    unsafe _words[bucket.word].clear(bucket.bit)
   }
 
   @_transparent
   @inlinable
   package func clearAll() {
-    _words.update(repeating: .empty)
+    unsafe _words.update(repeating: .empty)
   }
 
   @_alwaysEmitIntoClient
   package func occupiedCount() -> Int {
     var c = 0
-    for i in 0 ..< _words.count {
-      c += _words[i].count
+    for i in unsafe 0 ..< _words.count {
+      unsafe c += _words[i].count
     }
     return c
   }
@@ -84,7 +86,7 @@ extension _HTable.Bitmap {
     guard isValid(start) else { return nil }
 
     var word = start.word
-    var bits = _words[word]
+    var bits = unsafe _words[word]
     bits.removeAll(upTo: start.bit)
 
     while true {
@@ -92,10 +94,10 @@ extension _HTable.Bitmap {
         return Bucket(word: word, bit: bit)
       }
       word &+= 1
-      if word >= _words.count {
+      if unsafe word >= _words.count {
         return nil
       }
-      bits = _words[word]
+      unsafe bits = _words[word]
     }
   }
 
@@ -103,16 +105,16 @@ extension _HTable.Bitmap {
   package func firstOccupiedBucket(
     from start: Bucket, limit: Bucket
   ) -> Bucket {
-    assert(isValid(start) && start <= limit && limit.word <= _words.count)
+    assert(unsafe isValid(start) && start <= limit && limit.word <= _words.count)
     var word = start.word
-    var bits = _words[word]
+    var bits = unsafe _words[word]
     bits.removeAll(upTo: start.bit)
     while word < limit.word {
       if let bit = bits.firstMember {
         return Bucket(word: word, bit: bit)
       }
       word &+= 1
-      bits = word < _words.count ? _words[word] : .empty
+      unsafe bits = word < _words.count ? _words[word] : .empty
     }
     bits.removeAll(from: limit.bit)
     if let bit = bits.firstMember {
@@ -127,7 +129,7 @@ extension _HTable.Bitmap {
   package func collisionChainEnd(from start: Bucket) -> Bucket {
     assert(isOccupied(start))
     var word = start.word
-    var bits = _words[word]
+    var bits = unsafe _words[word]
     bits.insertAll(upTo: start.bit)
     var wrapped = false
     while true {
@@ -136,12 +138,12 @@ extension _HTable.Bitmap {
         return Bucket(word: word, bit: bit)
       }
       word &+= 1
-      if word >= _words.count {
+      if unsafe word >= _words.count {
         precondition(!wrapped, "Corrupt hash table")
         wrapped = true
         word = 0
       }
-      bits = _words[word]
+      unsafe bits = _words[word]
     }
   }
 
@@ -153,9 +155,9 @@ extension _HTable.Bitmap {
   ) -> Bucket {
     assert(isValid(start))
     var word = start.word
-    var bits = _words[word]
+    var bits = unsafe _words[word]
     bits.insertAll(upTo: start.bit)
-    var remainder = Swift.min(
+    var remainder = unsafe Swift.min(
       UInt(bitPattern: maxCount) &+ start.bit,
       UInt(bitPattern: (_words.count &- start.word) &* Word.capacity))
     while true {
@@ -169,8 +171,8 @@ extension _HTable.Bitmap {
       word &+= 1
       remainder &-= Word._capacity
       guard remainder > 0 else { break }
-      assert(word < _words.count)
-      bits = _words[word]
+      assert(unsafe word < _words.count)
+      unsafe bits = _words[word]
     }
     return Bucket(word: word, bit: remainder)
   }
@@ -187,7 +189,7 @@ extension _HTable.Bitmap {
     let end = self._nextOccupiedChunkEnd(
       from: bucket,
       maxCount: Swift.min(maxCount, limit.offset &- bucket.offset))
-    let result = Range(uncheckedBounds: (bucket, end))
+    let result = unsafe Range(uncheckedBounds: (bucket, end))
     if isValid(end), !isOccupied(end) {
       bucket = firstOccupiedBucket(from: end, limit: limit)
     } else {

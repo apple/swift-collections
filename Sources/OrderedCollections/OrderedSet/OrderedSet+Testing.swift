@@ -50,8 +50,8 @@ extension OrderedSet {
 
   @_alwaysEmitIntoClient
   package static func _biasRange(scale: Int) -> Range<Int> {
-    guard scale != 0 else { return Range(uncheckedBounds: (0, 1)) }
-    return Range(uncheckedBounds: (0, (1 &<< scale) - 1))
+    guard scale != 0 else { return unsafe Range(uncheckedBounds: (0, 1)) }
+    return unsafe Range(uncheckedBounds: (0, (1 &<< scale) - 1))
   }
 }
 
@@ -67,8 +67,8 @@ extension OrderedSet._UnstableInternals {
 
   package var hashTableContents: [Int?] {
     guard let table = base._table else { return [] }
-    return table.read { hashTable in
-      hashTable.debugContents()
+    return unsafe table.read { hashTable in
+      unsafe hashTable.debugContents()
     }
   }
 
@@ -76,13 +76,13 @@ extension OrderedSet._UnstableInternals {
   package mutating func _regenerateHashTable(bias: Int) {
     base._ensureUnique()
     let new = base._table!.copy()
-    base._table!.read { source in
-      new.update { target in
-        target.bias = bias
-        var it = source.bucketIterator(startingAt: _Bucket(offset: 0))
+    unsafe base._table!.read { source in
+      unsafe new.update { target in
+        unsafe target.bias = bias
+        var it = unsafe source.bucketIterator(startingAt: _Bucket(offset: 0))
         repeat {
-          target[it.currentBucket] = it.currentValue
-          it.advance()
+          unsafe target[it.currentBucket] = it.currentValue
+          unsafe it.advance()
         } while it.currentBucket.offset != 0
       }
     }
@@ -113,8 +113,8 @@ extension OrderedSet {
     precondition(scale >= _HashTable.minimumScale || bias == 0)
     let table = _HashTable(scale: Swift.max(scale, _HashTable.minimumScale))
     table.header.bias = bias
-    let (success, index) = table.update { hashTable in
-      hashTable.fill(untilFirstDuplicateIn: contents)
+    let (success, index) = unsafe table.update { hashTable in
+      unsafe hashTable.fill(untilFirstDuplicateIn: contents)
     }
     precondition(success, "Duplicate element at index \(index)")
     self.init(

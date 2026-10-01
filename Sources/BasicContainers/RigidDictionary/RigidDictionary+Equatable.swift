@@ -22,7 +22,7 @@ import InternalCollectionsUtilities
 extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
   @inlinable
   public func isTriviallyIdentical(to other: borrowing Self) -> Bool {
-    self._keys.isTriviallyIdentical(to: other._keys)
+    unsafe self._keys.isTriviallyIdentical(to: other._keys)
     && self._values == other._values
   }
 }
@@ -38,16 +38,16 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
     
     guard self.count == other.count else { return false }
     
-    var it = self._keys._table.makeBucketIterator()
+    var it = unsafe self._keys._table.makeBucketIterator()
     while let next = it.nextOccupiedRegion() {
       var lb = next.lowerBound
       while lb < next.upperBound {
-        let res = other._find(self._keyPtr(at: lb).pointee)
+        let res = unsafe other._find(self._keyPtr(at: lb).pointee)
         guard let rb = res.bucket else { return false }
         
-        let lp = self._valuePtr(at: lb)
-        let rp = other._valuePtr(at: rb)
-        guard areEquivalent(lp.pointee, rp.pointee) else { return false }
+        let lp = unsafe self._valuePtr(at: lb)
+        let rp = unsafe other._valuePtr(at: rb)
+        guard unsafe areEquivalent(lp.pointee, rp.pointee) else { return false }
         lb._offset &+= 1
       }
     }

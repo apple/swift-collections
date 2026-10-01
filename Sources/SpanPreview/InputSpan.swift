@@ -45,7 +45,7 @@ public struct InputSpan<Element: ~Copyable>: ~Copyable, ~Escapable {
 
   @_lifetime(immortal)
   public init() {
-    _pointer = nil
+    unsafe _pointer = nil
     capacity = 0
     _count = 0
   }
@@ -79,7 +79,7 @@ extension InputSpan where Element: ~Copyable {
   internal func _unsafeAddressOfElement(
     uncheckedOffset offset: Index
   ) -> UnsafeMutablePointer<Element> {
-    _unsafeRawAddressOfSlot(
+    unsafe _unsafeRawAddressOfSlot(
       uncheckedOffset: offset
     ).assumingMemoryBound(to: Element.self)
   }
@@ -392,7 +392,7 @@ extension InputSpan where Element: ~Copyable {
   public mutating func removeFirst() -> Element {
     precondition(_count > 0, "InputSpan underflow")
     defer { _count &-= 1 }
-    return _unsafeAddressOfElement(uncheckedOffset: 0).move()
+    return unsafe _unsafeAddressOfElement(uncheckedOffset: 0).move()
   }
 
   /// Remove the last N elements of this span, returning the memory they occupy
@@ -446,11 +446,11 @@ extension InputSpan where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_lifetime(self: copy self)
   public mutating func prepend(moving source: UnsafeMutableBufferPointer<Element>) {
-    self.withUnsafeMutableBufferPointer { dst, dstCount in
+    unsafe self.withUnsafeMutableBufferPointer { dst, dstCount in
       let dstEnd = dst.count &- dstCount
       let dstStart = dstEnd - source.count
       precondition(dstStart >= 0, "InputSpan capacity overflow")
-      dst
+      unsafe dst
         ._extracting(uncheckedFrom: dstStart, to: dstEnd)
         .moveInitializeAll(fromContentsOf: source)
       dstCount &+= source.count
@@ -477,11 +477,11 @@ extension InputSpan /* where Element: Copyable */ {
   @inlinable
   @_lifetime(self: copy self)
   package mutating func prepend(copying source: UnsafeBufferPointer<Element>) {
-    self.withUnsafeMutableBufferPointer { dst, dstCount in
+    unsafe self.withUnsafeMutableBufferPointer { dst, dstCount in
       let dstEnd = dst.count &- dstCount
       let dstStart = dstEnd - source.count
       precondition(dstStart >= 0, "InputSpan capacity overflow")
-      dst
+      unsafe dst
         ._extracting(uncheckedFrom: dstStart, to: dstEnd)
         .initializeAll(fromContentsOf: source)
       dstCount &+= source.count
@@ -492,7 +492,7 @@ extension InputSpan /* where Element: Copyable */ {
   @_lifetime(self: copy self)
   package mutating func prepend(copying source: borrowing Span<Element>) {
     source.withUnsafeBufferPointer { src in
-      self.prepend(copying: src)
+      unsafe self.prepend(copying: src)
     }
   }
 }
@@ -532,7 +532,7 @@ extension InputSpan where Element: ~Copyable {
   public var span: Span<Element> {
     @_lifetime(borrow self)
     borrowing get {
-      _uncheckedSpan(in: 0 ..< _count)
+      unsafe _uncheckedSpan(in: 0 ..< _count)
     }
   }
 
@@ -542,7 +542,7 @@ extension InputSpan where Element: ~Copyable {
   public var mutableSpan: MutableSpan<Element> {
     @_lifetime(&self)
     mutating get {
-      _uncheckedMutableSpan(in: 0 ..< _count)
+      unsafe _uncheckedMutableSpan(in: 0 ..< _count)
     }
   }
 }
@@ -617,10 +617,10 @@ extension InputSpan where Element: ~Copyable {
     let buffer = unsafe _unsafeRawAddressOfSlot(
       uncheckedOffset: 0
     ).withMemoryRebound(to: Element.self, capacity: c) { start in
-      UnsafeMutableBufferPointer(start: start, count: c)
+      unsafe UnsafeMutableBufferPointer(start: start, count: c)
     }
     _count -= c
-    return _overrideLifetime(
+    return unsafe _overrideLifetime(
       InputSpan(buffer: buffer, initializedCount: c),
       mutating: &self)
   }
@@ -635,7 +635,7 @@ internal func _withTemporaryInputSpan<Element: ~Copyable, E: Error, R: ~Copyable
   try _withUnsafeTemporaryAllocation(
     of: Element.self, capacity: capacity
   ) { buffer throws(E) in
-    var span = InputSpan(buffer: buffer, initializedCount: 0)
+    var span = unsafe InputSpan(buffer: buffer, initializedCount: 0)
     return try body(&span)
   }
 }

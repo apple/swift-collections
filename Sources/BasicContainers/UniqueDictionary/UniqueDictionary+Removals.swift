@@ -19,17 +19,18 @@ extension UniqueDictionary where Key: ~Copyable, Value: ~Copyable {
   public mutating func removeValue(forKey key: borrowing Key) -> Value? {
     let r = _storage._keys._find(key)
     guard let bucket = r.bucket else { return nil }
-    return _removeValue(at: bucket)
+    return unsafe _removeValue(at: bucket)
   }
   
   @inlinable
+  @unsafe
   package mutating func _removeValue(at bucket: _Bucket) -> Value {
     guard self.count <= _HTable.minimumCapacity(forScale: self._scale) else {
       return _storage._removeValue(at: bucket)
     }
     
     // Shrink storage.
-    let result = _storage._punchHole(at: bucket)
+    let result = unsafe _storage._punchHole(at: bucket)
     _resize(minimumCapacity: self.count)
     return result
   }

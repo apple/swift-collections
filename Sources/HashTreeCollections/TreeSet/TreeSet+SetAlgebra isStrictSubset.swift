@@ -122,7 +122,7 @@ extension TreeSet {
       if self._root.containsKey(.top, item, hash) {
         if
           !doneCollecting,
-          seen.insert(.top, (item, ()), hash).inserted,
+          unsafe seen.insert(.top, (item, ()), hash).inserted,
           seen.count == self.count
         {
           if isStrict { return true }

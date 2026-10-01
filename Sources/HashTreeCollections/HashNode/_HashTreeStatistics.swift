@@ -93,37 +93,37 @@ extension _HashNode {
     _ level: _HashLevel, _ stats: inout _HashTreeStatistics
   ) {
     // The empty singleton does not count as a node and occupies no space.
-    if self.raw.storage === _emptySingleton { return }
+    if unsafe self.raw.storage === _emptySingleton { return }
 
-    read {
+    unsafe read {
       stats.nodeCount += 1
-      stats.itemCount += $0.itemCount
+      stats.itemCount += unsafe $0.itemCount
 
       if isCollisionNode {
         stats.collisionNodeCount += 1
-        stats.collisionCount += $0.itemCount
-        stats._collisionChainCount += $0.itemCount * ($0.itemCount - 1) / 2
+        stats.collisionCount += unsafe $0.itemCount
+        stats._collisionChainCount += unsafe $0.itemCount * ($0.itemCount - 1) / 2
       }
 
       let keyStride = MemoryLayout<Key>.stride
       let valueStride = MemoryLayout<Value>.stride
 
       stats.maxItemDepth = Swift.max(stats.maxItemDepth, level.depth)
-      stats._sumItemDepth += (level.depth + 1) * $0.itemCount
-      stats.capacityBytes += $0.byteCapacity
-      stats.freeBytes += $0.bytesFree
-      stats.itemBytes += $0.itemCount * (keyStride + valueStride)
-      stats.childBytes += $0.childCount * MemoryLayout<_RawHashNode>.stride
+      stats._sumItemDepth += unsafe (level.depth + 1) * $0.itemCount
+      stats.capacityBytes += unsafe $0.byteCapacity
+      stats.freeBytes += unsafe $0.bytesFree
+      stats.itemBytes += unsafe $0.itemCount * (keyStride + valueStride)
+      stats.childBytes += unsafe $0.childCount * MemoryLayout<_RawHashNode>.stride
 
       let objectHeaderSize = 2 * MemoryLayout<Int>.stride
 
       // Note: for simplicity, we assume that there is no padding between
       // the object header and the storage header.
-      let start = _getUnsafePointerToStoredProperties(self.raw.storage)
-      let end = $0._memory + $0.byteCapacity
-      stats.grossBytes += objectHeaderSize + (end - start)
+      let start = unsafe _getUnsafePointerToStoredProperties(self.raw.storage)
+      let end = unsafe $0._memory + $0.byteCapacity
+      stats.grossBytes += unsafe objectHeaderSize + (end - start)
 
-      for child in $0.children {
+      for unsafe child in unsafe $0.children {
         child.gatherStatistics(level.descend(), &stats)
       }
     }

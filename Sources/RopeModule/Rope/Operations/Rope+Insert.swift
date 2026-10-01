@@ -89,13 +89,13 @@ extension Rope._Node {
   ) -> Self? {
     ensureUnique()
     if height > 0 {
-      let (slot, remaining) = readInner {
-        $0.findSlot(at: position, in: metric, preferEnd: false)
+      let (slot, remaining) = unsafe readInner {
+        unsafe $0.findSlot(at: position, in: metric, preferEnd: false)
       }
       return _innerInsert(at: slot) { $0.insert(item, at: remaining, in: metric) }
     }
-    let (slot, remaining) = readLeaf {
-      $0.findSlot(at: position, in: metric, preferEnd: false)
+    let (slot, remaining) = unsafe readLeaf {
+      unsafe $0.findSlot(at: position, in: metric, preferEnd: false)
     }
     precondition(remaining == 0, "Inserted element doesn't fall on an element boundary")
     return _leafInsert(item, at: slot)
@@ -110,11 +110,11 @@ extension Rope._Node {
   ) -> Self? {
     assert(slot < childCount)
     var summary = self.summary
-    let spawn = updateInner {
-      let p = $0.mutableChildPtr(at: slot)
-      summary.subtract(p.pointee.summary)
-      let spawn = body(&p.pointee)
-      summary.add(p.pointee.summary)
+    let spawn = unsafe updateInner {
+      let p = unsafe $0.mutableChildPtr(at: slot)
+      unsafe summary.subtract(p.pointee.summary)
+      let spawn = unsafe body(&p.pointee)
+      unsafe summary.add(p.pointee.summary)
       return spawn
     }
     self.summary = summary
@@ -131,24 +131,24 @@ extension Rope._Node {
 #if true // Compress existing nodes if possible.
     if slot > 0 {
       // Try merging remainder into previous child.
-      updateInner {
-        let c = $0.mutableChildren
-        let s = c[slot - 1].childCount + c[slot].childCount
+      unsafe updateInner {
+        let c = unsafe $0.mutableChildren
+        let s = unsafe c[slot - 1].childCount + c[slot].childCount
         guard s <= Summary.maxNodeSize else { return }
-        Self.redistributeChildren(&c[slot - 1], &c[slot], to: s)
-        let removed = $0._removeChild(at: slot)
+        unsafe Self.redistributeChildren(&c[slot - 1], &c[slot], to: s)
+        let removed = unsafe $0._removeChild(at: slot)
         assert(removed.childCount == 0)
         nextSlot -= 1
       }
     }
     if nextSlot < childCount {
       // Try merging new spawn into subsequent child.
-      let merged: Summary? = updateInner {
-        let c = $0.mutableChildren
-        let s = spawn.childCount + c[nextSlot].childCount
+      let merged: Summary? = unsafe updateInner {
+        let c = unsafe $0.mutableChildren
+        let s = unsafe spawn.childCount + c[nextSlot].childCount
         guard s <= Summary.maxNodeSize else { return nil }
         let summary = spawn.summary
-        Self.redistributeChildren(&spawn, &c[nextSlot], to: 0)
+        unsafe Self.redistributeChildren(&spawn, &c[nextSlot], to: 0)
         assert(spawn.childCount == 0)
         return summary
       }
@@ -203,18 +203,18 @@ extension Rope._Node {
     _ item: inout _Item, at slot: Int
   ) -> Bool {
     assert(item.isUndersized)
-    let r = updateLeaf { (h) -> (merged: Bool, delta: Summary) in
+    let r = unsafe updateLeaf { (h) -> (merged: Bool, delta: Summary) in
       if slot > 0 {
-        let p = h.mutableChildPtr(at: slot - 1)
-        let sum = p.pointee.summary
-        let merged = p.pointee.rebalance(nextNeighbor: &item)
-        let delta = p.pointee.summary.subtracting(sum)
+        let p = unsafe h.mutableChildPtr(at: slot - 1)
+        let sum = unsafe p.pointee.summary
+        let merged = unsafe p.pointee.rebalance(nextNeighbor: &item)
+        let delta = unsafe p.pointee.summary.subtracting(sum)
         return (merged, delta)
       }
-      let p = h.mutableChildPtr(at: slot)
-      let sum = p.pointee.summary
-      let merged = p.pointee.rebalance(prevNeighbor: &item)
-      let delta = p.pointee.summary.subtracting(sum)
+      let p = unsafe h.mutableChildPtr(at: slot)
+      let sum = unsafe p.pointee.summary
+      let merged = unsafe p.pointee.rebalance(prevNeighbor: &item)
+      let delta = unsafe p.pointee.summary.subtracting(sum)
       return (merged, delta)
     }
     self.summary.add(r.delta)

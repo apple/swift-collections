@@ -70,11 +70,12 @@ extension RigidArray where Element: ~Copyable {
     precondition(
       newItemCount - subrange.count <= freeCapacity,
       "RigidArray capacity overflow")
-    return try _uncheckedReplaceSubrange(
+    return unsafe try _uncheckedReplaceSubrange(
       subrange, addingCount: newItemCount, initializingWith: initializer)
   }
 
   @_alwaysEmitIntoClient
+  @unsafe
   internal mutating func _uncheckedReplaceSubrange<E: Error>(
     _ subrange: Range<Int>,
     addingCount newItemCount: Int,
@@ -82,20 +83,20 @@ extension RigidArray where Element: ~Copyable {
   ) throws(E) -> Range<Int> {
     // Destroy removed items
     unsafe _items.extracting(subrange).deinitialize()
-    let target = _resizeGap(in: subrange, to: newItemCount)
-    var span = OutputSpan(buffer: target, initializedCount: 0)
+    let target = unsafe _resizeGap(in: subrange, to: newItemCount)
+    var span = unsafe OutputSpan(buffer: target, initializedCount: 0)
     defer {
-      let c = span.finalize(for: target)
+      let c = unsafe span.finalize(for: target)
       if c < newItemCount {
-        self._closeGap(
+        unsafe self._closeGap(
           at: subrange.lowerBound &+ c,
           count: newItemCount &- c)
-        _count &-= newItemCount &- c
+        unsafe _count &-= newItemCount &- c
       }
       span = OutputSpan()
     }
     try initializer(&span)
-    return Range(uncheckedBounds: (
+    return unsafe Range(uncheckedBounds: (
       subrange.lowerBound, subrange.lowerBound + newItemCount))
   }
 }
@@ -163,7 +164,7 @@ extension RigidArray where Element: ~Copyable {
     precondition(
       newItemCount - subrange.count <= freeCapacity,
       "RigidArray capacity overflow")
-    return try _uncheckedReplaceSubrange(
+    return unsafe try _uncheckedReplaceSubrange(
       subrange,
       consumingWith: consumer,
       addingCount: newItemCount,
@@ -171,6 +172,7 @@ extension RigidArray where Element: ~Copyable {
   }
 
   @_alwaysEmitIntoClient
+  @unsafe
   internal mutating func _uncheckedReplaceSubrange<E: Error>(
     _ subrange: Range<Int>,
     consumingWith consumer: (inout InputSpan<Element>) -> Void,
@@ -180,27 +182,27 @@ extension RigidArray where Element: ~Copyable {
     do {
       // Consume items to be removed
       let buffer = unsafe _storage.extracting(subrange)
-      var span = InputSpan(buffer: buffer, initializedCount: buffer.count)
+      var span = unsafe InputSpan(buffer: buffer, initializedCount: buffer.count)
       consumer(&span)
       _ = consume span
     }
     do {
       // Insert new items
-      let target = _resizeGap(in: subrange, to: newItemCount)
-      var span = OutputSpan(buffer: target, initializedCount: 0)
+      let target = unsafe _resizeGap(in: subrange, to: newItemCount)
+      var span = unsafe OutputSpan(buffer: target, initializedCount: 0)
       defer {
-        let c = span.finalize(for: target)
+        let c = unsafe span.finalize(for: target)
         if c < newItemCount {
-          self._closeGap(
+          unsafe self._closeGap(
             at: subrange.lowerBound &+ c,
             count: newItemCount &- c)
-          _count &-= newItemCount &- c
+          unsafe _count &-= newItemCount &- c
         }
         span = OutputSpan()
       }
       try initializer(&span)
     }
-    return Range(uncheckedBounds: (
+    return unsafe Range(uncheckedBounds: (
       subrange.lowerBound, subrange.lowerBound + newItemCount))
   }
 #endif
@@ -244,7 +246,7 @@ extension RigidArray where Element: ~Copyable {
     moving newElements: UnsafeMutableBufferPointer<Element>,
   ) -> Range<Int> {
     replaceSubrange(subrange, addingCount: newElements.count) { target in
-      target.withUnsafeMutableBufferPointer { buffer, count in
+      unsafe target.withUnsafeMutableBufferPointer { buffer, count in
         count = unsafe buffer._moveInitializePrefix(from: newElements)
       }
     }
@@ -283,8 +285,8 @@ extension RigidArray where Element: ~Copyable {
     _ subrange: Range<Int>,
     moving items: inout InputSpan<Element>
   ) -> Range<Int> {
-    items.withUnsafeMutableBufferPointer { buffer, count in
-      let source = buffer._extracting(last: count)
+    unsafe items.withUnsafeMutableBufferPointer { buffer, count in
+      let source = unsafe buffer._extracting(last: count)
       count = 0
       return unsafe self.replaceSubrange(subrange, moving: source)
     }
@@ -323,8 +325,8 @@ extension RigidArray where Element: ~Copyable {
     _ subrange: Range<Int>,
     moving items: inout OutputSpan<Element>
   ) -> Range<Int> {
-    items.withUnsafeMutableBufferPointer { buffer, count in
-      let source = buffer._extracting(first: count)
+    unsafe items.withUnsafeMutableBufferPointer { buffer, count in
+      let source = unsafe buffer._extracting(first: count)
       count = 0
       return unsafe self.replaceSubrange(subrange, moving: source)
     }
@@ -366,7 +368,7 @@ extension RigidArray where Element: ~Copyable {
   ) -> Range<Int> {
     // FIXME: Remove this in favor of the generic algorithm over DrainableContainer
     unsafe newElements._unsafeEdit { buffer, count in
-      let source = buffer._extracting(first: count)
+      let source = unsafe buffer._extracting(first: count)
       count = 0
       return unsafe self.replaceSubrange(subrange, moving: source)
     }
@@ -447,7 +449,7 @@ extension RigidArray {
     copying newElements: UnsafeBufferPointer<Element>
   ) -> Range<Int> {
     replaceSubrange(subrange, addingCount: newElements.count) { target in
-      target.withUnsafeMutableBufferPointer { buffer, count in
+      unsafe target.withUnsafeMutableBufferPointer { buffer, count in
         count = unsafe buffer._initializePrefix(copying: newElements)
       }
     }
@@ -481,6 +483,7 @@ extension RigidArray {
   /// - Complexity: O(`self.count` + `newElements.count`)
   @_alwaysEmitIntoClient
   @discardableResult
+  @unsafe
   public mutating func replaceSubrange(
     _ subrange: Range<Int>,
     copying newElements: UnsafeMutableBufferPointer<Element>
@@ -534,7 +537,7 @@ extension RigidArray {
     newCount: Int
   ) -> Range<Int> {
     self.replaceSubrange(subrange, addingCount: newCount) { target in
-      target.withUnsafeMutableBufferPointer { dst, dstCount in
+      unsafe target.withUnsafeMutableBufferPointer { dst, dstCount in
         let done: Void? = newElements.withContiguousStorageIfAvailable { src in
           let i = unsafe dst._initializePrefix(copying: src)
           precondition(

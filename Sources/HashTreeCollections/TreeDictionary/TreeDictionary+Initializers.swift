@@ -84,8 +84,8 @@ extension TreeDictionary {
     self.init()
     for item in keysAndValues {
       let hash = _Hash(item.0)
-      let r = _root.insert(.top, item, hash)
-      precondition(r.inserted, "Duplicate key: '\(item.0)'")
+      let r = unsafe _root.insert(.top, item, hash)
+      precondition(unsafe r.inserted, "Duplicate key: '\(item.0)'")
     }
     _invariantCheck()
   }
@@ -133,8 +133,8 @@ extension TreeDictionary {
     self.init()
     for item in keysAndValues {
       let hash = _Hash(item.key)
-      let r = _root.insert(.top, item, hash)
-      precondition(r.inserted, "Duplicate key: '\(item.key)'")
+      let r = unsafe _root.insert(.top, item, hash)
+      precondition(unsafe r.inserted, "Duplicate key: '\(item.key)'")
     }
     _invariantCheck()
   }

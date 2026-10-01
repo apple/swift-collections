@@ -157,14 +157,14 @@ extension BitArray {
 
 extension BitArray {
   public mutating func toggleAll() {
-    _update { handle in
-      let w = handle._mutableWords
-      for i in 0 ..< handle._words.count {
-        w[i].formComplement()
+    unsafe _update { handle in
+      let w = unsafe handle._mutableWords
+      for i in unsafe 0 ..< handle._words.count {
+        unsafe w[i].formComplement()
       }
       let p = handle.end
       if p.bit > 0 {
-        w[p.word].subtract(_Word(upTo: p.bit).complement())
+        unsafe w[p.word].subtract(_Word(upTo: p.bit).complement())
       }
     }
     _checkInvariants()
@@ -173,22 +173,22 @@ extension BitArray {
   public mutating func toggleAll(in range: Range<Int>) {
     precondition(range.upperBound <= count, "Range out of bounds")
     guard !range.isEmpty else { return }
-    _update { handle in
-      let words = handle._mutableWords
+    unsafe _update { handle in
+      let words = unsafe handle._mutableWords
       let start = _BitPosition(range.lowerBound)
       let end = _BitPosition(range.upperBound)
       if start.word == end.word {
         let bits = _Word(from: start.bit, to: end.bit)
-        words[start.word].formSymmetricDifference(bits)
+        unsafe words[start.word].formSymmetricDifference(bits)
         return
       }
-      words[start.word].formSymmetricDifference(
+      unsafe words[start.word].formSymmetricDifference(
         _Word(upTo: start.bit).complement())
       for i in stride(from: start.word + 1, to: end.word, by: 1) {
-        words[i].formComplement()
+        unsafe words[i].formComplement()
       }
       if end.bit > 0 {
-        words[end.word].formSymmetricDifference(_Word(upTo: end.bit))
+        unsafe words[end.word].formSymmetricDifference(_Word(upTo: end.bit))
       }
     }
   }

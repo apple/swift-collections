@@ -71,7 +71,7 @@ extension OrderedDictionary {
     let c = range.count
     if c > 0, range.lowerBound != destination {
       _values.withUnsafeMutableBufferPointer { values in
-        values._moveSubrange(
+        unsafe values._moveSubrange(
           range.lowerBound ..< range.lowerBound + c, toOffset: destination)
       }
     }
@@ -109,9 +109,9 @@ extension OrderedDictionary {
     to destination: Index
   ) {
     _values.withUnsafeMutableBufferPointer { values in
-      _keys._move(members: keys, to: destination) {
+      unsafe _keys._move(members: keys, to: destination) {
         sourceOffsets, sortedSources, isContiguousRange, target in
-        values._move(
+        unsafe values._move(
           sourceOffsets: sourceOffsets,
           sortedSources: sortedSources,
           isContiguousRange: isContiguousRange,
@@ -150,9 +150,9 @@ extension OrderedDictionary {
     to destination: Index
   ) {
     _values.withUnsafeMutableBufferPointer { values in
-      _keys._move(indices: indices, to: destination) {
+      unsafe _keys._move(indices: indices, to: destination) {
         sourceOffsets, sortedSources, isContiguousRange, target in
-        values._move(
+        unsafe values._move(
           sourceOffsets: sourceOffsets,
           sortedSources: sortedSources,
           isContiguousRange: isContiguousRange,

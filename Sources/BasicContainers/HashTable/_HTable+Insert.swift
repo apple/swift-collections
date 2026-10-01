@@ -17,13 +17,13 @@ extension _HTable {
     swapper: (Bucket) -> Void,
   ) -> Bucket {
     assert(isSmall)
-    if _count > 0 {
+    if self.count > 0 {
       // Scramble order by swapping the new item in the middle of the table.
-      swapper(Bucket(offset: _count / 2))
+      swapper(Bucket(offset: self.count / 2))
     }
-    let r = Bucket(offset: _count)
-    _count &+= 1
-    _maxProbeLength = _count
+    let r = Bucket(offset: self.count)
+    unsafe _count &+= 1
+    _maxProbeLength = self.count
     return r
   }
 
@@ -75,7 +75,7 @@ extension _HTable {
       probeLength &+= 1
     }
     bitmap.setOccupied(b)
-    _count &+= 1
+    unsafe _count &+= 1
     if probeLength > _maxProbeLength {
       _maxProbeLength = probeLength
     }

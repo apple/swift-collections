@@ -28,9 +28,9 @@ extension BitSet {
   ///
   /// - Complexity: O(*max*), where *max* is the largest item in either set.
   public func intersection(_ other: BitSet) -> BitSet {
-    self._read { first in
-      other._read { second in
-        Self(
+    unsafe self._read { first in
+      unsafe other._read { second in
+        unsafe Self(
           _combining: (first, second),
           includingTail: false,
           using: { $0.intersection($1) })

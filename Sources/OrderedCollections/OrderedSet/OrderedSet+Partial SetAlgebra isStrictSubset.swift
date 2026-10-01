@@ -140,13 +140,13 @@ extension OrderedSet {
       return !other.allSatisfy { self.contains($0) }
     }
 
-    return _UnsafeBitSet.withTemporaryBitSet(capacity: count) { seen in
+    return unsafe _UnsafeBitSet.withTemporaryBitSet(capacity: count) { seen in
       // Mark elements in `self` that we've seen in `other`.
       var isKnownStrict = false
       var c = 0
       for item in other {
         if let index = _find(item).index {
-          if seen.insert(index) {
+          if unsafe seen.insert(index) {
             c &+= 1
             if c == self.count, isKnownStrict {
               // We've seen enough.

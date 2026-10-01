@@ -98,7 +98,7 @@ extension OrderedSet.SubSequence: Sequence {
       }
       let c = Swift.min(buffer.count, ptr.count)
       if c > 0 {
-        p.initialize(from: buffer.baseAddress!, count: c)
+        unsafe p.initialize(from: buffer.baseAddress!, count: c)
       }
       return c
     }

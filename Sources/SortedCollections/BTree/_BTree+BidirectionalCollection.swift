@@ -23,7 +23,7 @@ extension _BTree: BidirectionalCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  package var count: Int { self.root.storage.header.subtreeCount }
+  package var count: Int { unsafe self.root.storage.header.subtreeCount }
 
   /// A Boolean value that indicates whether the BTree is empty.
   @inlinable
@@ -37,15 +37,15 @@ extension _BTree: BidirectionalCollection {
   package var startIndex: Index {
     if count == 0 { return endIndex }
     var depth: Int8 = 0
-    var currentNode: Unmanaged = .passUnretained(self.root.storage)
+    var currentNode: Unmanaged = unsafe .passUnretained(self.root.storage)
     while true {
-      let shouldStop: Bool = currentNode._withUnsafeGuaranteedRef {
-        $0.read { handle in
+      let shouldStop: Bool = unsafe currentNode._withUnsafeGuaranteedRef {
+        unsafe $0.read { handle in
           if handle.isLeaf {
             return true
           } else {
             depth += 1
-            currentNode = .passUnretained(handle[childAt: 0].storage)
+            unsafe currentNode = .passUnretained(handle[childAt: 0].storage)
             return false
           }
         }
@@ -54,7 +54,7 @@ extension _BTree: BidirectionalCollection {
       if shouldStop { break }
     }
     
-    return Index(
+    return unsafe Index(
       node: currentNode,
       slot: 0,
       childSlots: _FixedSizeArray(repeating: 0, depth: depth),
@@ -67,7 +67,7 @@ extension _BTree: BidirectionalCollection {
   /// - Complexity: O(1)
   @inlinable
   package var endIndex: Index {
-    Index(
+    unsafe Index(
       node: .passUnretained(self.root.storage),
       slot: -1,
       childSlots: Index.Offsets(repeating: 0),
@@ -94,12 +94,12 @@ extension _BTree: BidirectionalCollection {
   @inlinable
   package func formIndex(after index: inout Index) {
     precondition(index.offset < self.count,
-                 "Attempt to advance out of collection bounds.")
+                 "Attempt to advance out of collection bounds")
     
     // TODO: this might be redundant given the fact the same (but generalized)
     // logic is implemented in offsetBy
-    let shouldSeekWithinLeaf = index.readNode {
-      $0.isLeaf && _fastPath(index.slot + 1 < $0.elementCount)
+    let shouldSeekWithinLeaf = unsafe index.readNode {
+      unsafe $0.isLeaf && _fastPath(index.slot + 1 < $0.elementCount)
     }
     
     if shouldSeekWithinLeaf {
@@ -128,7 +128,7 @@ extension _BTree: BidirectionalCollection {
   @inlinable
   package func formIndex(before index: inout Index) {
     precondition(!self.isEmpty && index.offset != 0,
-                 "Attempt to advance out of collection bounds.")
+                 "Attempt to advance out of collection bounds")
     self.formIndex(&index, offsetBy: -1)
   }
   
@@ -155,7 +155,7 @@ extension _BTree: BidirectionalCollection {
   package func formIndex(_ i: inout Index, offsetBy distance: Int) {
     let newIndex = i.offset + distance
     precondition(0 <= newIndex && newIndex <= self.count,
-                 "Attempt to advance out of collection bounds.")
+                 "Attempt to advance out of collection bounds")
     
     if newIndex == self.count {
       i = endIndex
@@ -164,10 +164,10 @@ extension _BTree: BidirectionalCollection {
     
     // TODO: optimization for searching within children
     
-    if i != endIndex && i.readNode({ $0.isLeaf }) {
+    if unsafe i != endIndex && i.readNode({ $0.isLeaf }) {
       // Check if the target element will be in the same node
       let targetSlot = i.slot + distance
-      if 0 <= targetSlot && targetSlot < i.readNode({ $0.elementCount }) {
+      if unsafe 0 <= targetSlot && targetSlot < i.readNode({ unsafe $0.elementCount }) {
         i.slot = targetSlot
         i.offset = newIndex
         return
@@ -197,7 +197,7 @@ extension _BTree: BidirectionalCollection {
   @inline(__always)
   package subscript(index: Index) -> Element {
     // Ensure we don't attempt to dereference the endIndex
-    precondition(index != endIndex, "Attempt to subscript out of range index.")
+    precondition(index != endIndex, "Attempt to subscript out of range index")
     return index.element
   }
   

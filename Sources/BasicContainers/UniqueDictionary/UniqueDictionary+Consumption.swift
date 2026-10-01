@@ -32,13 +32,14 @@ extension UniqueDictionary where Key: ~Copyable, Value: ~Copyable {
 #endif
   
   @inlinable
+  @unsafe
   public mutating func _consumeAll(
     consumingWith consumer: (
       UnsafeMutableBufferPointer<Key>,
       UnsafeMutableBufferPointer<Value>
     ) -> Void
   ) {
-    _storage._consumeAll(consumingWith: consumer)
+    unsafe _storage._consumeAll(consumingWith: consumer)
   }
 }
 

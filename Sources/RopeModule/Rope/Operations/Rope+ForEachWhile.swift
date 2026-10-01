@@ -40,18 +40,18 @@ extension Rope._Node {
     _ body: (Element) -> Bool
   ) -> Bool {
     if isLeaf {
-      return readLeaf {
-        let c = $0.children
+      return unsafe readLeaf {
+        let c = unsafe $0.children
         for i in 0 ..< c.count {
-          guard body(c[i].value) else { return false }
+          guard unsafe body(c[i].value) else { return false }
         }
         return true
       }
     }
-    return readInner {
-      let c = $0.children
+    return unsafe readInner {
+      let c = unsafe $0.children
       for i in 0 ..< c.count {
-        guard c[i].forEachWhile(body) else { return false }
+        guard unsafe c[i].forEachWhile(body) else { return false }
       }
       return true
     }
@@ -64,26 +64,27 @@ extension Rope._Node {
     _ body: (Element, Element.Index?) -> Bool
   ) -> Bool {
     if isLeaf {
-      return readLeaf {
-        let c = $0.children
-        var (slot, rem) = $0.findSlot(at: position, in: metric, preferEnd: false)
-        let i = metric.index(at: rem, in: c[slot].value)
-        if !body(c[slot].value, i) { return false }
+      return unsafe readLeaf {
+        let c = unsafe $0.children
+        var (slot, rem) = unsafe $0.findSlot(
+          at: position, in: metric, preferEnd: false)
+        let i = metric.index(at: rem, in: unsafe c[slot].value)
+        if !body(unsafe c[slot].value, i) { return false }
         slot += 1
         while slot < c.count {
-          if !body(c[slot].value, nil) { return false }
+          if !body(unsafe c[slot].value, nil) { return false }
           slot += 1
         }
         return true
       }
     }
-    return readInner {
-      let c = $0.children
-      var (slot, rem) = $0.findSlot(at: position, in: metric, preferEnd: false)
-      if !c[slot].forEachWhile(from: rem, in: metric, body) { return false }
+    return unsafe readInner {
+      let c = unsafe $0.children
+      var (slot, rem) = unsafe $0.findSlot(at: position, in: metric, preferEnd: false)
+      if unsafe !c[slot].forEachWhile(from: rem, in: metric, body) { return false }
       slot += 1
       while slot < c.count {
-        if !c[slot].forEachWhile({ body($0, nil) }) { return false }
+        if unsafe !c[slot].forEachWhile({ body($0, nil) }) { return false }
         slot += 1
       }
       return true

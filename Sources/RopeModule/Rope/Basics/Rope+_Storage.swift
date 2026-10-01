@@ -13,6 +13,7 @@
 
 @usableFromInline
 @frozen // Not really! This module isn't ABI stable.
+@safe
 internal struct _RopeStorageHeader {
   @usableFromInline var _childCount: UInt16
   @usableFromInline let height: UInt8
@@ -46,14 +47,14 @@ extension Rope {
     @inlinable
     internal static func create(height: UInt8) -> _Storage {
       let object = create(minimumCapacity: Summary.maxNodeSize) { _ in .init(height: height) }
-      return unsafeDowncast(object, to: _Storage.self)
+      return unsafe unsafeDowncast(object, to: _Storage.self)
     }
 
     @inlinable
     deinit {
-      withUnsafeMutablePointers { h, p in
-        p.deinitialize(count: h.pointee.childCount)
-        h.pointee._childCount = .max
+      unsafe withUnsafeMutablePointers { h, p in
+        unsafe p.deinitialize(count: h.pointee.childCount)
+        unsafe h.pointee._childCount = .max
       }
     }
   }

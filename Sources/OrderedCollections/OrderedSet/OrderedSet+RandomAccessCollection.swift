@@ -39,7 +39,7 @@ extension OrderedSet: Sequence {
         preconditionFailure("Attempt to copy contents into nil buffer pointer")
       }
       let c = Swift.min(buffer.count, ptr.count)
-      p.initialize(from: buffer.baseAddress!, count: c)
+      unsafe p.initialize(from: buffer.baseAddress!, count: c)
       return c
     }
     return (Iterator(_elements: self, _position: copied), copied)
@@ -273,8 +273,8 @@ extension OrderedSet: RandomAccessCollection {
     guard let table = _table else {
       return _elements._customIndexOfEquatableElement(element)
     }
-    return table.read { hashTable in
-      let (o, _) = hashTable._find(element, in: _elements)
+    return unsafe table.read { hashTable in
+      let (o, _) = unsafe hashTable._find(element, in: _elements)
       guard let offset = o else { return .some(nil) }
       return offset
     }

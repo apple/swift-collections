@@ -45,7 +45,7 @@ extension SortedSet: Decodable where Element: Decodable {
       guard previousElement == nil || previousElement! < element else {
         let context = DecodingError.Context(
           codingPath: container.codingPath,
-          debugDescription: "Decoded elements out of order.")
+          debugDescription: "Decoded elements out of order")
         throw DecodingError.dataCorrupted(context)
       }
       builder.append(element)

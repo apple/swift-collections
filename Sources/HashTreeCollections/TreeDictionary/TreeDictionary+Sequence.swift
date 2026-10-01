@@ -18,6 +18,7 @@ extension TreeDictionary: Sequence {
 
   /// The type that allows iteration over a persistent dictionary's elements.
   @frozen
+  @safe
   public struct Iterator {
     // Fixed-stack iterator for traversing a hash tree.
     // The iterator performs a pre-order traversal, with items at a node visited
@@ -27,11 +28,12 @@ extension TreeDictionary: Sequence {
     internal typealias _UnsafeHandle = _Node.UnsafeHandle
 
     @usableFromInline
+    @unsafe
     internal var _it: _HashTreeIterator
 
     @inlinable
     internal init(_root: _RawHashNode) {
-      self._it = _HashTreeIterator(root: _root)
+      unsafe self._it = _HashTreeIterator(root: _root)
     }
   }
 
@@ -69,7 +71,7 @@ extension TreeDictionary.Iterator: IteratorProtocol {
   /// - Complexity: O(1)
   @inlinable
   public mutating func next() -> Element? {
-    guard let (node, slot) = _it.next() else { return nil }
-    return _UnsafeHandle.read(node) { $0[item: slot] }
+    guard let (node, slot) = unsafe _it.next() else { return nil }
+    return unsafe _UnsafeHandle.read(node) { unsafe $0[item: slot] }
   }
 }

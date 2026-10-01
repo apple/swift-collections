@@ -47,7 +47,7 @@ extension OrderedSet {
     var result = Self()
     for item in self {
       if other.contains(item) {
-        result._appendNew(item)
+        unsafe result._appendNew(item)
       }
     }
     result._checkInvariants()
@@ -99,13 +99,13 @@ extension OrderedSet {
   public __consuming func intersection(
     _ other: some Sequence<Element>
   ) -> Self {
-    _UnsafeBitSet.withTemporaryBitSet(capacity: self.count) { bitset in
+    unsafe _UnsafeBitSet.withTemporaryBitSet(capacity: self.count) { bitset in
       for item in other {
         if let index = self._find_inlined(item).index {
-          bitset.insert(index)
+          unsafe bitset.insert(index)
         }
       }
-      return self._extractSubset(using: bitset)
+      return unsafe self._extractSubset(using: bitset)
     }
   }
 }

@@ -103,10 +103,10 @@ extension TreeSet {
     var result: _Node = ._emptyNode()
     for item in other {
       let hash = _Hash(item)
-      if let r = self._root.lookup(.top, item, hash) {
-        let itemInSelf = _UnsafeHandle.read(r.node) { $0[item: r.slot] }
-        _ = result.updateValue(.top, forKey: itemInSelf.key, hash) {
-          $0.initialize(to: itemInSelf)
+      if let r = unsafe self._root.lookup(.top, item, hash) {
+        let itemInSelf = unsafe _UnsafeHandle.read(r.node) { unsafe $0[item: r.slot] }
+        _ = unsafe result.updateValue(.top, forKey: itemInSelf.key, hash) {
+          unsafe $0.initialize(to: itemInSelf)
         }
       }
     }

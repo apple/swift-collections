@@ -82,7 +82,7 @@ extension OrderedDictionary: Decodable where Key: Decodable, Value: Decodable {
         )
       }
       let value = try container.decode(Value.self)
-      _keys._appendNew(key, in: bucket)
+      unsafe _keys._appendNew(key, in: bucket)
       _values.append(value)
     }
     _checkInvariants()

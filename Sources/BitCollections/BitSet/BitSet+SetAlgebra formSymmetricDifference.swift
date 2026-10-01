@@ -29,9 +29,9 @@ extension BitSet {
   /// - Complexity: O(*max*), where *max* is the largest item in either set.
   public mutating func formSymmetricDifference(_ other: BitSet) {
     _ensureCapacity(limit: other._capacity)
-    _updateThenShrink { target, shrink in
-      other._read { source in
-        target.combineSharedPrefix(
+    unsafe _updateThenShrink { target, shrink in
+      unsafe other._read { source in
+        unsafe target.combineSharedPrefix(
           with: source, using: { $0.formSymmetricDifference($1) })
       }
     }
@@ -68,8 +68,8 @@ extension BitSet {
     }
     guard !other.isEmpty else { return }
     _ensureCapacity(limit: other.upperBound)
-    _updateThenShrink { handle, shrink in
-      handle.formSymmetricDifference(other)
+    unsafe _updateThenShrink { handle, shrink in
+      unsafe handle.formSymmetricDifference(other)
     }
   }
 

@@ -34,7 +34,7 @@ extension BigString._Chunk {
 
     var i = i
 
-    while UTF8.isContinuation(_bytes[i.utf8Offset]) {
+    while UTF8.isContinuation(unsafe _bytes[i.utf8Offset]) {
       i = i.offset(by: -1)
     }
 
@@ -46,7 +46,7 @@ extension BigString._Chunk {
 
     i = i.offset(by: 1)
 
-    while i < endIndex, UTF8.isContinuation(_bytes[i.utf8Offset]) {
+    while i < endIndex, UTF8.isContinuation(unsafe _bytes[i.utf8Offset]) {
       i = i.offset(by: 1)
     }
 
@@ -58,7 +58,7 @@ extension BigString._Chunk {
 
     i = i.offset(by: -1)
 
-    while i > startIndex, UTF8.isContinuation(_bytes[i.utf8Offset]) {
+    while i > startIndex, UTF8.isContinuation(unsafe _bytes[i.utf8Offset]) {
       i = i.offset(by: -1)
     }
 
@@ -108,7 +108,7 @@ extension BigString._Chunk {
 
     let i = scalarIndex(roundingDown: i)
 
-    let x = _bytes[i.utf8Offset]
+    let x = unsafe _bytes[i.utf8Offset]
 
     if UTF8.isASCII(x) {
       return Unicode.Scalar(x)
@@ -117,22 +117,22 @@ extension BigString._Chunk {
     switch utf8ScalarLength(x) {
     case 2:
       let x = UInt32(x & 0b0001_1111)
-      let cont = UInt32(_bytes[i.offset(by: 1).utf8Offset] & 0b0011_1111)
+      let cont = UInt32(unsafe _bytes[i.offset(by: 1).utf8Offset] & 0b0011_1111)
       let c = (x &<< 6) | cont
-      return Unicode.Scalar(c).unsafelyUnwrapped
+      return unsafe Unicode.Scalar(c).unsafelyUnwrapped
     case 3:
       let x = UInt32(x & 0b0000_1111)
-      let cont1 = UInt32(_bytes[i.offset(by: 1).utf8Offset] & 0b0011_1111)
-      let cont2 = UInt32(_bytes[i.offset(by: 2).utf8Offset] & 0b0011_1111)
+      let cont1 = UInt32(unsafe _bytes[i.offset(by: 1).utf8Offset] & 0b0011_1111)
+      let cont2 = UInt32(unsafe _bytes[i.offset(by: 2).utf8Offset] & 0b0011_1111)
       let c = (x &<< 12) | (cont1 &<< 6) | cont2
-      return Unicode.Scalar(c).unsafelyUnwrapped
+      return unsafe Unicode.Scalar(c).unsafelyUnwrapped
     case 4:
       let x = UInt32(x & 0b0000_0111)
-      let cont1 = UInt32(_bytes[i.offset(by: 1).utf8Offset] & 0b0011_1111)
-      let cont2 = UInt32(_bytes[i.offset(by: 2).utf8Offset] & 0b0011_1111)
-      let cont3 = UInt32(_bytes[i.offset(by: 3).utf8Offset] & 0b0011_1111)
+      let cont1 = UInt32(unsafe _bytes[i.offset(by: 1).utf8Offset] & 0b0011_1111)
+      let cont2 = UInt32(unsafe _bytes[i.offset(by: 2).utf8Offset] & 0b0011_1111)
+      let cont3 = UInt32(unsafe _bytes[i.offset(by: 3).utf8Offset] & 0b0011_1111)
       let c = (x &<< 18) | (cont1 &<< 12) | (cont2 &<< 6) | cont3
-      return Unicode.Scalar(c).unsafelyUnwrapped
+      return unsafe Unicode.Scalar(c).unsafelyUnwrapped
     default:
       fatalError()
     }

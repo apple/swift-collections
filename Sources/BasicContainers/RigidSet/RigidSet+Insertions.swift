@@ -49,13 +49,13 @@ extension RigidSet where Element: ~Copyable {
     hashValue: Int
   ) -> _Bucket {
     precondition(!isFull, "RigidSet capacity overflow")
-    let storage = _memberBuf
-    if _table.isSmall {
-      let bucket = _table.insertNew_Small(
+    let storage = unsafe _memberBuf
+    if _isSmall {
+      let bucket = unsafe _table.insertNew_Small(
         swapper: {
-          swap(&item, &storage[$0])
+          unsafe swap(&item, &storage[$0])
         })
-      storage._initializeElement(at: bucket, to: item)
+      unsafe storage._initializeElement(at: bucket, to: item)
       return bucket
     }
     return _insertNew_Large(item, hashValue: hashValue)
@@ -67,17 +67,17 @@ extension RigidSet where Element: ~Copyable {
     _ item: consuming Element,
     hashValue: Int
   ) -> _Bucket {
-    let storage = _memberBuf
+    let storage = unsafe _memberBuf
     let seed = self._seed
-    let bucket = _table.insertNew_Large(
+    let bucket = unsafe _table.insertNew_Large(
       hashValue: hashValue,
       hashGenerator: {
-        storage[$0]._rawHashValue(seed: seed)
+        unsafe storage[$0]._rawHashValue(seed: seed)
       },
       swapper: {
-        swap(&item, &storage[$0])
+        unsafe swap(&item, &storage[$0])
       })
-    storage.initializeElement(at: bucket.offset, to: item)
+    unsafe storage.initializeElement(at: bucket.offset, to: item)
     return bucket
   }
   
@@ -94,7 +94,7 @@ extension RigidSet where Element: ~Copyable {
   ) -> Element? {
     let r = _find(item)
     if let bucket = r.bucket {
-      return exchange(&_memberPtr(at: bucket).pointee, with: item)
+      return unsafe exchange(&_memberPtr(at: bucket).pointee, with: item)
     }
     _insertNew(item, hashValue: r.hashValue)
     return nil
@@ -176,7 +176,7 @@ extension RigidSet /* where Element: Copyable */ {
   ) {
     var i = 0
     while i < items.count {
-      self.insert(items[unchecked: i])
+      unsafe self.insert(items[unchecked: i])
       i &+= 1
     }
   }

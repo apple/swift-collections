@@ -111,7 +111,7 @@ extension TreeSet {
     while let item = it.next() {
       let hash = _Hash(item)
       guard self._root.containsKey(.top, item, hash) else { return false }
-      _ = seen!.insert(.top, (item, ()), hash) // Ignore dupes
+      _ = unsafe seen!.insert(.top, (item, ()), hash) // Ignore dupes
       if seen!.count == self.count {
         // We've seen them all. Stop further accounting.
         seen = nil

@@ -17,11 +17,12 @@ extension _HTable {
   /// is created, the table remains in an inconsistent state until one of
   /// `resolveHole` or `finalizeHole` is called on the same bucket.
   @usableFromInline
+  @unsafe
   package mutating func createHole(
     at bucket: Bucket
   ) {
     assert(isOccupied(bucket))
-    _count &-= 1
+    unsafe _count &-= 1
   }
 
   /// Restore hash table invariants after a hole was created by `createHole`.
@@ -29,13 +30,14 @@ extension _HTable {
   /// reach the end of the affected chain of occupied buckets.
   @usableFromInline
   @discardableResult
+  @unsafe
   package mutating func resolveHole(
     at bucket: Bucket,
     hashGenerator: (Bucket) -> Int,
     mover: (Bucket, Bucket) -> Void,
   ) -> Bucket {
     if isSmall {
-      return finalizeHole(at: bucket, mover: mover)
+      return unsafe finalizeHole(at: bucket, mover: mover)
     }
     assert(isOccupied(bucket))
 
@@ -88,8 +90,8 @@ extension _HTable {
     // incremental updates here (like the original thesis suggests), but it's
     // unclear if the benefits of that would outweigh the costs.)
     // (FIXME: Try it and see.)
-    if _maxProbeLength > _count {
-      _maxProbeLength = _count
+    if _maxProbeLength > self.count {
+      _maxProbeLength = self.count
     }
 
     return hole
@@ -102,14 +104,15 @@ extension _HTable {
   /// does enough to allow the hash table to get resized.
   @discardableResult
   @usableFromInline
+  @unsafe
   package mutating func finalizeHole(
     at bucket: Bucket,
     mover: (Bucket, Bucket) -> Void,
   ) -> Bucket {
     assert(isValid(bucket))
     if isSmall {
-      let last = Bucket(offset: _count) // Note: _count was decreased by createHole
-      _maxProbeLength = _count
+      let last = Bucket(offset: self.count) // Note: _count was decreased by createHole
+      _maxProbeLength = self.count
       guard bucket < last else { return bucket }
       mover(last, bucket)
       return last

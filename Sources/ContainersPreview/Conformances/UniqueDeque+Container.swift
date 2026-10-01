@@ -93,7 +93,7 @@ extension UniqueDeque where Element: ~Copyable {
   where P.Element: ~Copyable
   {
     _ensureFreeCapacity(newItemCount)
-    return try _storage._handle.uncheckedPrepend(
+    return unsafe try _storage._handle.uncheckedPrepend(
       addingCount: newItemCount
     ) { target throws(E) in
       try producer.generate(into: &target)
@@ -127,7 +127,7 @@ extension UniqueDeque where Element: ~Copyable {
     while !done {
       let c = Swift.max(producer.underestimatedCount, 1)
       _ensureFreeCapacity(c)
-      _ = try _storage._handle.uncheckedPrepend(
+      _ = unsafe try _storage._handle.uncheckedPrepend(
         addingCount: freeCapacity
       ) { target throws(E) in
         let origCount = target.count
@@ -139,7 +139,7 @@ extension UniqueDeque where Element: ~Copyable {
         done = try producer.generate(into: &target) == 0
       }
     }
-    return Range(uncheckedBounds: (0, added))
+    return unsafe Range(uncheckedBounds: (0, added))
   }
 }
 

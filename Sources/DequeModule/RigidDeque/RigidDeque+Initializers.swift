@@ -22,13 +22,13 @@ extension RigidDeque where Element: ~Copyable {
   /// - Complexity: O(1)
   @inlinable
   public init() {
-    self.init(_handle: .allocate(capacity: 0))
+    unsafe self.init(_handle: .allocate(capacity: 0))
   }
 
   /// Creates an empty rigid deque with the specified capacity.
   @_alwaysEmitIntoClient
   public init(capacity: Int) {
-    self.init(_handle: .allocate(capacity: capacity))
+    unsafe self.init(_handle: .allocate(capacity: capacity))
   }
 
   /// Creates a rigid deque with the specified capacity, then calls the given
@@ -45,7 +45,7 @@ extension RigidDeque where Element: ~Copyable {
     capacity: Int,
     initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) {
-    self.init(_handle: .allocate(capacity: capacity))
+    unsafe self.init(_handle: .allocate(capacity: capacity))
     try self.append(addingCount: capacity, initializingWith: initializer)
   }
 }
@@ -77,8 +77,8 @@ extension RigidDeque /*where Element: Copyable*/ {
   @inlinable
   public init(repeating repeatedValue: Element, count: Int) {
     self.init(capacity: count)
-    _handle.mutableBuffer.initialize(repeating: repeatedValue)
-    _handle.count = count
+    unsafe _handle.mutableBuffer.initialize(repeating: repeatedValue)
+    unsafe _handle._count = count
   }
 }
 

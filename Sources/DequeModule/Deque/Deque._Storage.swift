@@ -23,6 +23,7 @@ extension Deque {
 
     @inlinable
     @inline(__always)
+    @unsafe
     internal init(_buffer: _Buffer) {
       self._buffer = _buffer
     }
@@ -39,12 +40,12 @@ extension Deque._Storage: CustomStringConvertible {
 extension Deque._Storage {
   @inlinable
   internal init() {
-    self.init(_buffer: _Buffer(unsafeBufferObject: _emptyDequeStorage))
+    unsafe self.init(_buffer: _Buffer(unsafeBufferObject: _emptyDequeStorage))
   }
 
   @inlinable
   internal init(_ object: _DequeBuffer<Element>) {
-    self.init(_buffer: _Buffer(unsafeBufferObject: object))
+    unsafe self.init(_buffer: _Buffer(unsafeBufferObject: object))
   }
 
   @inlinable
@@ -57,7 +58,7 @@ extension Deque._Storage {
           count: 0,
           startSlot: .zero)
       })
-    self.init(_buffer: _Buffer(unsafeBufferObject: object))
+    unsafe self.init(_buffer: _Buffer(unsafeBufferObject: object))
   }
 }
 
@@ -82,19 +83,20 @@ extension Deque._Storage {
   @inlinable
   @inline(__always)
   internal var capacity: Int {
-    _buffer.withUnsafeMutablePointerToHeader { $0.pointee.capacity }
+    unsafe _buffer.withUnsafeMutablePointerToHeader { unsafe $0.pointee.capacity }
   }
 
   @inlinable
   @inline(__always)
   internal var count: Int {
-    _buffer.withUnsafeMutablePointerToHeader { $0.pointee.count }
+    unsafe _buffer.withUnsafeMutablePointerToHeader { unsafe $0.pointee.count }
   }
 
   @inlinable
   @inline(__always)
   internal var startSlot: _DequeSlot {
-    _buffer.withUnsafeMutablePointerToHeader { $0.pointee.startSlot
+    unsafe _buffer.withUnsafeMutablePointerToHeader {
+      unsafe $0.pointee.startSlot
     }
   }
 }
@@ -108,23 +110,27 @@ extension Deque._Storage {
 
   @inlinable
   @inline(__always)
+  @unsafe
   internal func read<R>(_ body: (_UnsafeHandle) throws -> R) rethrows -> R {
-    try _buffer.withUnsafeMutablePointers { header, elements in
-      let handle = _UnsafeHandle(header: header,
-                                 elements: elements,
-                                 isMutable: false)
-      return try body(handle)
+    unsafe try _buffer.withUnsafeMutablePointers { header, elements in
+      let handle = unsafe _UnsafeHandle(
+        header: header,
+        elements: elements,
+        isMutable: false)
+      return unsafe try body(handle)
     }
   }
 
   @inlinable
   @inline(__always)
+  @unsafe
   internal func update<R>(_ body: (_UnsafeHandle) throws -> R) rethrows -> R {
-    try _buffer.withUnsafeMutablePointers { header, elements in
-      let handle = _UnsafeHandle(header: header,
-                                 elements: elements,
-                                 isMutable: true)
-      return try body(handle)
+    unsafe try _buffer.withUnsafeMutablePointers { header, elements in
+      let handle = unsafe _UnsafeHandle(
+        header: header,
+        elements: elements,
+        isMutable: true)
+      return unsafe try body(handle)
     }
   }
 }
@@ -151,7 +157,7 @@ extension Deque._Storage {
   @inlinable
   @inline(never)
   internal mutating func _makeUniqueCopy() {
-    self = self.read { $0.copyElements() }
+    self = unsafe self.read { unsafe $0.copyElements() }
   }
 
   @usableFromInline
@@ -194,18 +200,18 @@ extension Deque._Storage {
   ) {
     if capacity >= minimumCapacity {
       assert(!isUnique)
-      self = self.read { $0.copyElements() }
+      self = unsafe self.read { unsafe $0.copyElements() }
       return
     }
 
     let minimumCapacity = _growCapacity(to: minimumCapacity, linearly: linearGrowth)
     if isUnique {
-      self = self.update { source in
-        source.moveElements(minimumCapacity: minimumCapacity)
+      self = unsafe self.update { source in
+        unsafe source.moveElements(minimumCapacity: minimumCapacity)
       }
     } else {
-      self = self.read { source in
-        source.copyElements(minimumCapacity: minimumCapacity)
+      self = unsafe self.read { source in
+        unsafe source.copyElements(minimumCapacity: minimumCapacity)
       }
     }
   }

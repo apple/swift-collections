@@ -99,13 +99,13 @@ extension TreeSet {
       var root = self._root
       for item in other {
         let hash = _Hash(item)
-        var state = root.prepareValueUpdate(item, hash)
+        var state = unsafe root.prepareValueUpdate(item, hash)
         if state.found {
           state.value = nil
         } else {
           state.value = ()
         }
-        root.finalizeValueUpdate(state)
+        unsafe root.finalizeValueUpdate(state)
       }
       return Self(_new: root)
     }

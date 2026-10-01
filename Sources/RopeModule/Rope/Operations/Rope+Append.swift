@@ -35,23 +35,24 @@ extension Rope._Node {
     ensureUnique()
     if height > 0 {
       var summary = self.summary
-      let spawn = updateInner {
-        let p = $0.mutableChildPtr(at: $0.childCount - 1)
-        summary.subtract(p.pointee.summary)
-        let spawn = p.pointee.append(item)
-        summary.add(p.pointee.summary)
+      let spawn = unsafe updateInner {
+        let p = unsafe $0.mutableChildPtr(at: $0.childCount - 1)
+        summary.subtract(unsafe p.pointee.summary)
+        let spawn = unsafe p.pointee.append(item)
+        summary.add(unsafe p.pointee.summary)
         return spawn
       }
       self.summary = summary
       guard let spawn = spawn else { return nil }
       
 #if true // Compress existing nodes if possible.
-      updateInner {
-        let c = $0.mutableChildren
-        let s = c[c.count - 2].childCount + c[c.count - 1].childCount
+      unsafe updateInner {
+        let c = unsafe $0.mutableChildren
+        let s = unsafe c[c.count - 2].childCount + c[c.count - 1].childCount
         if s <= Summary.maxNodeSize {
-          Self.redistributeChildren(&c[c.count - 2], &c[c.count - 1], to: s)
-          let removed = $0._removeChild(at: c.count - 1)
+          unsafe Self.redistributeChildren(
+            &c[c.count - 2], &c[c.count - 1], to: s)
+          let removed = unsafe $0._removeChild(at: c.count - 1)
           assert(removed.childCount == 0)
         }
       }

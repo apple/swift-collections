@@ -18,7 +18,7 @@ extension _HashNode {
   internal func find(
     _ level: _HashLevel, _ key: Key, _ hash: _Hash
   ) -> (descend: Bool, slot: _HashSlot)? {
-    read { $0.find(level, key, hash) }
+    unsafe read { unsafe $0.find(level, key, hash) }
   }
 }
 
@@ -27,19 +27,19 @@ extension _HashNode.UnsafeHandle {
   internal func find(
     _ level: _HashLevel, _ key: Key, _ hash: _Hash
   ) -> (descend: Bool, slot: _HashSlot)? {
-    guard !isCollisionNode else {
-      let r = _findInCollision(level, key, hash)
+    guard unsafe !isCollisionNode else {
+      let r = unsafe _findInCollision(level, key, hash)
       guard r.code == 0 else { return nil }
       return (false, r.slot)
     }
     let bucket = hash[level]
-    if itemMap.contains(bucket) {
-      let slot = itemMap.slot(of: bucket)
-      guard self[item: slot].key == key else { return nil }
+    if unsafe itemMap.contains(bucket) {
+      let slot = unsafe itemMap.slot(of: bucket)
+      guard unsafe self[item: slot].key == key else { return nil }
       return (false, slot)
     }
-    if childMap.contains(bucket) {
-      let slot = childMap.slot(of: bucket)
+    if unsafe childMap.contains(bucket) {
+      let slot = unsafe childMap.slot(of: bucket)
       return (true, slot)
     }
     return nil
@@ -49,14 +49,14 @@ extension _HashNode.UnsafeHandle {
   internal func _findInCollision(
     _ level: _HashLevel, _ key: Key, _ hash: _Hash
   ) -> (code: Int, slot: _HashSlot) {
-    assert(isCollisionNode)
+    assert(unsafe isCollisionNode)
     if !level.isAtBottom {
-      if hash != self.collisionHash { return (2, .zero) }
+      if unsafe hash != self.collisionHash { return (2, .zero) }
     }
     // Note: this searches the items in reverse insertion order.
-    guard let slot = reverseItems.firstIndex(where: { $0.key == key })
-    else { return (1, self.itemsEndSlot) }
-    return (0, _HashSlot(itemCount &- 1 &- slot))
+    guard let slot = unsafe reverseItems.firstIndex(where: { $0.key == key })
+    else { return (1, unsafe self.itemsEndSlot) }
+    return (0, unsafe _HashSlot(itemCount &- 1 &- slot))
   }
 }
 
@@ -135,7 +135,7 @@ extension _HashNode {
   internal func findForInsertion(
     _ level: _HashLevel, _ key: Key, _ hash: _Hash
   ) -> _FindResult {
-    read { $0.findForInsertion(level, key, hash) }
+    unsafe read { unsafe $0.findForInsertion(level, key, hash) }
   }
 }
 
@@ -144,8 +144,8 @@ extension _HashNode.UnsafeHandle {
   internal func findForInsertion(
     _ level: _HashLevel, _ key: Key, _ hash: _Hash
   ) -> _FindResult {
-    guard !isCollisionNode else {
-      let r = _findInCollision(level, key, hash)
+    guard unsafe !isCollisionNode else {
+      let r = unsafe _findInCollision(level, key, hash)
       if r.code == 0 {
         return .found(.invalid, r.slot)
       }
@@ -156,18 +156,18 @@ extension _HashNode.UnsafeHandle {
       return .expansion
     }
     let bucket = hash[level]
-    if itemMap.contains(bucket) {
-      let slot = itemMap.slot(of: bucket)
-      if self[item: slot].key == key {
+    if unsafe itemMap.contains(bucket) {
+      let slot = unsafe itemMap.slot(of: bucket)
+      if unsafe self[item: slot].key == key {
         return .found(bucket, slot)
       }
       return .spawnChild(bucket, slot)
     }
-    if childMap.contains(bucket) {
-      let slot = childMap.slot(of: bucket)
+    if unsafe childMap.contains(bucket) {
+      let slot = unsafe childMap.slot(of: bucket)
       return .descend(bucket, slot)
     }
-    let slot = itemMap.slot(of: bucket)
+    let slot = unsafe itemMap.slot(of: bucket)
     return .insert(bucket, slot)
   }
 }
@@ -177,17 +177,17 @@ extension _HashNode.UnsafeHandle {
 extension _HashNode {
   @inlinable
   internal func get(_ level: _HashLevel, _ key: Key, _ hash: _Hash) -> Value? {
-    var node = unmanaged
+    var node = unsafe unmanaged
     var level = level
     while true {
-      let r = UnsafeHandle.read(node) { $0.find(level, key, hash) }
+      let r = unsafe UnsafeHandle.read(node) { unsafe $0.find(level, key, hash) }
       guard let r = r else {
         return nil
       }
       guard r.descend else {
-        return UnsafeHandle.read(node) { $0[item: r.slot].value }
+        return unsafe UnsafeHandle.read(node) { unsafe $0[item: r.slot].value }
       }
-      node = node.unmanagedChild(at: r.slot)
+      unsafe node = node.unmanagedChild(at: r.slot)
       level = level.descend()
     }
   }
@@ -198,13 +198,13 @@ extension _HashNode {
   internal func containsKey(
     _ level: _HashLevel, _ key: Key, _ hash: _Hash
   ) -> Bool {
-    var node = unmanaged
+    var node = unsafe unmanaged
     var level = level
     while true {
-      let r = UnsafeHandle.read(node) { $0.find(level, key, hash) }
+      let r = unsafe UnsafeHandle.read(node) { unsafe $0.find(level, key, hash) }
       guard let r = r else { return false }
       guard r.descend else { return true }
-      node = node.unmanagedChild(at: r.slot)
+      unsafe node = node.unmanagedChild(at: r.slot)
       level = level.descend()
     }
   }
@@ -215,17 +215,17 @@ extension _HashNode {
   internal func lookup(
     _ level: _HashLevel, _ key: Key, _ hash: _Hash
   ) -> (node: _UnmanagedHashNode, slot: _HashSlot)? {
-    var node = unmanaged
+    var node = unsafe unmanaged
     var level = level
     while true {
-      let r = UnsafeHandle.read(node) { $0.find(level, key, hash) }
+      let r = unsafe UnsafeHandle.read(node) { unsafe $0.find(level, key, hash) }
       guard let r = r else {
         return nil
       }
       guard r.descend else {
-        return (node, r.slot)
+        return unsafe (node, r.slot)
       }
-      node = node.unmanagedChild(at: r.slot)
+      unsafe node = node.unmanagedChild(at: r.slot)
       level = level.descend()
     }
   }
@@ -238,32 +238,32 @@ extension _HashNode {
   ) -> Int? {
     guard let r = find(level, key, hash) else { return nil }
     guard r.descend else { return r.slot.value }
-    return read { h in
-      let children = h.children
-      let p = children[r.slot.value]
+    return unsafe read { h in
+      let children = unsafe h.children
+      let p = unsafe children[r.slot.value]
         .position(forKey: key, level.descend(), hash)
       guard let p = p else { return nil }
-      let c = h.itemCount &+ p
-      return children[..<r.slot.value].reduce(into: c) { $0 &+= $1.count }
+      let c = unsafe h.itemCount &+ p
+      return unsafe children[..<r.slot.value].reduce(into: c) { $0 &+= $1.count }
     }
   }
 
   @inlinable
   internal func item(position: Int) -> Element {
     assert(position >= 0 && position < self.count)
-    return read {
+    return unsafe read {
       var itemsToSkip = position
-      let itemCount = $0.itemCount
+      let itemCount = unsafe $0.itemCount
       if itemsToSkip < itemCount {
-        return $0[item: _HashSlot(itemsToSkip)]
+        return unsafe $0[item: _HashSlot(itemsToSkip)]
       }
       itemsToSkip -= itemCount
-      let children = $0.children
+      let children = unsafe $0.children
       for i in children.indices {
-        if itemsToSkip < children[i].count {
-          return children[i].item(position: itemsToSkip)
+        if unsafe itemsToSkip < children[i].count {
+          return unsafe children[i].item(position: itemsToSkip)
         }
-        itemsToSkip -= children[i].count
+        unsafe itemsToSkip -= children[i].count
       }
       fatalError("Inconsistent tree")
     }

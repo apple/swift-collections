@@ -26,9 +26,9 @@ extension RigidDeque where Element: ~Copyable {
   ///
   /// This property isn't intended to be used outside of `DequeModule`'s own test
   /// target.
-  @usableFromInline
+  @_alwaysEmitIntoClient
   package var _startSlot: Int {
-    _handle.startSlot.position
+    unsafe _handle.startSlot.position
   }
 }
 
@@ -39,7 +39,7 @@ extension RigidDeque {
   ///
   /// This initializer isn't intended to be used outside of `DequeModule`'s
   /// own test target.
-  @usableFromInline
+  @_alwaysEmitIntoClient
   package init(
     _capacity capacity: Int,
     startSlot: Int,
@@ -48,7 +48,7 @@ extension RigidDeque {
     let contents = Array(contents)
 
     self.init(capacity: capacity)
-    _handle.startSlot = _handle.slot(_handle.startSlot, offsetBy: startSlot)
+    unsafe _handle._startSlot = _handle.slot(_handle.startSlot, offsetBy: startSlot)
     self.append(copying: contents)
     assert(self.capacity == capacity)
     assert(self._startSlot == startSlot)

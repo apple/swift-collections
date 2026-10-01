@@ -14,9 +14,10 @@
 extension UnsafeBufferPointer where Element: ~Copyable{
   @inlinable
   @inline(__always)
+  @unsafe
   package func _ptr(at index: Int) -> UnsafePointer<Element> {
     assert(index >= 0 && index < count)
-    return baseAddress.unsafelyUnwrapped + index
+    return unsafe baseAddress.unsafelyUnwrapped + index
   }
 }
 
@@ -24,24 +25,27 @@ extension UnsafeBufferPointer where Element: ~Copyable {
   /// Returns a Boolean value indicating whether two `UnsafeBufferPointer`
   /// instances refer to the same region in memory.
   @inlinable @inline(__always)
+  @safe
   package func _isIdentical(to other: Self) -> Bool {
-    (self.baseAddress == other.baseAddress) && (self.count == other.count)
+    unsafe (self.baseAddress == other.baseAddress) && (self.count == other.count)
   }
 
   @inlinable
   @inline(__always)
+  @safe
   package static var _empty: Self {
-    .init(start: nil, count: 0)
+    unsafe .init(start: nil, count: 0)
   }
 }
 
 extension UnsafeBufferPointer where Element: ~Copyable {
   @_alwaysEmitIntoClient
+  @unsafe
   package func _extracting(uncheckedFrom start: Int, to end: Int) -> Self {
     guard let base = self.baseAddress else {
       return Self(_empty: ())
     }
-    return Self(start: base + start, count: end - start)
+    return unsafe Self(start: base + start, count: end - start)
   }
 
   /// Returns a buffer pointer containing the initial elements of this buffer,
@@ -61,10 +65,11 @@ extension UnsafeBufferPointer where Element: ~Copyable {
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   @inline(__always)
+  @safe
   package func _extracting(first maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Cannot have a prefix of negative length")
     let newCount = Swift.min(maxLength, count)
-    return Self(start: baseAddress, count: newCount)
+    return unsafe Self(start: baseAddress, count: newCount)
   }
 
   /// Returns a buffer pointer containing all but the given number of initial
@@ -84,10 +89,11 @@ extension UnsafeBufferPointer where Element: ~Copyable {
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   @inline(__always)
+  @safe
   package func _extracting(droppingFirst maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Cannot have a prefix of negative length")
     let cut = Swift.min(maxLength, count)
-    return Self(start: baseAddress?.advanced(by: cut), count: count &- cut)
+    return unsafe Self(start: baseAddress?.advanced(by: cut), count: count &- cut)
   }
 
   /// Returns a buffer pointer containing the final elements of this buffer,
@@ -107,10 +113,11 @@ extension UnsafeBufferPointer where Element: ~Copyable {
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   @inline(__always)
+  @safe
   package func _extracting(last maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Cannot have a suffix of negative length")
     let newCount = Swift.min(maxLength, count)
-    return extracting(Range(uncheckedBounds: (count - newCount, count)))
+    return unsafe extracting(Range(uncheckedBounds: (count - newCount, count)))
   }
   
   /// Returns a buffer pointer containing all but the given number of trailing
@@ -130,33 +137,36 @@ extension UnsafeBufferPointer where Element: ~Copyable {
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   @inline(__always)
+  @safe
   package func _extracting(droppingLast maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Cannot have a prefix of negative length")
     let newCount = count &- Swift.min(maxLength, count)
-    return Self(start: baseAddress, count: newCount)
+    return unsafe Self(start: baseAddress, count: newCount)
   }
 
 }
 
 extension UnsafeBufferPointer where Element: ~Copyable {
   @_alwaysEmitIntoClient
+  @safe
   package mutating func _trim(first maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Cannot have a prefix of negative length")
     let cut = Swift.min(maxLength, count)
-    guard cut > 0 else { return .init(start: nil, count: 0) }
-    let oldStart = baseAddress.unsafelyUnwrapped
-    self = Self(start: oldStart + cut, count: count - cut)
-    return Self(start: oldStart, count: cut)
+    guard cut > 0 else { return unsafe .init(start: nil, count: 0) }
+    let oldStart = unsafe baseAddress.unsafelyUnwrapped
+    unsafe self = Self(start: oldStart + cut, count: count - cut)
+    return unsafe Self(start: oldStart, count: cut)
   }
 
   @_alwaysEmitIntoClient
+  @safe
   package mutating func _trim(last maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Cannot have a suffix of negative length")
     let cut = Swift.min(maxLength, count)
-    guard cut > 0 else { return .init(start: nil, count: 0) }
-    let oldStart = baseAddress.unsafelyUnwrapped
+    guard cut > 0 else { return unsafe .init(start: nil, count: 0) }
+    let oldStart = unsafe baseAddress.unsafelyUnwrapped
     let newCount = count &- cut
-    self = .init(start: oldStart, count: newCount)
-    return Self(start: oldStart + newCount, count: cut)
+    unsafe self = .init(start: oldStart, count: newCount)
+    return unsafe Self(start: oldStart + newCount, count: cut)
   }
 }

@@ -15,6 +15,7 @@
 /// primitives.
 @frozen
 @usableFromInline
+@unsafe
 package struct _UnsafeBitSet {
   /// An unsafe-unowned storage view.
   @usableFromInline
@@ -24,11 +25,13 @@ package struct _UnsafeBitSet {
   /// True when this handle does not support table mutations.
   /// (This is only checked in debug builds.)
   @usableFromInline
+  @safe
   internal let _mutable: Bool
 #endif
 
   @inlinable
   @inline(__always)
+  @safe
   package func ensureMutable() {
 #if DEBUG
     assert(_mutable)
@@ -39,7 +42,7 @@ package struct _UnsafeBitSet {
   @inline(__always)
   package var _mutableWords: UnsafeMutableBufferPointer<_Word> {
     ensureMutable()
-    return UnsafeMutableBufferPointer(mutating: _words)
+    return unsafe UnsafeMutableBufferPointer(mutating: _words)
   }
 
   @inlinable
@@ -48,8 +51,8 @@ package struct _UnsafeBitSet {
     words: UnsafeBufferPointer<_Word>,
     mutable: Bool
   ) {
-    assert(words.baseAddress != nil)
-    self._words = words
+    assert(unsafe words.baseAddress != nil)
+    unsafe self._words = words
 #if DEBUG
     self._mutable = mutable
 #endif
@@ -61,15 +64,16 @@ package struct _UnsafeBitSet {
     words: UnsafeMutableBufferPointer<_Word>,
     mutable: Bool
   ) {
-    self.init(words: UnsafeBufferPointer(words), mutable: mutable)
+    unsafe self.init(words: UnsafeBufferPointer(words), mutable: mutable)
   }
 }
 
 extension _UnsafeBitSet {
   @inlinable
   @inline(__always)
+  @safe
   package var wordCount: Int {
-    _words.count
+    unsafe _words.count
   }
 }
 
@@ -81,7 +85,7 @@ extension _UnsafeBitSet {
     run body: (inout _UnsafeBitSet) throws -> R
   ) rethrows -> R {
     let wordCount = _UnsafeBitSet.wordCount(forCapacity: UInt(capacity))
-    return try withTemporaryBitSet(wordCount: wordCount, run: body)
+    return unsafe try withTemporaryBitSet(wordCount: wordCount, run: body)
   }
 
   @inlinable
@@ -91,8 +95,8 @@ extension _UnsafeBitSet {
     run body: (inout Self) throws -> R
   ) rethrows -> R {
     var result: R?
-    try _withTemporaryBitSet(wordCount: wordCount) { bitset in
-      result = try body(&bitset)
+    unsafe try _withTemporaryBitSet(wordCount: wordCount) { bitset in
+      result = unsafe try body(&bitset)
     }
     return result!
   }
@@ -103,9 +107,9 @@ extension _UnsafeBitSet {
     wordCount: Int,
     run body: (inout Self) throws -> Void
   ) rethrows {
-    try _withTemporaryUninitializedBitSet(wordCount: wordCount) { handle in
-      handle._mutableWords.initialize(repeating: .empty)
-      try body(&handle)
+    unsafe try _withTemporaryUninitializedBitSet(wordCount: wordCount) { handle in
+      unsafe handle._mutableWords.initialize(repeating: .empty)
+      unsafe try body(&handle)
     }
   }
 
@@ -114,11 +118,11 @@ extension _UnsafeBitSet {
     run body: (inout Self) throws -> Void
   ) rethrows {
     assert(wordCount >= 0)
-    return try withUnsafeTemporaryAllocation(
+    return try _withUnsafeTemporaryAllocation(
       of: _Word.self, capacity: wordCount
     ) { words in
-      var bitset = Self(words: words, mutable: true)
-      return try body(&bitset)
+      var bitset = unsafe Self(words: words, mutable: true)
+      return unsafe try body(&bitset)
     }
   }
 }
@@ -126,16 +130,19 @@ extension _UnsafeBitSet {
 extension _UnsafeBitSet {
   @_effects(readnone)
   @inlinable @inline(__always)
+  @safe
   package static func wordCount(forCapacity capacity: UInt) -> Int {
     _Word.wordCount(forBitCount: capacity)
   }
 
   @inlinable @inline(__always)
+  @safe
   package var capacity: UInt {
     UInt(wordCount &* _Word.capacity)
   }
 
   @inlinable @inline(__always)
+  @safe
   internal func isWithinBounds(_ element: UInt) -> Bool {
     element < capacity
   }
@@ -146,7 +153,7 @@ extension _UnsafeBitSet {
   package func contains(_ element: UInt) -> Bool {
     let (word, bit) = Index(element).split
     guard word < wordCount else { return false }
-    return _words[word].contains(bit)
+    return unsafe _words[word].contains(bit)
   }
 
   @_effects(releasenone)
@@ -156,7 +163,7 @@ extension _UnsafeBitSet {
     ensureMutable()
     assert(isWithinBounds(element))
     let index = Index(element)
-    return _mutableWords[index.word].insert(index.bit)
+    return unsafe _mutableWords[index.word].insert(index.bit)
   }
 
   @_effects(releasenone)
@@ -165,8 +172,8 @@ extension _UnsafeBitSet {
   package mutating func remove(_ element: UInt) -> Bool {
     ensureMutable()
     let index = Index(element)
-    if index.word >= _words.count { return false }
-    return _mutableWords[index.word].remove(index.bit)
+    if unsafe index.word >= _words.count { return false }
+    return unsafe _mutableWords[index.word].remove(index.bit)
   }
 
   @_effects(releasenone)
@@ -174,8 +181,8 @@ extension _UnsafeBitSet {
   package mutating func update(_ member: UInt, to newValue: Bool) -> Bool {
     ensureMutable()
     let (w, b) = Index(member).split
-    _mutableWords[w].update(b, to: newValue)
-    return w == _words.count &- 1
+    unsafe _mutableWords[w].update(b, to: newValue)
+    return w == wordCount &- 1
   }
 
   @_effects(releasenone)
@@ -185,10 +192,10 @@ extension _UnsafeBitSet {
     guard max > 0 else { return }
     let (w, b) = Index(max).split
     for i in 0 ..< w {
-      _mutableWords[i] = .allBits
+      unsafe _mutableWords[i] = .allBits
     }
     if b > 0 {
-      _mutableWords[w].insertAll(upTo: b)
+      unsafe _mutableWords[w].insertAll(upTo: b)
     }
   }
 
@@ -198,7 +205,7 @@ extension _UnsafeBitSet {
   @discardableResult
   package mutating func insert(_ element: Int) -> Bool {
     precondition(element >= 0)
-    return insert(UInt(bitPattern: element))
+    return unsafe insert(UInt(bitPattern: element))
   }
 
   @_alwaysEmitIntoClient
@@ -207,7 +214,7 @@ extension _UnsafeBitSet {
   @discardableResult
   package mutating func remove(_ element: Int) -> Bool {
     guard element >= 0 else { return false }
-    return remove(UInt(bitPattern: element))
+    return unsafe remove(UInt(bitPattern: element))
   }
 
   @_alwaysEmitIntoClient
@@ -215,28 +222,29 @@ extension _UnsafeBitSet {
   @inline(__always)
   package mutating func insertAll(upTo max: Int) {
     precondition(max >= 0)
-    return insertAll(upTo: UInt(bitPattern: max))
+    return unsafe insertAll(upTo: UInt(bitPattern: max))
   }
 }
 
-extension _UnsafeBitSet: Sequence {
+extension _UnsafeBitSet: @unsafe Sequence {
   @usableFromInline
   package typealias Element = UInt
 
   @inlinable
   @inline(__always)
   package var underestimatedCount: Int {
-    count // FIXME: really?
+    unsafe count // FIXME: really?
   }
 
   @inlinable
   @inline(__always)
   package func makeIterator() -> Iterator {
-    return Iterator(self)
+    return unsafe Iterator(self)
   }
 
   @frozen
   @usableFromInline
+  @unsafe
   package struct Iterator: IteratorProtocol {
     @usableFromInline
     internal let _bitset: _UnsafeBitSet
@@ -245,26 +253,27 @@ extension _UnsafeBitSet: Sequence {
     internal var _index: Int
 
     @usableFromInline
+    @safe
     internal var _word: _Word
 
     @inlinable
     internal init(_ bitset: _UnsafeBitSet) {
-      self._bitset = bitset
-      self._index = 0
-      self._word = bitset.wordCount > 0 ? bitset._words[0] : .empty
+      unsafe self._bitset = bitset
+      unsafe self._index = 0
+      unsafe self._word = bitset.wordCount > 0 ? bitset._words[0] : .empty
     }
 
     @_effects(releasenone)
     @usableFromInline
     package mutating func next() -> UInt? {
       if let bit = _word.next() {
-        return Index(word: _index, bit: bit).value
+        return unsafe Index(word: _index, bit: bit).value
       }
-      while (_index + 1) < _bitset.wordCount {
-        _index += 1
-        _word = _bitset._words[_index]
+      while unsafe (_index + 1) < _bitset.wordCount {
+        unsafe _index += 1
+        unsafe _word = _bitset._words[_index]
         if let bit = _word.next() {
-          return Index(word: _index, bit: bit).value
+          return unsafe Index(word: _index, bit: bit).value
         }
       }
       return nil
@@ -272,27 +281,28 @@ extension _UnsafeBitSet: Sequence {
   }
 }
 
-extension _UnsafeBitSet: BidirectionalCollection {
+extension _UnsafeBitSet: @unsafe BidirectionalCollection {
   @inlinable
   package var count: Int {
-    assert(_words.count <= Int.max / _Word.capacity)
-    return _words.reduce(0) { $0 &+ $1.count }
+    assert(unsafe _words.count <= Int.max / _Word.capacity)
+    return unsafe _words.reduce(0) { $0 &+ $1.count }
   }
 
   @inlinable
   @inline(__always)
   package var isEmpty: Bool {
-    _words.firstIndex(where: { !$0.isEmpty }) == nil
+    unsafe _words.firstIndex(where: { !$0.isEmpty }) == nil
   }
 
   @inlinable
   package var startIndex: Index {
-    let word = _words.firstIndex { !$0.isEmpty }
+    let word = unsafe _words.firstIndex { !$0.isEmpty }
     guard let word = word else { return endIndex }
-    return Index(word: word, bit: _words[word].firstMember!)
+    return unsafe Index(word: word, bit: _words[word].firstMember!)
   }
 
   @inlinable
+  @safe
   package var endIndex: Index {
     Index(word: wordCount, bit: 0)
   }
@@ -307,14 +317,14 @@ extension _UnsafeBitSet: BidirectionalCollection {
   package func index(after index: Index) -> Index {
     precondition(index < endIndex, "Index out of bounds")
     var word = index.word
-    var w = _words[word]
+    var w = unsafe _words[word]
     w.removeAll(through: index.bit)
     while w.isEmpty {
       word += 1
       guard word < wordCount else {
         return Index(word: wordCount, bit: 0)
       }
-      w = _words[word]
+      w = unsafe _words[word]
     }
     return Index(word: word, bit: w.firstMember!)
   }
@@ -326,7 +336,7 @@ extension _UnsafeBitSet: BidirectionalCollection {
     var word = index.word
     var w: _Word
     if index.bit > 0 {
-      w = _words[word]
+      w = unsafe _words[word]
       w.removeAll(from: index.bit)
     } else {
       w = .empty
@@ -334,7 +344,7 @@ extension _UnsafeBitSet: BidirectionalCollection {
     while w.isEmpty {
       word -= 1
       precondition(word >= 0, "Cannot advance below startIndex")
-      w = _words[word]
+      w = unsafe _words[word]
     }
     return Index(word: word, bit: w.lastMember!)
   }
@@ -352,7 +362,7 @@ extension _UnsafeBitSet: BidirectionalCollection {
     if w1 == w2 {
       guard w1 < wordCount else { return 0 }
       let mask = _Word(from: b1, to: b2)
-      let c = _words[w1].intersection(mask).count
+      let c = unsafe _words[w1].intersection(mask).count
       return isNegative ? -c : c
     }
     
@@ -360,14 +370,14 @@ extension _UnsafeBitSet: BidirectionalCollection {
     var w = w1
     guard w < wordCount else { return 0 }
     
-    c &+= _words[w].subtracting(_Word(upTo: b1)).count
+    c &+= unsafe _words[w].subtracting(_Word(upTo: b1)).count
     w &+= 1
     while w < w2 {
-      c &+= _words[w].count
+      c &+= unsafe _words[w].count
       w &+= 1
     }
     guard w < wordCount else { return isNegative ? -c : c }
-    c &+= _words[w].intersection(_Word(upTo: b2)).count
+    c &+= unsafe _words[w].intersection(_Word(upTo: b2)).count
     return isNegative ? -c : c
   }
   
@@ -375,19 +385,19 @@ extension _UnsafeBitSet: BidirectionalCollection {
   @usableFromInline
   package func index(_ i: Index, offsetBy distance: Int) -> Index {
     precondition(i <= endIndex, "Index out of bounds")
-    precondition(i == endIndex || contains(i.value), "Invalid index")
+    precondition(unsafe i == endIndex || contains(i.value), "Invalid index")
     guard distance != 0 else { return i }
     var remaining = distance.magnitude
     if distance > 0 {
       var (w, b) = i.split
       precondition(w < wordCount, "Index out of bounds")
-      if let v = _words[w].subtracting(_Word(upTo: b)).nthElement(&remaining) {
+      if let v = unsafe _words[w].subtracting(_Word(upTo: b)).nthElement(&remaining) {
         return Index(word: w, bit: v)
       }
       while true {
         w &+= 1
         guard w < wordCount else { break }
-        if let v = _words[w].nthElement(&remaining) {
+        if let v = unsafe _words[w].nthElement(&remaining) {
           return Index(word: w, bit: v)
         }
       }
@@ -399,14 +409,14 @@ extension _UnsafeBitSet: BidirectionalCollection {
     remaining -= 1
     var (w, b) = i.endSplit
     if w < wordCount {
-      if let v = _words[w].intersection(_Word(upTo: b)).nthElementFromEnd(&remaining) {
+      if let v = unsafe _words[w].intersection(_Word(upTo: b)).nthElementFromEnd(&remaining) {
         return Index(word: w, bit: v)
       }
     }
     while true {
       precondition(w > 0, "Index out of bounds")
       w &-= 1
-      if let v = _words[w].nthElementFromEnd(&remaining) {
+      if let v = unsafe _words[w].nthElementFromEnd(&remaining) {
         return Index(word: w, bit: v)
       }
     }
@@ -418,16 +428,16 @@ extension _UnsafeBitSet: BidirectionalCollection {
     _ i: Index, offsetBy distance: Int, limitedBy limit: Index
   ) -> Index? {
     precondition(i <= endIndex && limit <= endIndex, "Index out of bounds")
-    precondition(i == endIndex || contains(i.value), "Invalid index")
+    precondition(unsafe i == endIndex || contains(i.value), "Invalid index")
     guard distance != 0 else { return i }
     var remaining = distance.magnitude
     if distance > 0 {
       guard i <= limit else {
-        return self.index(i, offsetBy: distance)
+        return unsafe self.index(i, offsetBy: distance)
       }
       var (w, b) = i.split
       if w < wordCount,
-         let v = _words[w].subtracting(_Word(upTo: b)).nthElement(&remaining)
+         let v = unsafe _words[w].subtracting(_Word(upTo: b)).nthElement(&remaining)
       {
         let r = Index(word: w, bit: v)
         return r <= limit ? r : nil
@@ -435,7 +445,7 @@ extension _UnsafeBitSet: BidirectionalCollection {
       let maxWord = Swift.min(wordCount - 1, limit.word)
       while w < maxWord {
         w &+= 1
-        if let v = _words[w].nthElement(&remaining) {
+        if let v = unsafe _words[w].nthElement(&remaining) {
           let r = Index(word: w, bit: v)
           return r <= limit ? r : nil
         }
@@ -445,12 +455,12 @@ extension _UnsafeBitSet: BidirectionalCollection {
     
     // distance < 0
     guard i >= limit else {
-      return self.index(i, offsetBy: distance)
+      return unsafe self.index(i, offsetBy: distance)
     }
     remaining &-= 1
     var (w, b) = i.endSplit
     if w < wordCount {
-      if let v = _words[w].intersection(_Word(upTo: b)).nthElementFromEnd(&remaining) {
+      if let v = unsafe _words[w].intersection(_Word(upTo: b)).nthElementFromEnd(&remaining) {
         let r = Index(word: w, bit: v)
         return r >= limit ? r : nil
       }
@@ -458,7 +468,7 @@ extension _UnsafeBitSet: BidirectionalCollection {
     let minWord = limit.word
     while w > minWord {
       w &-= 1
-      if let v = _words[w].nthElementFromEnd(&remaining) {
+      if let v = unsafe _words[w].nthElementFromEnd(&remaining) {
         let r = Index(word: w, bit: v)
         return r >= limit ? r : nil
       }

@@ -74,7 +74,7 @@ extension BitArray {
       self = .init()
       return
     }
-    self._copy(from: Range(uncheckedBounds: (amount, count)), to: 0)
+    self._copy(from: unsafe Range(uncheckedBounds: (amount, count)), to: 0)
     self._removeLast(count &- amount)
   }
 }
@@ -102,11 +102,11 @@ extension BitArray {
   ///     // bits is now 0000000
   public mutating func maskingShiftLeft(by amount: Int) {
     guard amount != 0 else { return }
-    _update {
+    unsafe _update {
       if amount > 0 {
-        $0._maskingShiftLeft(by: amount)
+        unsafe $0._maskingShiftLeft(by: amount)
       } else {
-        $0._maskingShiftRight(by: -amount)
+        unsafe $0._maskingShiftRight(by: -amount)
       }
     }
   }
@@ -131,11 +131,11 @@ extension BitArray {
   ///     // bits is now 0000000
   public mutating func maskingShiftRight(by amount: Int) {
     guard amount != 0 else { return }
-    _update {
+    unsafe _update {
       if amount > 0 {
-        $0._maskingShiftRight(by: amount)
+        unsafe $0._maskingShiftRight(by: amount)
       } else {
-        $0._maskingShiftLeft(by: -amount)
+        unsafe $0._maskingShiftLeft(by: -amount)
       }
     }
   }
@@ -146,19 +146,19 @@ extension BitArray._UnsafeHandle {
     assert(amount > 0)
     let d = Swift.min(amount, self.count)
     if d == amount {
-      let range = Range(uncheckedBounds: (0, self.count &- d))
-      self.copy(from: range, to: d)
+      let range = unsafe Range(uncheckedBounds: (0, self.count &- d))
+      unsafe self.copy(from: range, to: d)
     }
-    self.clear(in: Range(uncheckedBounds: (0, d)))
+    unsafe self.clear(in: Range(uncheckedBounds: (0, d)))
   }
 
   internal mutating func _maskingShiftRight(by amount: Int) {
     assert(amount > 0)
     let d = Swift.min(amount, self.count)
     if d == amount {
-      let range = Range(uncheckedBounds: (d, self.count))
-      self.copy(from: range, to: 0)
+      let range = unsafe Range(uncheckedBounds: (d, self.count))
+      unsafe self.copy(from: range, to: 0)
     }
-    self.clear(in: Range(uncheckedBounds: (self.count &- d, self.count)))
+    unsafe self.clear(in: Range(uncheckedBounds: (self.count &- d, self.count)))
   }
 }

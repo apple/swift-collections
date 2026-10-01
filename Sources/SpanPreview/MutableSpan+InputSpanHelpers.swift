@@ -34,20 +34,20 @@ extension MutableSpan where Element: ~Copyable {
       "updateSubrange source count doesn't match target")
     guard !subrange.isEmpty else { return }
     self.withUnsafeMutableBufferPointer { dst in
-      source.withUnsafeMutableBufferPointer { src, c in
+      unsafe source.withUnsafeMutableBufferPointer { src, c in
         // FIXME: Make sure this calls memcpy when Element is bitwise movable.
 #if false // FIXME: UMBP.moveUpdate(fromContentsOf:) is broken as of 2026-09-17 (rdar://187733648)
-        let i = dst
+        let i = unsafe dst
           ._extracting(unchecked: subrange)
           .moveUpdate(fromContentsOf: src._extracting(last: c))
         precondition(i == subrange.count)
 #else
-        var d = dst._ptr(at: subrange.lowerBound)
-        var s = src._ptr(at: src.count - c)
+        var d = unsafe dst._ptr(at: subrange.lowerBound)
+        var s = unsafe src._ptr(at: src.count - c)
         for i in 0 ..< c {
-          d.pointee = s.move()
-          d += 1
-          s += 1
+          unsafe d.pointee = s.move()
+          unsafe d += 1
+          unsafe s += 1
         }
 #endif
         c = 0
@@ -68,18 +68,18 @@ extension MutableSpan where Element: ~Copyable {
       "updateSubrange source count doesn't match target")
     guard !self.isEmpty else { return }
     self.withUnsafeMutableBufferPointer { dst in
-      source.withUnsafeMutableBufferPointer { src, c in
+      unsafe source.withUnsafeMutableBufferPointer { src, c in
         // FIXME: Make sure this calls memcpy when Element is bitwise movable.
 #if false // FIXME: UMBP.moveUpdate(fromContentsOf:) is broken as of 2026-09-17 (rdar://187733648)
-        let i = dst.moveUpdate(fromContentsOf: src._extracting(last: c))
+        let i = unsafe dst.moveUpdate(fromContentsOf: src._extracting(last: c))
         assert(i == count)
 #else
-        var d = dst._ptr(at: 0)
-        var s = src._ptr(at: src.count - c)
+        var d = unsafe dst._ptr(at: 0)
+        var s = unsafe src._ptr(at: src.count - c)
         for i in 0 ..< c {
-          d.pointee = s.move()
-          d += 1
-          s += 1
+          unsafe d.pointee = s.move()
+          unsafe d += 1
+          unsafe s += 1
         }
 #endif
         c = 0

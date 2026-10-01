@@ -115,7 +115,7 @@ extension TreeSet {
       let hash = _Hash(item)
       guard self._root.containsKey(.top, item, hash) else { return false }
       if
-        seen.insert(.top, (item, ()), hash).inserted,
+        unsafe seen.insert(.top, (item, ()), hash).inserted,
         seen.count == self.count
       {
         return false

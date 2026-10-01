@@ -22,27 +22,26 @@ extension BigString {
     var storage: ManagedBuffer<(), UInt8>
 
     init() {
-      self.init(Counts()) { _ in }
+      unsafe self.init(Counts()) { _ in }
     }
 
     init(_ counts: Counts, _ body: (UnsafeMutableBufferPointer<UInt8>) -> ()) {
       self.counts = counts
 
       storage = .create(minimumCapacity: Self.maxUTF8Count) {
-        $0.withUnsafeMutablePointerToElements {
-          let buffer = UnsafeMutableBufferPointer(
+        unsafe $0.withUnsafeMutablePointerToElements {
+          let buffer = unsafe UnsafeMutableBufferPointer(
             start: $0,
             count: Self.maxUTF8Count
           )
-
-          body(buffer)
+          unsafe body(buffer)
         }
       }
     }
 
     init(_ string: String, _ counts: Counts) {
-      self.init(counts) {
-        _ = $0.initialize(from: string.utf8)
+      unsafe self.init(counts) {
+        _ = unsafe $0.initialize(from: string.utf8)
       }
     }
 
@@ -51,9 +50,9 @@ extension BigString {
     }
 
     init(copying span: UTF8Span, _ counts: Counts) {
-      self.init(counts) { buffer in
+      unsafe self.init(counts) { buffer in
         span.span.withUnsafeBufferPointer {
-          _ = buffer.initialize(fromContentsOf: $0)
+          _ = unsafe buffer.initialize(fromContentsOf: $0)
         }
       }
     }
@@ -77,31 +76,31 @@ extension BigString._Chunk {
   }
 
   var _bytes: UnsafeBufferPointer<UInt8> {
-    storage.withUnsafeMutablePointerToElements {
-      UnsafeBufferPointer(start: $0, count: Int(counts.utf8))
+    unsafe storage.withUnsafeMutablePointerToElements {
+      unsafe UnsafeBufferPointer(start: $0, count: Int(counts.utf8))
     }
   }
 
   // Note: This should ONLY be called by '_prepend'. Also, this is over the
   // entire chunk's buffer instead of just the initialized code units.
   var _mutableBytes: UnsafeMutableBufferPointer<UInt8> {
-    storage.withUnsafeMutablePointerToElements {
-      UnsafeMutableBufferPointer(start: $0, count: Self.maxUTF8Count)
+    unsafe storage.withUnsafeMutablePointerToElements {
+      unsafe UnsafeMutableBufferPointer(start: $0, count: Self.maxUTF8Count)
     }
   }
 
   var span: Span<UInt8> {
     @_lifetime(borrow self)
     get {
-      let span = Span(_unsafeElements: _bytes)
-      return _overrideLifetime(span, borrowing: self)
+      let span = unsafe Span(_unsafeElements: _bytes)
+      return unsafe _overrideLifetime(span, borrowing: self)
     }
   }
 
   var utf8Span: UTF8Span {
     @_lifetime(borrow self)
     get {
-      return _overrideLifetime(UTF8Span(unchecked: span), borrowing: self)
+      return unsafe _overrideLifetime(UTF8Span(unchecked: span), borrowing: self)
     }
   }
 
@@ -109,11 +108,11 @@ extension BigString._Chunk {
   func utf8Span(from i: Index, to j: Index? = nil) -> UTF8Span {
     guard j == nil else {
       let span = span.extracting(i.utf8Offset..<j!.utf8Offset)
-      return _overrideLifetime(UTF8Span(unchecked: span), borrowing: self)
+      return unsafe _overrideLifetime(UTF8Span(unchecked: span), borrowing: self)
     }
 
     let span = span.extracting(i.utf8Offset...)
-    return _overrideLifetime(UTF8Span(unchecked: span), borrowing: self)
+    return unsafe _overrideLifetime(UTF8Span(unchecked: span), borrowing: self)
   }
 }
 
@@ -132,8 +131,8 @@ extension BigString._Chunk {
 @available(SwiftStdlib 6.2, *)
 extension BigString._Chunk {
   func copy() -> Self {
-    Self(counts) {
-      _ = $0.initialize(fromContentsOf: _bytes)
+    unsafe Self(counts) {
+      _ = unsafe $0.initialize(fromContentsOf: _bytes)
     }
   }
 
