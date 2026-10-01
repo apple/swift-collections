@@ -11,6 +11,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
+import InternalCollectionsUtilities
+#endif
+
 /// A value that manages a contiguous block of memory starting with a header
 /// value and then followed by a contiguous array of elements. Values of this
 /// type own the underlying memory, and are non-copyable to ensure that
@@ -354,39 +358,33 @@ extension TrailingArray {
     let (numBytes, alignment) = allocationSize(header: header)
 
     // Allocate temporary storage large enough for the value we need.
-    let result: Result<R, E> = withUnsafeTemporaryAllocation(
+    return try _withUnsafeTemporaryAllocation(
       byteCount: numBytes,
       alignment: alignment
-    ) { buffer in
+    ) { buffer throws(E) in
       // Initialize the header within the temporary allocation.
       let storagePointer = buffer.baseAddress!
       let headerPointer = unsafe TrailingArray.headerPointer(fromStorage: storagePointer)
       unsafe headerPointer.initialize(to: header)
 
       /// Create a trailing array over that temporary storage.
-      var managedBuffer = unsafe TrailingArray(
+      var managedBuffer: Optional = unsafe TrailingArray(
         consuming: headerPointer,
         storage: storagePointer)
-      let resultOrError: Result<R, E>
-      do throws(E) {
-        resultOrError = .success(try body(&managedBuffer))
-      } catch {
-        resultOrError = .failure(error)
+
+      defer {
+        let buffer = managedBuffer.take()!
+        // Deinitialize the elements and header.
+        unsafe buffer.rawElements.deinitialize()
+        unsafe buffer._pointer.deinitialize(count: 1)
+
+        // Tell the trailing buffer not to free the storage.
+        let (finalPointer, finalStorage) = unsafe buffer.leakStorage()
+        precondition(unsafe finalPointer == headerPointer)
+        precondition(unsafe finalStorage == storagePointer)
       }
-
-      // Deinitialize the elements and header.
-      unsafe managedBuffer.rawElements.deinitialize()
-      unsafe managedBuffer._pointer.deinitialize(count: 1)
-
-      // Tell the trailing buffer not to free the storage.
-      let (finalPointer, finalStorage) = unsafe managedBuffer.leakStorage()
-      precondition(unsafe finalPointer == headerPointer)
-      precondition(unsafe finalStorage == storagePointer)
-
-      return resultOrError
+      return try body(&managedBuffer!)
     }
-
-    return try result.get()
   }
 }
 

@@ -215,15 +215,15 @@ extension UniqueDeque where Element: ~Copyable {
     @_transparent
     unsafeAddress {
       precondition(position >= 0 && position < count, "Index out of bounds")
-      let slot = _storage._handle.slot(forOffset: position)
-      return _storage._handle.ptr(at: slot)
+      let slot = unsafe _storage._handle.slot(forOffset: position)
+      return unsafe _storage._handle.ptr(at: slot)
     }
     @inline(__always)
     @_transparent
     unsafeMutableAddress {
       precondition(position >= 0 && position < count, "Index out of bounds")
-      let slot = _storage._handle.slot(forOffset: position)
-      return _storage._handle.mutablePtr(at: slot)
+      let slot = unsafe _storage._handle.slot(forOffset: position)
+      return unsafe _storage._handle.mutablePtr(at: slot)
     }
   }
 #endif

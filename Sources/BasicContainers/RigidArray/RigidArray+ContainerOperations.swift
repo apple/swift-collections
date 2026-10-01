@@ -141,11 +141,11 @@ extension RigidArray where Element: ~Copyable {
   public subscript(position: Int) -> Element {
     @inline(__always)
     unsafeAddress {
-      _ptr(to: position)
+      unsafe _ptr(to: position)
     }
     @inline(__always)
     unsafeMutableAddress {
-      _mutablePtr(to: position)
+      unsafe _mutablePtr(to: position)
     }
   }
 #endif

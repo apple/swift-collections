@@ -13,6 +13,7 @@
 
 /// A polyfill of the typed-throws supporting `withUnsafeTemporaryAllocation` in the 6.3 stdlib.
 @_alwaysEmitIntoClient @_transparent
+@safe
 package func _withUnsafeTemporaryAllocation<
   T: ~Copyable, R: ~Copyable,
   E: Error
@@ -21,14 +22,35 @@ package func _withUnsafeTemporaryAllocation<
   capacity: Int,
   _ body: (UnsafeMutableBufferPointer<T>) throws(E) -> R
 ) throws(E) -> R {
-#if compiler(>=6.3)
+#if compiler(>=6.4)
   try withUnsafeTemporaryAllocation(of: type, capacity: capacity, body)
 #else
-  let r: Result<R, E> = withUnsafeTemporaryAllocation(
+  let r: Result<R, E> = unsafe withUnsafeTemporaryAllocation(
     of: T.self, capacity: capacity
   ) { buffer in
-    return Result(catching: { () throws(E) in try body(buffer) })
+    return Result(catching: { () throws(E) in unsafe try body(buffer) })
   }
   return try r.get()
+#endif
+}
+
+// FIXME: Remove when we drop Swift 6.2
+@_alwaysEmitIntoClient
+@_transparent
+@safe
+package func _withUnsafeTemporaryAllocation<R: ~Copyable, E: Error>(
+  byteCount: Int,
+  alignment: Int,
+  _ body: (UnsafeMutableRawBufferPointer) throws(E) -> R
+) throws(E) -> R {
+#if compiler(<6.3)
+  let r: Result<R, E> = unsafe withUnsafeTemporaryAllocation(
+    byteCount: byteCount, alignment: alignment
+  ) { buffer in
+    return Result(catching: { () throws(E) in unsafe try body(buffer) })
+  }
+  return try r.get()
+#else
+  return try withUnsafeTemporaryAllocation(byteCount: byteCount, alignment: alignment, body)
 #endif
 }

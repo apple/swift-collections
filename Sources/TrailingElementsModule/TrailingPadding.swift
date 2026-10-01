@@ -11,6 +11,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
+import InternalCollectionsUtilities
+#endif
+
 /// Represents memory containing a header value followed by some extra padding
 /// following it. Values of this type own the underlying memory, and are
 /// non-copyable to ensure that ownership of that memory is unique. Memory
@@ -116,32 +120,21 @@ extension TrailingPadding where Header: Copyable {
                  "must allocate enough storage for the underlying stored type")
 
     // Allocate temporary storage large enough for the value we need.
-    let result: Result<R, E> = withUnsafeTemporaryAllocation(
+    return try _withUnsafeTemporaryAllocation(
       byteCount: size,
       alignment: MemoryLayout<Header>.alignment
-    ) { buffer in
+    ) { buffer throws(E) in
       /// Create a tail-allocated storage over that temporary storage.
       let pointer = unsafe buffer.baseAddress!.assumingMemoryBound(to: Header.self)
       unsafe pointer.initialize(to: header)
-      var tailAllocated = unsafe TrailingPadding(consuming: pointer)
-
-      do throws(E) {
-        let result = try body(&tailAllocated)
-
+      var tailAllocated: Optional = unsafe TrailingPadding(consuming: pointer)
+      defer {
+        let tailAllocated = tailAllocated.take()!
         // Tell the tail-allocated buffer not to free the storage.
         let finalPointer = unsafe tailAllocated.leakStorage()
         precondition(unsafe finalPointer == pointer)
-
-        return .success(result)
-      } catch {
-        // Tell the tail-allocated buffer not to free the storage.
-        let finalPointer = unsafe tailAllocated.leakStorage()
-        precondition(unsafe finalPointer == pointer)
-
-        return .failure(error)
       }
+      return try body(&tailAllocated!)
     }
-
-    return try result.get()
   }
 }

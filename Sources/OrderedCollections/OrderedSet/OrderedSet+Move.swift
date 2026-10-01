@@ -277,7 +277,7 @@ extension OrderedSet {
     // Elements that aren't members of the set are skipped.
     let handled: Void? = elements.withContiguousStorageIfAvailable { source in
       guard source.count > 0 else { return }
-      withUnsafeTemporaryAllocation(
+      _withUnsafeTemporaryAllocation(
         of: Int.self, capacity: source.count
       ) { sourceOffsets in
         var isContiguousRange = true
@@ -376,7 +376,7 @@ extension OrderedSet {
         to: target,
         applyingTo: body)
     } else {
-      withUnsafeTemporaryAllocation(of: Int.self, capacity: c) { sortedBuffer in
+      _withUnsafeTemporaryAllocation(of: Int.self, capacity: c) { sortedBuffer in
         unsafe sortedBuffer.baseAddress!.initialize(
           from: sourceOffsets.baseAddress!, count: c)
         var sorted = unsafe sortedBuffer
@@ -621,7 +621,7 @@ extension UnsafeMutableBufferPointer {
     if unsafe sortedSources[c - 1] - minSource == c - 1 {
       // Contiguous indices in a different order: rotate, then permute.
       unsafe _moveSubrange(minSource ..< minSource + c, toOffset: destination)
-      withUnsafeTemporaryAllocation(of: Int.self, capacity: c) { perm in
+      _withUnsafeTemporaryAllocation(of: Int.self, capacity: c) { perm in
         for i in 0 ..< c {
           unsafe perm[i] = sourceOffsets[i] - minSource
         }
@@ -684,7 +684,7 @@ extension UnsafeMutableBufferPointer {
     totalCount: Int
   ) {
     let count = sourceOffsets.count
-    withUnsafeTemporaryAllocation(
+    _withUnsafeTemporaryAllocation(
       of: Element.self, capacity: count
     ) { saved in
       for i in 0 ..< count {

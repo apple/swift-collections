@@ -125,7 +125,7 @@ extension _Node.UnsafeHandle: CustomDebugStringConvertible {
   public var debugDescription: String {
     var result = "Node<\(Key.self), \(Value.self)>(["
     var first = true
-    for slot in 0..<self.elementCount {
+    for slot in unsafe 0..<self.elementCount {
       if first {
         first = false
       } else {
@@ -133,15 +133,15 @@ extension _Node.UnsafeHandle: CustomDebugStringConvertible {
       }
       if _Node.hasValues {
         result += "("
-        debugPrint(self[keyAt: slot], terminator: ", ", to: &result)
-        debugPrint(self[valueAt: slot], terminator: ")", to: &result)
+        debugPrint(unsafe self[keyAt: slot], terminator: ", ", to: &result)
+        debugPrint(unsafe self[valueAt: slot], terminator: ")", to: &result)
       } else {
-        debugPrint(self[keyAt: slot], terminator: "", to: &result)
+        debugPrint(unsafe self[keyAt: slot], terminator: "", to: &result)
       }
     }
     result += "], "
-    if let children = self.children {
-      debugPrint(Array(UnsafeBufferPointer(
+    if let children = unsafe self.children {
+      debugPrint(unsafe Array(UnsafeBufferPointer(
         start: children,
         count: self.childCount
       )), terminator: ")", to: &result)

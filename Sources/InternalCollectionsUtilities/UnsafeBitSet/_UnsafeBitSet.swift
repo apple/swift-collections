@@ -118,7 +118,7 @@ extension _UnsafeBitSet {
     run body: (inout Self) throws -> Void
   ) rethrows {
     assert(wordCount >= 0)
-    return try withUnsafeTemporaryAllocation(
+    return try _withUnsafeTemporaryAllocation(
       of: _Word.self, capacity: wordCount
     ) { words in
       var bitset = unsafe Self(words: words, mutable: true)
