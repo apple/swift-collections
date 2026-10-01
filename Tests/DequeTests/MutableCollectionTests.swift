@@ -146,11 +146,11 @@ final class MutableCollectiontests: CollectionTestCase {
           var (deque, expected) = tracker.deque(with: layout)
           let replacement = tracker.instances(for: 100 ..< 100 + layout.count)
           let actual: [LifetimeTracked<Int>]? = withHiddenCopies(if: isShared, of: &deque) { deque in
-            deque.withContiguousMutableStorageIfAvailable { buffer in
-              let result = Array(buffer)
+            unsafe deque.withContiguousMutableStorageIfAvailable { buffer in
+              let result = unsafe Array(buffer)
               expectEqual(buffer.count, replacement.count, trapping: true)
               for i in 0 ..< replacement.count {
-                buffer[i] = replacement[i]
+                unsafe buffer[i] = replacement[i]
               }
               return result
             }

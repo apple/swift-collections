@@ -189,8 +189,8 @@ class OrderedDictionaryValueTests: CollectionTestCase {
           typealias R = [LifetimeTracked<Int>]
           let actual =
           withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d -> R in
-              d.values.withUnsafeBufferPointer { buffer -> R in
-                Array(buffer)
+            unsafe d.values.withUnsafeBufferPointer { buffer -> R in
+              unsafe Array(buffer)
               }
             }
           expectEqualElements(actual, reference.map { $0.value })
@@ -208,11 +208,11 @@ class OrderedDictionaryValueTests: CollectionTestCase {
           typealias R = [LifetimeTracked<Int>]
           let actual =
           withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d -> R in
-              d.values.withUnsafeMutableBufferPointer { buffer -> R in
-                let result = Array(buffer)
+            unsafe d.values.withUnsafeMutableBufferPointer { buffer -> R in
+                let result = unsafe Array(buffer)
                 expectEqual(buffer.count, replacement.count, trapping: true)
                 for i in 0 ..< replacement.count {
-                  buffer[i] = replacement[i]
+                  unsafe buffer[i] = replacement[i]
                 }
                 return result
               }
@@ -236,11 +236,11 @@ class OrderedDictionaryValueTests: CollectionTestCase {
           typealias R = [LifetimeTracked<Int>]
           let actual =
           withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d -> R? in
-              d.values.withContiguousMutableStorageIfAvailable { buffer -> R in
-                let result = Array(buffer)
+            unsafe d.values.withContiguousMutableStorageIfAvailable { buffer -> R in
+                let result = unsafe Array(buffer)
                 expectEqual(buffer.count, replacement.count, trapping: true)
                 for i in 0 ..< replacement.count {
-                  buffer[i] = replacement[i]
+                  unsafe buffer[i] = replacement[i]
                 }
                 return result
               }

@@ -93,7 +93,7 @@ extension _HashNode {
     _ level: _HashLevel, _ stats: inout _HashTreeStatistics
   ) {
     // The empty singleton does not count as a node and occupies no space.
-    if self.raw.storage === _emptySingleton { return }
+    if unsafe self.raw.storage === _emptySingleton { return }
 
     unsafe read {
       stats.nodeCount += 1

@@ -117,14 +117,14 @@ extension LifetimeTracker {
     let buffer = UnsafeMutableBufferPointer<LifetimeTracked<Element>>
       .allocate(capacity: layout.capacity)
     for i in 0 ..< layout.count {
-      buffer.initializeElement(
+      unsafe buffer.initializeElement(
         at: layout.capacity - layout.count + i,
         to: self.instance(for: generator(i)))
     }
-    var span = InputSpan(buffer: buffer, initializedCount: layout.count)
+    var span = unsafe InputSpan(buffer: buffer, initializedCount: layout.count)
     body(&span)
     _ = consume span
-    buffer.deallocate()
+    unsafe buffer.deallocate()
   }
 #endif
 

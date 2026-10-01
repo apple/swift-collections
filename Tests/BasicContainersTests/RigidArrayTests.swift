@@ -843,15 +843,15 @@ class RigidArrayTests: CollectionTestCase {
           let additions = UnsafeMutableBufferPointer<LifetimeTracked<Int>>
             .allocate(capacity: c)
           for i in 0 ..< c {
-            additions.initializeElement(
+            unsafe additions.initializeElement(
               at: i,
               to: tracker.instance(for: layout.count + i))
           }
 
           var a = tracker.rigidArray(layout: layout)
-          a.append(moving: additions)
+          unsafe a.append(moving: additions)
 
-          additions.deallocate()
+          unsafe additions.deallocate()
 
           expectRigidArrayContents(
             a,
@@ -1070,15 +1070,15 @@ class RigidArrayTests: CollectionTestCase {
             let additions = UnsafeMutableBufferPointer<LifetimeTracked<Int>>
               .allocate(capacity: c)
             for i in 0 ..< c {
-              additions.initializeElement(
+              unsafe additions.initializeElement(
                 at: i,
                 to: tracker.instance(for: layout.count + i))
             }
 
             var a = tracker.rigidArray(layout: layout)
-            a.insert(moving: additions, at: i)
+            unsafe a.insert(moving: additions, at: i)
 
-            additions.deallocate()
+            unsafe additions.deallocate()
 
             var expected = Array(0 ..< layout.count)
             expected.insert(contentsOf: layout.count ..< layout.count + c, at: i)

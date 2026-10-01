@@ -84,7 +84,7 @@ extension IndexRangeCollection: RandomAccessCollection {
   
   public subscript(position: Index) -> Range<Bound> {
     precondition(position._end <= _bounds.count)
-    return Range(
+    return unsafe Range(
       uncheckedBounds: (
         lower: _bounds.lowerBound.advanced(by: position._start),
         upper: _bounds.lowerBound.advanced(by: position._end)))

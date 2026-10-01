@@ -157,10 +157,10 @@ final class DequeTests: CollectionTestCase {
           let (deque, contents) = tracker.deque(with: layout)
 
           var it: Deque<LifetimeTracked<Int>>.Iterator?
-          let head = Array<LifetimeTracked<Int>>(
+          let head = unsafe Array<LifetimeTracked<Int>>(
             unsafeUninitializedCapacity: prefix
           ) { buffer, count in
-            (it, count) = deque._copyContents(initializing: buffer)
+            (it, count) = unsafe deque._copyContents(initializing: buffer)
           }
           let tail = Array(IteratorSequence(it!))
           expectEqualElements(head, contents.prefix(upTo: prefix))
@@ -175,15 +175,15 @@ final class DequeTests: CollectionTestCase {
       withEvery("count", in: [0, cap / 3, cap / 2, 2 * cap / 3, cap] as Set) { count in
         withLifetimeTracking { tracker in
           let contents = tracker.instances(for: 0 ..< count)
-          let d1 = Deque<LifetimeTracked<Int>>(
+          let d1 = unsafe Deque<LifetimeTracked<Int>>(
             unsafeUninitializedCapacity: cap,
             initializingWith: { target, c in
-              expectNotNil(target.baseAddress)
+              unsafe expectNotNil(target.baseAddress)
               expectEqual(target.count, cap)
               expectEqual(c, 0)
               contents.withUnsafeBufferPointer { source in
                 precondition(source.count <= target.count)
-                target.baseAddress!.initialize(
+                unsafe target.baseAddress!.initialize(
                   from: source.baseAddress!,
                   count: source.count)
               }
@@ -205,15 +205,15 @@ final class DequeTests: CollectionTestCase {
       // This function works around https://bugs.swift.org/browse/SR-14134
       let contents = tracker.instances(for: 0 ..< count)
       expectThrows(
-        try Deque<LifetimeTracked<Int>>(
+        unsafe try Deque<LifetimeTracked<Int>>(
           unsafeUninitializedCapacity: cap,
           initializingWith: { target, c in
-            expectNotNil(target.baseAddress)
+            unsafe expectNotNil(target.baseAddress)
             expectEqual(target.count, cap)
             expectEqual(c, 0)
             contents.withUnsafeBufferPointer { source in
               precondition(source.count <= target.count)
-              target.baseAddress!.initialize(
+              unsafe target.baseAddress!.initialize(
                 from: source.baseAddress!,
                 count: source.count)
             }
@@ -363,7 +363,7 @@ final class DequeTests: CollectionTestCase {
           let extra: [NSObject] = (0 ..< appendCount)
             .map { _ in NSObject() }
             .withUnsafeBufferPointer { buffer in
-              NSArray(objects: buffer.baseAddress, count: buffer.count) as! [NSObject]
+              unsafe NSArray(objects: buffer.baseAddress, count: buffer.count) as! [NSObject]
             }
           withHiddenCopies(if: isShared, of: &deque) { deque in
             contents.insert(contentsOf: extra, at: 0)

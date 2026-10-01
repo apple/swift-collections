@@ -30,7 +30,7 @@ public final class TestContext {
 
 extension TestContext {
   public static var current: TestContext {
-    guard let current = _current else {
+    guard let current = unsafe _current else {
       fatalError("There is no current test context")
     }
     return current
@@ -47,13 +47,13 @@ extension TestContext {
   }
 
   public static func push(_ context: TestContext) {
-    precondition(_current == nil, "Cannot nest test contexts")
-    _current = context
+    precondition(unsafe _current == nil, "Cannot nest test contexts")
+    unsafe _current = context
   }
 
   public static func pop(_ context: TestContext) {
-    precondition(_current === context, "Cannot pop mismatching context")
-    _current = nil
+    precondition(unsafe _current === context, "Cannot pop mismatching context")
+    unsafe _current = nil
   }
 }
 
@@ -79,7 +79,7 @@ extension TestContext {
     }
 
     public static func ==(left: Self, right: Self) -> Bool {
-      left.label == right.label
+      unsafe left.label == right.label
         && left.file.utf8Start == right.file.utf8Start
         && left.file.utf8CodeUnitCount == right.file.utf8CodeUnitCount
         && left.line == right.line
@@ -87,7 +87,7 @@ extension TestContext {
 
     public func hash(into hasher: inout Hasher) {
       hasher.combine(label)
-      hasher.combine(file.utf8Start)
+      unsafe hasher.combine(file.utf8Start)
       hasher.combine(file.utf8CodeUnitCount)
       hasher.combine(line)
     }
@@ -205,7 +205,7 @@ extension TestContext {
   }
   
   public static func incrementFailureCount() -> Bool {
-    guard let context = _current else { return true }
+    guard let context = unsafe _current else { return true }
     let result = context._failureCount < maximumFailureCount
     context._failureCount += 1
     return result
@@ -215,7 +215,7 @@ extension TestContext {
     _ message: String = "",
     title: String = "Trace"
   ) -> String {
-    guard let context = _current else { return message }
+    guard let context = unsafe _current else { return message }
     return context.currentTrace(message, title: title)
   }
 

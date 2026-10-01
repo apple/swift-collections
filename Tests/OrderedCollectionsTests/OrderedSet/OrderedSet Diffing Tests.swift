@@ -22,13 +22,13 @@ import _CollectionsTestSupport
 class MeasuringHashable: Hashable {
   nonisolated(unsafe) static var equalityChecks = 0
   static func == (lhs: MeasuringHashable, rhs: MeasuringHashable) -> Bool {
-    MeasuringHashable.equalityChecks += 1
+    unsafe MeasuringHashable.equalityChecks += 1
     return lhs._inner == rhs._inner
   }
 
   nonisolated(unsafe) static var hashChecks = 0
   func hash(into hasher: inout Hasher) {
-    MeasuringHashable.hashChecks += 1
+    unsafe MeasuringHashable.hashChecks += 1
     _inner.hash(into: &hasher)
   }
 
@@ -43,8 +43,8 @@ class MeasuringHashable: Hashable {
 class OrderedSetDiffingTests: CollectionTestCase {
 
   func _validatePerformance<T: Hashable>(from a: OrderedSet<T>, to b: OrderedSet<T>) {
-    MeasuringHashable.equalityChecks = 0
-    MeasuringHashable.hashChecks = 0
+    unsafe MeasuringHashable.equalityChecks = 0
+    unsafe MeasuringHashable.hashChecks = 0
 
     let _ = OrderedSet(a.map({MeasuringHashable($0)})).difference(from: OrderedSet(b.map({MeasuringHashable($0)})))
     let n = a.count + b.count
@@ -52,8 +52,8 @@ class OrderedSetDiffingTests: CollectionTestCase {
     /* Expect linear performance, which we can fence in testing as
      * "less than nlogn" since diffing generally tends to be at least n**2
      */
-    expectLessThan(MeasuringHashable.equalityChecks, n * n.bitWidth)
-    expectLessThan(MeasuringHashable.hashChecks, n * n.bitWidth)
+    expectLessThan(unsafe MeasuringHashable.equalityChecks, n * n.bitWidth)
+    expectLessThan(unsafe MeasuringHashable.hashChecks, n * n.bitWidth)
   }
 
   func _validate<T: Hashable>(from a: Array<T>, to b: Array<T>, mutations: Int? = nil) {
