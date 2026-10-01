@@ -74,11 +74,11 @@ extension OrderedSet {
     }
 #endif
 
-    return _UnsafeBitSet.withTemporaryBitSet(capacity: count) { seen in
+    return unsafe _UnsafeBitSet.withTemporaryBitSet(capacity: count) { seen in
       var c = 0
       for item in other {
         guard let index = _find(item).index else { return false }
-        if seen.insert(index) {
+        if unsafe seen.insert(index) {
           c &+= 1
         }
       }

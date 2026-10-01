@@ -14,16 +14,18 @@
 extension TreeSet: Sequence {
   /// An iterator over the members of a `TreeSet`.
   @frozen
+  @safe
   public struct Iterator: IteratorProtocol {
     @usableFromInline
     internal typealias _UnsafeHandle = _Node.UnsafeHandle
 
     @usableFromInline
+    @unsafe
     internal var _it: _HashTreeIterator
 
     @inlinable
     internal init(_root: _RawHashNode) {
-      _it = _HashTreeIterator(root: _root)
+      unsafe _it = _HashTreeIterator(root: _root)
     }
 
     /// Advances to the next element and returns it, or `nil` if no next element
@@ -34,8 +36,8 @@ extension TreeSet: Sequence {
     /// - Complexity: O(1)
     @inlinable
     public mutating func next() -> Element? {
-      guard let (node, slot) = _it.next() else { return nil }
-      return _UnsafeHandle.read(node) { $0[item: slot].key }
+      guard let (node, slot) = unsafe _it.next() else { return nil }
+      return unsafe _UnsafeHandle.read(node) { unsafe $0[item: slot].key }
     }
   }
 

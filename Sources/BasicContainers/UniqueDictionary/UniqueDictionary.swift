@@ -47,13 +47,13 @@ extension UniqueDictionary where Key: ~Copyable, Value: ~Copyable {
   @inlinable
   @inline(__always)
   public var count: Int {
-    _assumeNonNegative(_storage._keys._table._count)
+    _storage.count
   }
   
   @inlinable
   @inline(__always)
   public var capacity: Int {
-    _assumeNonNegative(_storage._keys._table._capacity)
+    _storage.capacity
   }
   
   @inlinable
@@ -71,7 +71,7 @@ extension UniqueDictionary where Key: ~Copyable, Value: ~Copyable {
   @inlinable
   @inline(__always)
   public var freeCapacity: Int {
-    _assumeNonNegative(capacity &- count)
+    _storage.freeCapacity
   }
 
   @_alwaysEmitIntoClient

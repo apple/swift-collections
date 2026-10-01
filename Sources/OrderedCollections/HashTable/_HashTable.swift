@@ -47,21 +47,28 @@ extension _HashTable {
         #if COLLECTIONS_DETERMINISTIC_HASHING
         let seed = scale << 6
         #else
-        let seed = Int(bitPattern: Unmanaged.passUnretained(object).toOpaque())
+        let seed = Int(bitPattern: unsafe Unmanaged.passUnretained(object).toOpaque())
         #endif
         return Header(scale: scale, reservedScale: reservedScale, seed: seed)
       })
-    storage.withUnsafeMutablePointerToElements { elements in
-      elements.initialize(repeating: 0, count: wordCount)
+    unsafe storage.withUnsafeMutablePointerToElements { elements in
+      unsafe elements.initialize(repeating: 0, count: wordCount)
     }
-    self.init(unsafeDowncast(storage, to: Storage.self))
+    self.init(unsafe unsafeDowncast(storage, to: Storage.self))
   }
 
   /// Populate a new hash table with data from `elements`.
   ///
-  /// - Parameter scale: The desired hash table scale or nil to use the minimum scale that satisfies invariants.
-  /// - Parameter reservedScale: The reserved scale to remember in the returned storage.
-  /// - Returns: `(storage, index)` where `storage` is a storage instance. The contents of `storage` reflects all elements in `contents[contents.startIndex ..< index]`. `index` is usually `contents.endIndex`, except when the function was asked to reject duplicates, in which case `index` addresses the first duplicate element in `contents` (if any).
+  /// - Parameter scale: The desired hash table scale or nil to use the minimum
+  ///     scale that satisfies invariants.
+  /// - Parameter reservedScale: The reserved scale to remember in the returned
+  ///     storage.
+  /// - Returns: `(storage, index)` where `storage` is a storage instance. The
+  ///     contents of `storage` reflects all elements in
+  ///     `contents[contents.startIndex ..< index]`. `index` is usually
+  ///     `contents.endIndex`, except when the function was asked to reject
+  ///     duplicates, in which case `index` addresses the first duplicate
+  ///     element in `contents` (if any).
   @inlinable
   @inline(never)
   @_effects(releasenone)
@@ -76,17 +83,24 @@ extension _HashTable {
                           reservedScale)
     if scale < Self.minimumScale { return nil }
     let hashTable = Self(scale: scale, reservedScale: reservedScale)
-    hashTable.update { handle in
-      handle.fill(uncheckedUniqueElements: elements)
+    unsafe hashTable.update { handle in
+      unsafe handle.fill(uncheckedUniqueElements: elements)
     }
     return hashTable
   }
 
   /// Populate a new hash table with data from `elements`.
   ///
-  /// - Parameter scale: The desired hash table scale or nil to use the minimum scale that satisfies invariants.
-  /// - Parameter reservedScale: The reserved scale to remember in the returned storage.
-  /// - Returns: `(storage, index)` where `storage` is a storage instance. The contents of `storage` reflects all elements in `contents[contents.startIndex ..< index]`. `index` is usually `contents.endIndex`, except when the function was asked to reject duplicates, in which case `index` addresses the first duplicate element in `contents` (if any).
+  /// - Parameter scale: The desired hash table scale or nil to use the minimum
+  ///    scale that satisfies invariants.
+  /// - Parameter reservedScale: The reserved scale to remember in the returned
+  ///    storage.
+  /// - Returns: `(storage, index)` where `storage` is a storage instance. The
+  ///    contents of `storage` reflects all elements in
+  ///    `contents[contents.startIndex ..< index]`. `index` is usually
+  ///    `contents.endIndex`, except when the function was asked to reject
+  ///    duplicates, in which case `index` addresses the first duplicate
+  ///    element in `contents` (if any).
   @inlinable
   @inline(never)
   @_effects(releasenone)
@@ -110,7 +124,7 @@ extension _HashTable {
         var temp: ContiguousArray<C.Element> = []
         temp.reserveCapacity(elements.count)
         for i in elements.indices {
-          let item = elements[i]
+          let item = unsafe elements[i]
           guard !temp._contains(item) else { return i }
           temp.append(item)
         }
@@ -129,8 +143,8 @@ extension _HashTable {
       return (nil, elements.endIndex)
     }
     let hashTable = Self(scale: scale, reservedScale: reservedScale)
-    let (_, index) = hashTable.update { handle in
-      handle.fill(untilFirstDuplicateIn: elements)
+    let (_, index) = unsafe hashTable.update { handle in
+      unsafe handle.fill(untilFirstDuplicateIn: elements)
     }
     return (hashTable, index)
   }
@@ -140,15 +154,15 @@ extension _HashTable {
   @usableFromInline
   @_effects(releasenone)
   package func copy() -> _HashTable {
-    self.read { handle in
-      let wordCount = handle.wordCount
+    unsafe self.read { handle in
+      let wordCount = unsafe handle.wordCount
       let new = Storage.create(
         minimumCapacity: wordCount,
-        makingHeaderWith: { _ in handle._header.pointee })
-      new.withUnsafeMutablePointerToElements { elements in
-        elements.initialize(from: handle._buckets, count: wordCount)
+        makingHeaderWith: { _ in unsafe handle._header.pointee })
+      unsafe new.withUnsafeMutablePointerToElements { elements in
+        unsafe elements.initialize(from: handle._buckets, count: wordCount)
       }
-      return Self(unsafeDowncast(new, to: Storage.self))
+      return Self(unsafe unsafeDowncast(new, to: Storage.self))
     }
   }
 }
@@ -178,9 +192,9 @@ extension _HashTable {
   @inlinable
   @inline(__always)
   package func read<R>(_ body: (_UnsafeHashTable) throws -> R) rethrows -> R {
-    try _storage.withUnsafeMutablePointers { header, elements in
-      let handle = _UnsafeHashTable(header: header, buckets: elements, readonly: true)
-      return try body(handle)
+    unsafe try _storage.withUnsafeMutablePointers { header, elements in
+      let handle = unsafe _UnsafeHashTable(header: header, buckets: elements, readonly: true)
+      return unsafe try body(handle)
     }
   }
 
@@ -191,9 +205,9 @@ extension _HashTable {
   @inlinable
   @inline(__always)
   package func update<R>(_ body: (_UnsafeHashTable) throws -> R) rethrows -> R {
-    try _storage.withUnsafeMutablePointers { header, elements in
-      let handle = _UnsafeHashTable(header: header, buckets: elements, readonly: false)
-      return try body(handle)
+    unsafe try _storage.withUnsafeMutablePointers { header, elements in
+      let handle = unsafe _UnsafeHashTable(header: header, buckets: elements, readonly: false)
+      return unsafe try body(handle)
     }
   }
 }

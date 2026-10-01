@@ -87,13 +87,13 @@ extension _BTree {
     internal var seedling: Node {
       get {
         assert(_seedling != nil,
-               "Simultaneous access or access on consumed builder.")
-        return _seedling.unsafelyUnwrapped
+               "Simultaneous access or access on consumed builder")
+        return unsafe _seedling.unsafelyUnwrapped
       }
       _modify {
         assert(_seedling != nil,
-               "Simultaneous mutable access or mutable access on consumed builder.")
-        var value = _seedling.unsafelyUnwrapped
+               "Simultaneous mutable access or mutable access on consumed builder")
+        var value = unsafe _seedling.unsafelyUnwrapped
         _seedling = nil
         defer { _seedling = value }
         yield &value
@@ -204,7 +204,7 @@ extension _BTree {
     @inlinable
     package mutating func append(_ element: __owned Element) {
       assert(lastKey == nil || lastKey! <= element.key,
-             "New element must be non-decreasing.")
+             "New element must be non-decreasing")
       defer { lastKey = element.key }
       if deduplicating {
         if let lastKey = lastKey {
@@ -218,9 +218,9 @@ extension _BTree {
         state = .appendingToSeedling
 
       case .appendingToSeedling:
-        let isFull: Bool = seedling.update { handle in
-          handle.appendElement(element)
-          return handle.isFull
+        let isFull: Bool = unsafe seedling.update { handle in
+          unsafe handle.appendElement(element)
+          return unsafe handle.isFull
         }
         
         if _slowPath(isFull) {
@@ -247,12 +247,12 @@ extension _BTree {
       //   - The stack has saplings of decreasing depth.
       //   - Saplings on the stack are completely filled except for their roots.
       if case (var previousSapling, let separator)? = self.popSapling() {
-        let saplingDepth = sapling.storage.header.depth
-        let previousSaplingDepth = previousSapling.storage.header.depth
-        let previousSaplingIsFull = previousSapling.read({ $0.isFull })
-        
+        let saplingDepth = unsafe sapling.storage.header.depth
+        let previousSaplingDepth = unsafe previousSapling.storage.header.depth
+        let previousSaplingIsFull = unsafe previousSapling.read({ unsafe $0.isFull })
+
         assert(previousSaplingDepth >= saplingDepth,
-               "Builder invariant failure.")
+               "Builder invariant failure")
         
         if saplingDepth == previousSaplingDepth && previousSaplingIsFull {
           // This is when two nodes are full:
@@ -300,8 +300,8 @@ extension _BTree {
           //   ┌─┴─┐ ┌─┴─┐ ┌┴──┐
           //   │ A │ │ C │ │ E │
           //   └───┘ └───┘ └───┘
-          previousSapling.update {
-            $0.appendElement(separator, withRightChild: sapling)
+          unsafe previousSapling.update {
+            unsafe $0.appendElement(separator, withRightChild: sapling)
           }
           sapling = previousSapling
         } else {

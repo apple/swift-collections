@@ -116,16 +116,16 @@ extension String {
   @available(SwiftStdlib 6.2, *)
   internal mutating func append(copying utf8Span: UTF8Span) {
     self = String(unsafeUninitializedCapacity: utf8.count + utf8Span.count) {
-      var buffer = $0
+      var buffer = unsafe $0
 
       let stringInitialized = withUTF8 {
-        buffer.initialize(fromContentsOf: $0)
+        unsafe buffer.initialize(fromContentsOf: $0)
       }
 
-      buffer = buffer.extracting(stringInitialized...)
+      unsafe buffer = buffer.extracting(stringInitialized...)
 
       let spanInitialized = utf8Span.span.withUnsafeBufferPointer {
-        buffer.initialize(fromContentsOf: $0)
+        unsafe buffer.initialize(fromContentsOf: $0)
       }
 
       return stringInitialized + spanInitialized

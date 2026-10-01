@@ -38,8 +38,8 @@ extension BitArray: LosslessStringConvertible {
     if digits.utf8.first == ._asciiLT, digits.utf8.last == ._asciiGT {
       digits = digits.dropFirst().dropLast()
     }
-    let bits: BitArray? = digits.utf8.withContiguousStorageIfAvailable { buffer in
-      Self(_utf8Digits: buffer)
+    let bits: BitArray? = unsafe digits.utf8.withContiguousStorageIfAvailable { buffer in
+      unsafe Self(_utf8Digits: buffer)
     } ?? Self(_utf8Digits: description.utf8)
     guard let bits = bits else {
       return nil
@@ -51,10 +51,10 @@ extension BitArray: LosslessStringConvertible {
     let c = utf8.count
     self.init(repeating: false, count: c)
     var i = c &- 1
-    let success = _update { handle in
+    let success = unsafe _update { handle in
       for byte in utf8 {
         if byte == ._ascii1 {
-          handle.set(at: i)
+          unsafe handle.set(at: i)
         } else {
           guard byte == ._ascii0 else { return false }
         }

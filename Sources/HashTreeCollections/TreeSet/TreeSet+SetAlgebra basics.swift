@@ -55,13 +55,13 @@ extension TreeSet: SetAlgebra {
   ) -> (inserted: Bool, memberAfterInsert: Element) {
     defer { _fixLifetime(self) }
     let hash = _Hash(newMember)
-    let r = _root.insert(.top, (newMember, ()), hash)
-    if r.inserted {
+    let r = unsafe _root.insert(.top, (newMember, ()), hash)
+    if unsafe r.inserted {
       _invalidateIndices()
       return (true, newMember)
     }
-    return _UnsafeHandle.read(r.leaf) {
-      (false, $0[item: r.slot].key)
+    return unsafe _UnsafeHandle.read(r.leaf) {
+      unsafe (false, $0[item: r.slot].key)
     }
   }
 
@@ -69,8 +69,8 @@ extension TreeSet: SetAlgebra {
   @inlinable
   internal mutating func _insert(_ newMember: __owned Element) -> Bool {
     let hash = _Hash(newMember)
-    let r = _root.insert(.top, (newMember, ()), hash)
-    return r.inserted
+    let r = unsafe _root.insert(.top, (newMember, ()), hash)
+    return unsafe r.inserted
   }
 
   /// Removes the given element from the set.
@@ -93,7 +93,7 @@ extension TreeSet: SetAlgebra {
   @inlinable
   public mutating func remove(_ member: Element) -> Element? {
     let hash = _Hash(member)
-    guard let r = _root.remove(.top, member, hash) else { return nil }
+    guard let r = unsafe _root.remove(.top, member, hash) else { return nil }
     _invalidateIndices()
     assert(r.remainder == nil)
     return r.removed.key
@@ -122,14 +122,14 @@ extension TreeSet: SetAlgebra {
   public mutating func update(with newMember: __owned Element) -> Element? {
     defer { _fixLifetime(self) }
     let hash = _Hash(newMember)
-    let r = _root.updateValue(.top, forKey: newMember, hash) {
-      $0.initialize(to: (newMember, ()))
+    let r = unsafe _root.updateValue(.top, forKey: newMember, hash) {
+      unsafe $0.initialize(to: (newMember, ()))
     }
-    if r.inserted { return nil }
-    return _UnsafeHandle.update(r.leaf) {
-      let p = $0.itemPtr(at: r.slot)
-      let old = p.move().key
-      p.initialize(to: (newMember, ()))
+    if unsafe r.inserted { return nil }
+    return unsafe _UnsafeHandle.update(r.leaf) {
+      let p = unsafe $0.itemPtr(at: r.slot)
+      let old = unsafe p.move().key
+      unsafe p.initialize(to: (newMember, ()))
       return old
     }
   }

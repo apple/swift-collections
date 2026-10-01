@@ -22,7 +22,7 @@ extension RigidArray where Element: ~Copyable {
   @unsafe
   internal mutating func _appendUnchecked(_ item: consuming Element) {
     unsafe _storage.initializeElement(at: _count, to: item)
-    _count &+= 1
+    unsafe _count &+= 1
   }
 
   /// Adds an element to the end of the array.
@@ -86,14 +86,14 @@ extension RigidArray where Element: ~Copyable {
   ) throws(E) -> Range<Int> {
     precondition(newItemCount >= 0, "Cannot add a negative number of items")
     precondition(freeCapacity >= newItemCount, "RigidArray capacity overflow")
-    let buffer = _freeSpace._extracting(first: newItemCount)
-    var span = OutputSpan(buffer: buffer, initializedCount: 0)
+    let buffer = unsafe _freeSpace._extracting(first: newItemCount)
+    var span = unsafe OutputSpan(buffer: buffer, initializedCount: 0)
     defer {
-      _count &+= span.finalize(for: buffer)
+      unsafe _count &+= unsafe span.finalize(for: buffer)
       span = OutputSpan()
     }
     try initializer(&span)
-    return Range(uncheckedBounds: (count, count &+ span.count))
+    return unsafe Range(uncheckedBounds: (count, count &+ span.count))
   }
 }
 
@@ -105,13 +105,13 @@ extension RigidArray where Element: ~Copyable {
     moving items: UnsafeMutableBufferPointer<Element>
   ) -> Range<Int> {
     guard items.count > 0 else {
-      return Range(uncheckedBounds: (_count, _count))
+      return unsafe Range(uncheckedBounds: (self.count, self.count))
     }
     let c = unsafe _freeSpace._moveInitializePrefix(from: items)
     assert(c == items.count)
-    let origCount = _count
-    _count &+= items.count
-    return Range(uncheckedBounds: (origCount, _count))
+    let origCount = self.count
+    unsafe _count &+= items.count
+    return unsafe Range(uncheckedBounds: (origCount, self.count))
   }
 
   /// Moves the elements of a buffer to the end of this array, leaving the
@@ -127,6 +127,7 @@ extension RigidArray where Element: ~Copyable {
   /// - Complexity: O(`items.count`)
   @_alwaysEmitIntoClient
   @discardableResult
+  @unsafe
   public mutating func append(
     moving items: UnsafeMutableBufferPointer<Element>
   ) -> Range<Int> {
@@ -151,8 +152,8 @@ extension RigidArray where Element: ~Copyable {
     moving items: inout InputSpan<Element>
   ) -> Range<Int> {
     // FIXME: Remove this when `InputSpan` starts conforming to RangeReplaceableContainer
-    items.withUnsafeMutableBufferPointer { buffer, count in
-      let source = buffer._extracting(last: count)
+    unsafe items.withUnsafeMutableBufferPointer { buffer, count in
+      let source = unsafe buffer._extracting(last: count)
       count = 0
       return unsafe self.append(moving: source)
     }
@@ -176,8 +177,8 @@ extension RigidArray where Element: ~Copyable {
   ) -> Range<Int> {
     // FIXME: Remove this when `OutputSpan` starts conforming to RangeReplaceableContainer
     precondition(items.count <= freeCapacity, "RigidArray capacity overflow")
-    return items.withUnsafeMutableBufferPointer { buffer, count in
-      let source = buffer._extracting(first: count)
+    return unsafe items.withUnsafeMutableBufferPointer { buffer, count in
+      let source = unsafe buffer._extracting(first: count)
       count = 0
       return unsafe _appendUnchecked(moving: source)
     }
@@ -213,13 +214,13 @@ extension RigidArray {
     copying newElements: UnsafeBufferPointer<Element>
   ) -> Range<Int> {
     guard newElements.count > 0 else {
-      return Range(uncheckedBounds: (_count, _count))
+      return unsafe Range(uncheckedBounds: (self.count, self.count))
     }
     unsafe _freeSpace.baseAddress.unsafelyUnwrapped.initialize(
       from: newElements.baseAddress.unsafelyUnwrapped, count: newElements.count)
-    let origCount = _count
-    _count &+= newElements.count
-    return Range(uncheckedBounds: (origCount, _count))
+    let origCount = self.count
+    unsafe _count &+= newElements.count
+    return unsafe Range(uncheckedBounds: (origCount, self.count))
   }
 
   /// Copies the elements of a buffer to the end of this array.
@@ -234,6 +235,7 @@ extension RigidArray {
   /// - Complexity: O(`newElements.count`)
   @_alwaysEmitIntoClient
   @discardableResult
+  @unsafe
   public mutating func append(
     copying newElements: UnsafeBufferPointer<Element>
   ) -> Range<Int> {
@@ -255,6 +257,7 @@ extension RigidArray {
   /// - Complexity: O(`items.count`)
   @_alwaysEmitIntoClient
   @discardableResult
+  @unsafe
   public mutating func append(
     copying items: UnsafeMutableBufferPointer<Element>
   ) -> Range<Int> {
@@ -285,7 +288,7 @@ extension RigidArray {
     prefixOf items: S
   ) -> S.Iterator {
     let (it, c) = unsafe items._copyContents(initializing: _freeSpace)
-    _count += c
+    unsafe _count += c
     return it
   }
 
@@ -298,8 +301,8 @@ extension RigidArray {
     copying newElements: borrowing Source
   ) throws(Source.Failure)
   where Source.Element == Element {
-    let target = _freeSpace
-    _count += try newElements._copyContents(intoPrefixOf: target)
+    let target = unsafe _freeSpace
+    unsafe _count += try newElements._copyContents(intoPrefixOf: target)
   }
 #endif
 

@@ -121,7 +121,9 @@ extension _HashNode.Builder {
       assert(!node.hasSingletonItem)
       kind = .collisionNode(node)
     } else if node.hasSingletonItem {
-      kind = node.read { .item($0[item: .zero], at: $0.itemMap.first!) }
+      kind = unsafe node.read {
+        unsafe .item($0[item: .zero], at: $0.itemMap.first!)
+      }
     } else {
       kind = .node(node)
     }
@@ -145,6 +147,7 @@ extension _HashNode.Builder {
 
 extension _HashNode {
   @inlinable
+  @unsafe
   internal mutating func applyReplacement(
     _ level: _HashLevel,
     _ replacement: Builder
@@ -168,6 +171,7 @@ extension _HashNode {
 
 extension _HashNode.Builder {
   @inlinable
+  @unsafe
   internal mutating func addNewCollision(
     _ level: _HashLevel, _ newItem: __owned Element, _ hash: _Hash
   ) {
@@ -183,7 +187,7 @@ extension _HashNode.Builder {
       kind = .empty
       assert(node.isCollisionNode)
       assert(hash == node.collisionHash)
-      _ = node.ensureUniqueAndAppendCollision(isUnique: true, newItem)
+      _ = unsafe node.ensureUniqueAndAppendCollision(isUnique: true, newItem)
       kind = .collisionNode(node)
     case .node:
       fatalError()
@@ -191,6 +195,7 @@ extension _HashNode.Builder {
   }
 
   @inlinable
+  @unsafe
   internal mutating func addNewItem(
     _ level: _HashLevel, _ newItem: __owned Element, at newBucket: _Bucket
   ) {
@@ -218,6 +223,7 @@ extension _HashNode.Builder {
   }
 
   @inlinable
+  @unsafe
   internal mutating func addNewChildNode(
     _ level: _HashLevel, _ newChild: __owned _HashNode, at newBucket: _Bucket
   ) {
@@ -239,7 +245,7 @@ extension _HashNode.Builder {
       let isUnique = node.isUnique()
       node.ensureUnique(
         isUnique: isUnique, withFreeSpace: _HashNode.spaceForNewChild)
-      node.insertChild(newChild, newBucket)
+      unsafe node.insertChild(newChild, newBucket)
       self.kind = .node(node)
     case .collisionNode(var node):
       // Expansion
@@ -252,6 +258,7 @@ extension _HashNode.Builder {
   }
 
   @inlinable
+  @unsafe
   internal mutating func addNewChildBranch(
     _ level: _HashLevel, _ newChild: __owned Self, at newBucket: _Bucket
   ) {
@@ -261,13 +268,14 @@ extension _HashNode.Builder {
     case .empty:
       break
     case .item(let newItem, _):
-      self.addNewItem(level, newItem, at: newBucket)
+      unsafe  self.addNewItem(level, newItem, at: newBucket)
     case .node(let newNode), .collisionNode(let newNode):
-      self.addNewChildNode(level, newNode, at: newBucket)
+      unsafe self.addNewChildNode(level, newNode, at: newBucket)
     }
   }
 
   @inlinable
+  @unsafe
   internal static func childBranch(
     _ level: _HashLevel, _ child: Self, at bucket: _Bucket
   ) -> Self {
@@ -289,20 +297,22 @@ extension _HashNode.Builder {
 
 extension _HashNode.Builder {
   @inlinable
+  @unsafe
   internal mutating func copyCollisions(
     from source: _HashNode.UnsafeHandle,
     upTo end: _HashSlot
   ) {
     assert(isEmpty)
-    assert(source.isCollisionNode)
-    assert(end < source.itemsEndSlot)
-    let h = source.collisionHash
+    assert(unsafe source.isCollisionNode)
+    assert(unsafe end < source.itemsEndSlot)
+    let h = unsafe source.collisionHash
     for slot: _HashSlot in stride(from: .zero, to: end, by: 1) {
-      self.addNewCollision(self.level, source[item: slot], h)
+      unsafe self.addNewCollision(self.level, source[item: slot], h)
     }
   }
 
   @inlinable
+  @unsafe
   internal mutating func copyItems(
     _ level: _HashLevel,
     from source: _HashNode.UnsafeHandle,
@@ -310,13 +320,14 @@ extension _HashNode.Builder {
   ) {
     assert(level == self.level)
     assert(isEmpty)
-    assert(!source.isCollisionNode)
-    for (b, s) in source.itemMap.intersection(_Bitmap(upTo: end)) {
-      self.addNewItem(level, source[item: s], at: b)
+    assert(unsafe !source.isCollisionNode)
+    for (b, s) in unsafe source.itemMap.intersection(_Bitmap(upTo: end)) {
+      unsafe self.addNewItem(level, source[item: s], at: b)
     }
   }
 
   @inlinable
+  @unsafe
   internal mutating func copyItemsAndChildren(
     _ level: _HashLevel,
     from source: _HashNode.UnsafeHandle,
@@ -324,12 +335,12 @@ extension _HashNode.Builder {
   ) {
     assert(level == self.level)
     assert(isEmpty)
-    assert(!source.isCollisionNode)
-    for (b, s) in source.itemMap {
-      self.addNewItem(level, source[item: s], at: b)
+    assert(unsafe !source.isCollisionNode)
+    for (b, s) in unsafe source.itemMap {
+      unsafe self.addNewItem(level, source[item: s], at: b)
     }
-    for (b, s) in source.childMap.intersection(_Bitmap(upTo: end)) {
-      self.addNewChildNode(level, source[child: s], at: b)
+    for (b, s) in unsafe source.childMap.intersection(_Bitmap(upTo: end)) {
+      unsafe self.addNewChildNode(level, source[child: s], at: b)
     }
   }
 }
@@ -355,7 +366,7 @@ extension _HashNode.Builder {
   @inlinable
   internal func mapValuesToVoid() -> _HashNode<Key, Void>.Builder {
     if Value.self == Void.self {
-      return unsafeBitCast(self, to: _HashNode<Key, Void>.Builder.self)
+      return unsafe unsafeBitCast(self, to: _HashNode<Key, Void>.Builder.self)
     }
     return mapValues { _ in () }
   }

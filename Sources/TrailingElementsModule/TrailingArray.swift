@@ -20,6 +20,7 @@
 /// the information in the header (via the `trailingCount` property), so that
 /// it is not stored separately.
 @frozen
+@safe
 public struct TrailingArray<Header: TrailingElements>: ~Copyable
 where Header: ~Copyable
 {
@@ -27,12 +28,14 @@ where Header: ~Copyable
   /// Header instance in cases where the alignment of Element exceeds that
   /// of the Header and we have overallocated to compensate.
   @usableFromInline
+  @unsafe
   var _storage: UnsafeMutableRawPointer
 
   /// Pointer to the header.
   @_alwaysEmitIntoClient
+  @unsafe
   var _pointer: UnsafeMutablePointer<Header> {
-    Self.headerPointer(fromStorage: _storage)
+    unsafe Self.headerPointer(fromStorage: _storage)
   }
 
   /// The element type stored within the buffer.
@@ -44,12 +47,11 @@ where Header: ~Copyable
   @_alwaysEmitIntoClient
   private init(_headerOnly header: consuming Header) {
     let (bytes, alignment) = Self.allocationSize(header: header)
-    _storage = UnsafeMutableRawPointer.allocate(
+    unsafe _storage = UnsafeMutableRawPointer.allocate(
       byteCount: bytes,
-      alignment: alignment
-    )
+      alignment: alignment)
 
-    _pointer.initialize(to: header)
+    unsafe _pointer.initialize(to: header)
   }
 
   @available(SwiftStdlib 5.1, *)
@@ -80,16 +82,16 @@ where Header: ~Copyable
   @_alwaysEmitIntoClient
   public init(header: consuming Header, repeating element: Element) {
     self.init(_headerOnly: header)
-    rawElements.initialize(repeating: element)
+    unsafe rawElements.initialize(repeating: element)
   }
 
   /// Deinitialize each of the trailing elements, then the header, then
   /// deallocate the underlying storage.
   @_alwaysEmitIntoClient
   deinit {
-    rawElements.deinitialize()
-    _pointer.deinitialize(count: 1)
-    _storage.deallocate()
+    unsafe rawElements.deinitialize()
+    unsafe _pointer.deinitialize(count: 1)
+    unsafe _storage.deallocate()
   }
 
   /// Take ownership over a pointer to memory containing the header followed
@@ -109,9 +111,9 @@ where Header: ~Copyable
     consuming pointer: UnsafeMutablePointer<Header>,
     storage: UnsafeMutableRawPointer
   ) {
-    self._storage = storage
+    unsafe self._storage = storage
     precondition(
-      self._pointer == pointer,
+      unsafe self._pointer == pointer,
       "header pointer does not account for the alignment of the elements"
     )
   }
@@ -126,21 +128,21 @@ where Header: ~Copyable
     pointer: UnsafeMutablePointer<Header>,
     storage: UnsafeMutableRawPointer
   ) {
-    let pointer = self._pointer
-    let storage = _storage
+    let pointer = unsafe self._pointer
+    let storage = unsafe _storage
     discard self
-    return (pointer, storage)
+    return unsafe (pointer, storage)
   }
 
   /// Access the header portion of the buffer.
   @_alwaysEmitIntoClient
   public var header: Header {
     unsafeAddress {
-      UnsafePointer(_pointer)
+      unsafe UnsafePointer(_pointer)
     }
 
     unsafeMutableAddress {
-      _pointer
+      unsafe _pointer
     }
   }
 
@@ -158,26 +160,27 @@ where Header: ~Copyable
 
   /// Indices covering all of the trailing elements. Always `0..<count`.
   @_alwaysEmitIntoClient
-  public var indices: Range<Int> { 0..<count }
+  public var indices: Range<Int> { 0 ..< count }
 
   /// Access the trailing element at the given index.
   @_alwaysEmitIntoClient
   public subscript(index: Int) -> Element {
     get {
       precondition(index >= 0 && index < count)
-      return rawElements[index]
+      return unsafe rawElements[index]
     }
 
     set {
       precondition(index >= 0 && index < count)
-      rawElements[index] = newValue
+      unsafe rawElements[index] = newValue
     }
   }
 
   /// Access the flexible array elements.
   @_alwaysEmitIntoClient
+  @unsafe
   var rawElements: UnsafeMutableBufferPointer<Element> {
-    UnsafeMutableBufferPointer(
+    unsafe UnsafeMutableBufferPointer(
       start: UnsafeMutableRawPointer(_pointer.advanced(by: 1))
         .assumingMemoryBound(to: Element.self),
       count: header.trailingCount
@@ -190,7 +193,7 @@ where Header: ~Copyable
   public var elements: Span<Element> {
     @_lifetime(self)
     get {
-      _overrideLifetime(rawElements.span, borrowing: self)
+      unsafe _overrideLifetime(rawElements.span, borrowing: self)
     }
   }
 
@@ -201,8 +204,8 @@ where Header: ~Copyable
   public var mutableElements: MutableSpan<Element> {
     @_lifetime(self)
     mutating get {
-      let elements = self.rawElements.mutableSpan
-      return _overrideLifetime(elements, mutating: &self)
+      let elements = unsafe self.rawElements.mutableSpan
+      return unsafe _overrideLifetime(elements, mutating: &self)
     }
   }
 
@@ -212,7 +215,7 @@ where Header: ~Copyable
   public mutating func withUnsafeMutablePointerToHeader<E, R: ~Copyable>(
     _ body: (UnsafeMutablePointer<Header>) throws(E) -> R
   ) throws(E) -> R {
-    return try body(_pointer)
+    return unsafe try body(_pointer)
   }
 
   /// Execute the given closure, providing it with an unsafe buffer pointer
@@ -221,7 +224,7 @@ where Header: ~Copyable
   public mutating func withUnsafeMutablePointerToElements<E, R: ~Copyable>(
     _ body: (UnsafeMutableBufferPointer<Element>) throws(E) -> R
   ) throws(E) -> R {
-    return try body(rawElements)
+    return unsafe try body(rawElements)
   }
 
   /// Execute the given closure, providing it with unsafe pointers to the
@@ -230,7 +233,7 @@ where Header: ~Copyable
   public mutating func withUnsafeMutablePointers<E, R: ~Copyable>(
     _ body: (UnsafeMutablePointer<Header>, UnsafeMutableBufferPointer<Element>) throws(E) -> R
   ) throws(E) -> R {
-    return try body(_pointer, rawElements)
+    return unsafe try body(_pointer, rawElements)
   }
 
   /// Determine the allocation size and alignment needed for the given header
@@ -272,12 +275,12 @@ where Header: ~Copyable
     // Normal case: the header has sufficient alignment to include the
     // elements, so the storage refers directly to the header.
     if elementAlignment <= headerAlignment {
-      return storage.assumingMemoryBound(to: Header.self)
+      return unsafe storage.assumingMemoryBound(to: Header.self)
     }
 
     // The header is stored right before the elements, with padding bytes
     // between the start of the allocation and up to the header.
-    return storage.advanced(by: MemoryLayout<Header>.stride)
+    return unsafe storage.advanced(by: MemoryLayout<Header>.stride)
       .alignedUp(for: Element.self)
       .advanced(by: -MemoryLayout<Header>.stride)
       .assumingMemoryBound(to: Header.self)
@@ -306,10 +309,10 @@ extension TrailingArray where Header: Copyable {
     repeating element: Element,
     body: (inout TrailingArray<Header>) throws(E) -> R
   ) throws(E) -> R {
-    return try _withTemporaryValue(
+    return unsafe try _withTemporaryValue(
       header: header, uninitializedTrailingElements: ()
     ) { (value) throws(E) in
-      value.rawElements.initialize(repeating: element)
+      unsafe value.rawElements.initialize(repeating: element)
       return try body(&value)
     }
   }
@@ -326,7 +329,7 @@ extension TrailingArray where Header: Copyable {
     initializingTrailingElementsWith initializer: (inout OutputSpan<Element>) throws(E) -> Void,
     body: (inout TrailingArray<Header>) throws(E) -> R
   ) throws(E) -> R {
-    return try _withTemporaryValue(
+    return unsafe try _withTemporaryValue(
       header: header, uninitializedTrailingElements: ()
     ) { (value) throws(E) in
       try value._initializeTrailingElements(initializer: initializer)
@@ -357,12 +360,13 @@ extension TrailingArray {
     ) { buffer in
       // Initialize the header within the temporary allocation.
       let storagePointer = buffer.baseAddress!
-      let headerPointer = TrailingArray.headerPointer(fromStorage: storagePointer)
-      headerPointer.initialize(to: header)
+      let headerPointer = unsafe TrailingArray.headerPointer(fromStorage: storagePointer)
+      unsafe headerPointer.initialize(to: header)
 
       /// Create a trailing array over that temporary storage.
-      var managedBuffer = TrailingArray(consuming: headerPointer,
-                                        storage: storagePointer)
+      var managedBuffer = unsafe TrailingArray(
+        consuming: headerPointer,
+        storage: storagePointer)
       let resultOrError: Result<R, E>
       do throws(E) {
         resultOrError = .success(try body(&managedBuffer))
@@ -371,13 +375,13 @@ extension TrailingArray {
       }
 
       // Deinitialize the elements and header.
-      managedBuffer.rawElements.deinitialize()
-      managedBuffer._pointer.deinitialize(count: 1)
+      unsafe managedBuffer.rawElements.deinitialize()
+      unsafe managedBuffer._pointer.deinitialize(count: 1)
 
       // Tell the trailing buffer not to free the storage.
-      let (finalPointer, finalStorage) = managedBuffer.leakStorage()
-      precondition(finalPointer == headerPointer)
-      precondition(finalStorage == storagePointer)
+      let (finalPointer, finalStorage) = unsafe managedBuffer.leakStorage()
+      precondition(unsafe finalPointer == headerPointer)
+      precondition(unsafe finalStorage == storagePointer)
 
       return resultOrError
     }
@@ -399,7 +403,7 @@ extension TrailingArray where Header.Element: BitwiseCopyable {
     uninitializedTrailingElements: (),
     body: (inout TrailingArray<Header>) throws(E) -> R
   ) throws(E) -> R {
-    return try _withTemporaryValue(
+    return unsafe try _withTemporaryValue(
       header: header, uninitializedTrailingElements: ()
     ) { (value) throws(E) in
       try body(&value)

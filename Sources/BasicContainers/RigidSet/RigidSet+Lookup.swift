@@ -19,15 +19,15 @@ extension RigidSet where Element: ~Copyable {
   package borrowing func _find(
     _ item: borrowing Element
   ) -> (bucket: _Bucket?, hashValue: Int) {
-    let storage = _memberBuf
-    if _table.isSmall {
-      let bucket = _table.find_Small(tester: { storage[$0] == item })
+    let storage = unsafe _memberBuf
+    if _isSmall {
+      let bucket = unsafe _table.find_Small { unsafe storage[$0] == item }
       return (bucket, 0)
     }
     let hashValue = _hashValue(for: item)
-    let bucket = _table.find_Large(
+    let bucket = unsafe _table.find_Large(
       hashValue: hashValue,
-      tester: { storage[$0] == item })
+      tester: { unsafe storage[$0] == item })
     return (bucket, hashValue)
   }
   
@@ -40,8 +40,8 @@ extension RigidSet where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
   package func _borrowValue(at bucket: _Bucket) -> Ref<Element> {
-    assert(self._table.isOccupied(bucket))
-    return Ref(unsafeAddress: self._memberPtr(at: bucket), borrowing: self)
+    assert(unsafe self._table.isOccupied(bucket))
+    return unsafe Ref(unsafeAddress: self._memberPtr(at: bucket), borrowing: self)
   }
 }
 

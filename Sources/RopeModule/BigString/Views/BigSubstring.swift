@@ -32,7 +32,7 @@ public struct BigSubstring: Sendable {
     // round substring bounds down to the nearest character.
     let start = base.index(roundingDown: bounds.lowerBound)
     let end = base.index(roundingDown: bounds.upperBound)
-    self._bounds = Range(uncheckedBounds: (start, end))
+    self._bounds = unsafe Range(uncheckedBounds: (start, end))
   }
 }
 
@@ -272,7 +272,7 @@ extension BigSubstring {
 extension BigSubstring: RangeReplaceableCollection {
   public init() {
     let str = BigString()
-    let bounds = Range(uncheckedBounds: (str.startIndex, str.endIndex))
+    let bounds = unsafe Range(uncheckedBounds: (str.startIndex, str.endIndex))
     self.init(_unchecked: str, in: bounds)
   }
 

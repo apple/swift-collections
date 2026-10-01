@@ -24,35 +24,36 @@ extension _HashNode.UnsafeHandle {
   ///    ready to store the new item. It is the caller's responsibility to
   ///    initialize this memory.
   @inlinable
+  @unsafe
   internal func _makeRoomForNewItem(
     at slot: _HashSlot, _ bucket: _Bucket
   ) -> UnsafeMutablePointer<Element> {
     assertMutable()
-    let c = itemCount
+    let c = unsafe itemCount
     assert(slot.value <= c)
 
     let stride = MemoryLayout<Element>.stride
-    assert(bytesFree >= stride)
-    bytesFree &-= stride
+    assert(unsafe bytesFree >= stride)
+    unsafe bytesFree &-= stride
 
-    let start = _memory
+    let start = unsafe _memory
       .advanced(by: byteCapacity &- (c &+ 1) &* stride)
       .bindMemory(to: Element.self, capacity: 1)
 
     let prefix = c &- slot.value
-    start.moveInitialize(from: start + 1, count: prefix)
+    unsafe start.moveInitialize(from: start + 1, count: prefix)
 
     if bucket.isInvalid {
-      assert(isCollisionNode)
-      collisionCount &+= 1
+      assert(unsafe isCollisionNode)
+      unsafe collisionCount &+= 1
     } else {
-      assert(!itemMap.contains(bucket))
-      assert(!childMap.contains(bucket))
-      itemMap.insert(bucket)
-      assert(itemMap.slot(of: bucket) == slot)
+      assert(unsafe !itemMap.contains(bucket))
+      assert(unsafe !childMap.contains(bucket))
+      unsafe itemMap.insert(bucket)
+      assert(unsafe itemMap.slot(of: bucket) == slot)
     }
 
-    return start + prefix
+    return unsafe start + prefix
   }
 
   /// Insert `child` at `slot`. There must be enough free space in the node
@@ -61,59 +62,63 @@ extension _HashNode.UnsafeHandle {
   /// `childMap` must not yet reflect the insertion at the time this
   /// function is called. This method does not update `childMap`.
   @inlinable
+  @unsafe
   internal func _insertChild(_ child: __owned _HashNode, at slot: _HashSlot) {
     assertMutable()
-    assert(!isCollisionNode)
+    assert(unsafe !isCollisionNode)
 
-    let c = childMap.count
+    let c = unsafe childMap.count
     assert(slot.value <= c)
 
     let stride = MemoryLayout<_HashNode>.stride
-    assert(bytesFree >= stride)
-    bytesFree &-= stride
+    assert(unsafe bytesFree >= stride)
+    unsafe bytesFree &-= stride
 
-    _memory.bindMemory(to: _HashNode.self, capacity: c &+ 1)
-    let q = _childrenStart + slot.value
-    (q + 1).moveInitialize(from: q, count: c &- slot.value)
-    q.initialize(to: child)
+    unsafe _memory.bindMemory(to: _HashNode.self, capacity: c &+ 1)
+    let q = unsafe _childrenStart + slot.value
+    unsafe (q + 1).moveInitialize(from: q, count: c &- slot.value)
+    unsafe q.initialize(to: child)
   }
 }
 
 extension _HashNode {
   @inlinable @inline(__always)
+  @unsafe
   internal mutating func insertItem(
     _ item: __owned Element, at bucket: _Bucket
   ) {
-    let slot = read { $0.itemMap.slot(of: bucket) }
-    self.insertItem(item, at: slot, bucket)
+    let slot = unsafe read { unsafe $0.itemMap.slot(of: bucket) }
+    unsafe self.insertItem(item, at: slot, bucket)
   }
 
   @inlinable @inline(__always)
+  @unsafe
   internal mutating func insertItem(
     _ item: __owned Element, at slot: _HashSlot, _ bucket: _Bucket
   ) {
     self.count &+= 1
-    update {
-      let p = $0._makeRoomForNewItem(at: slot, bucket)
-      p.initialize(to: item)
+    unsafe update {
+      let p = unsafe $0._makeRoomForNewItem(at: slot, bucket)
+      unsafe p.initialize(to: item)
     }
   }
 
   /// Insert `child` in `bucket`. There must be enough free space in the
   /// node to fit the new child.
   @inlinable
+  @unsafe
   internal mutating func insertChild(
     _ child: __owned _HashNode, _ bucket: _Bucket
   ) {
     count &+= child.count
-    update {
-      assert(!$0.isCollisionNode)
-      assert(!$0.itemMap.contains(bucket))
-      assert(!$0.childMap.contains(bucket))
+    unsafe update {
+      assert(unsafe !$0.isCollisionNode)
+      assert(unsafe !$0.itemMap.contains(bucket))
+      assert(unsafe !$0.childMap.contains(bucket))
 
-      let slot = $0.childMap.slot(of: bucket)
-      $0._insertChild(child, at: slot)
-      $0.childMap.insert(bucket)
+      let slot = unsafe $0.childMap.slot(of: bucket)
+      unsafe $0._insertChild(child, at: slot)
+      unsafe $0.childMap.insert(bucket)
     }
   }
 }

@@ -24,21 +24,21 @@ extension RigidSet where Element: ~Copyable {
     chains: Bool = false,
     buckets: Bool = false,
   ) -> String {
-    var s = _table.describe(bitmap: bitmap)
+    var s = unsafe _table.describe(bitmap: bitmap)
     if chains {
       s += "\n"
       s += _chainDescription
     }
-    if buckets, !_table.isSmall, !_table.isEmpty {
+    if buckets, !_isSmall, !isEmpty {
       s += "\nBuckets:"
-      var it = _table.makeBucketIterator()
+      var it = unsafe _table.makeBucketIterator()
       var c = 0
       while let next = it.nextOccupiedRegion() {
         var b = next.lowerBound
         while b != next.upperBound {
           if c.isMultiple(of: 8) { s += "\n  " }
           let hashValue = _hashValue(at: b)
-          let idealBucket = _table.idealBucket(forHashValue: hashValue)
+          let idealBucket = unsafe _table.idealBucket(forHashValue: hashValue)
           let s1 = String(b.offset)._lpad(5)
           let s2 = String(idealBucket.offset)._rpad(5)
           s += "\(s1)→\(s2) "
@@ -62,22 +62,22 @@ extension RigidSet where Element: ~Copyable {
   public func _probeLengthCounts() -> (successful: [Int], unsuccessful: [Int]) {
     var positiveLengths: [Int: Int] = [:]
     var negativeLengths: [Int: Int] = [:]
-    var it = self._table.makeBucketIterator()
-    var prev = self._table.startBucket
+    var it = unsafe self._table.makeBucketIterator()
+    var prev = unsafe self._table.startBucket
     while let next = it.nextOccupiedRegion() {
       negativeLengths[0, default: 0] += next.lowerBound.offset - prev.offset
       var b = next.lowerBound
       while b != next.upperBound {
         let hashValue = self._hashValue(at: b)
-        let pl = _table.probeLength(forHashValue: hashValue, in: b)
+        let pl = unsafe _table.probeLength(forHashValue: hashValue, in: b)
         positiveLengths[pl, default: 0] += 1
 
         var nl = next.upperBound.offset - b.offset
 #if !COLLECTIONS_NO_ROBIN_HOOD_HASHING
-        nl = Swift.min(nl, _table._maxProbeLength)
+        nl = Swift.min(nl, unsafe _table._maxProbeLength)
 #endif
         negativeLengths[nl, default: 0] += 1
-        _table.formBucket(after: &b)
+        unsafe _table.formBucket(after: &b)
       }
       prev = next.upperBound
     }
@@ -118,8 +118,8 @@ extension RigidSet where Element: ~Copyable {
         histogram += "\n"
         sum += (length + 1) * count
       }
-      if _table.count > 0 {
-        let avg = Double((sum * 1000 + 500) / _table.count) / 1000.0
+      if unsafe _table.count > 0 {
+        let avg = unsafe Double((sum * 1000 + 500) / _table.count) / 1000.0
         str += "   AVG: \(avg)\n"
       }
       str += histogram
@@ -138,8 +138,8 @@ extension RigidSet where Element: ~Copyable {
         histogram += "\n"
         sum += length * count
       }
-      if _table.storageCapacity > 0 {
-        let avg = Double((sum * 1000 + 500) / _table.storageCapacity) / 1000.0
+      if unsafe _table.storageCapacity > 0 {
+        let avg = unsafe Double((sum * 1000 + 500) / _table.storageCapacity) / 1000.0
         str += "   AVG: \(avg)\n"
       }
       str += histogram
@@ -162,7 +162,7 @@ extension RigidSet where Element: ~Copyable {
   public func _checkInvariants(
     failureHandler: (String) -> Void
   ) {
-    _table.checkInvariants(
+    unsafe _table.checkInvariants(
       failureHandler: failureHandler,
       hashGenerator: { _hashValue(at: $0) })
   }

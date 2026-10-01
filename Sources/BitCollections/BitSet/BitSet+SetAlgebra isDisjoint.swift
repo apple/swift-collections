@@ -30,12 +30,12 @@ extension BitSet {
   ///
   /// - Complexity: O(*max*), where *max* is the largest item in either input.
   public func isDisjoint(with other: BitSet) -> Bool {
-    self._read { first in
-      other._read { second in
-        let w1 = first._words
-        let w2 = second._words
+    unsafe self._read { first in
+      unsafe other._read { second in
+        let w1 = unsafe first._words
+        let w2 = unsafe second._words
         for i in 0 ..< Swift.min(w1.count, w2.count) {
-          if !w1[i].intersection(w2[i]).isEmpty { return false }
+          if unsafe !w1[i].intersection(w2[i]).isEmpty { return false }
         }
         return true
       }
@@ -72,7 +72,7 @@ extension BitSet {
   ///
   /// - Complexity: O(*max*), where *max* is the largest item in `self`.
   public func isDisjoint(with other: Range<Int>) -> Bool {
-    _read { $0.isDisjoint(with: other._clampedToUInt()) }
+    unsafe _read { unsafe $0.isDisjoint(with: other._clampedToUInt()) }
   }
 
   /// Returns a Boolean value that indicates whether the set has no members in

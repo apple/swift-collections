@@ -19,6 +19,7 @@ import InternalCollectionsUtilities
 #if compiler(<6.4)
 @available(*, unavailable, message: "RigidDictionary requires a Swift 6.4 toolchain")
 @frozen
+@safe
 public struct RigidDictionary<
   Key: Hashable,
   Value: ~Copyable
@@ -31,6 +32,7 @@ public struct RigidDictionary<
 @available(SwiftStdlib 5.0, *)
 @frozen
 @_addressableForDependencies
+@safe
 public struct RigidDictionary<
   Key: Hashable & ~Copyable,
   Value: ~Copyable
@@ -42,17 +44,19 @@ public struct RigidDictionary<
   package var _keys: RigidSet<Key>
 
   @_alwaysEmitIntoClient
+  @unsafe
   package var _values: UnsafeMutablePointer<Value>
   
   @_alwaysEmitIntoClient
   @_transparent
+  @unsafe
   package init(
     _keys: consuming RigidSet<Key>,
     values: UnsafeMutablePointer<Value>
   ) {
-    assert((values != ._dangling()) == (_keys._members != nil))
+    assert(unsafe (values != ._dangling()) == (_keys._members != nil))
     self._keys = _keys
-    self._values = values
+    unsafe self._values = values
   }
   
   @_alwaysEmitIntoClient
@@ -61,17 +65,18 @@ public struct RigidDictionary<
     // and once in `_keys.deinit`. `self` not being mutable really hurts us
     // here.
     if !isEmpty {
-      _deinitializeValues()
-      _values.deallocate()
+      unsafe _deinitializeValues()
+      unsafe _values.deallocate()
     }
   }
   
   @_alwaysEmitIntoClient
+  @unsafe
   internal func _deinitializeValues() {
-    let values = _valueBuf
-    var it = _keys._table.makeBucketIterator()
+    let values = unsafe _valueBuf
+    var it = unsafe _keys._table.makeBucketIterator()
     while let range = it.nextOccupiedRegion() {
-      values.extracting(range._offsets).deinitialize()
+      unsafe values.extracting(range._offsets).deinitialize()
     }
   }
 }
@@ -81,13 +86,13 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
   @inlinable
   @inline(__always)
   public var count: Int {
-    _assumeNonNegative(_keys._table.count)
+    _keys.count
   }
   
   @inlinable
   @inline(__always)
   public var capacity: Int {
-    _assumeNonNegative(_keys._table.capacity)
+    _keys.capacity
   }
   
   @inlinable
@@ -105,7 +110,7 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
   @inlinable
   @inline(__always)
   public var freeCapacity: Int {
-    _assumeNonNegative(capacity &- count)
+    _keys.freeCapacity
   }
   
   @_alwaysEmitIntoClient
@@ -113,37 +118,47 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
   public var _scale: UInt8 {
     _keys._scale
   }
+
+  @_alwaysEmitIntoClient
+  @_transparent
+  public var _isSmall: Bool {
+    _keys._isSmall
+  }
 }
 
 @available(SwiftStdlib 5.0, *)
 extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
+  @unsafe
   internal var _keyBuf: UnsafeMutableBufferPointer<Key> {
-    _keys._memberBuf
+    unsafe _keys._memberBuf
   }
   
   @_alwaysEmitIntoClient
   @_transparent
+  @unsafe
   internal var _valueBuf: UnsafeMutableBufferPointer<Value> {
-    .init(start: _values, count: Int(bitPattern: _keys._table.bucketCount))
+    unsafe .init(start: _values, count: Int(bitPattern: _keys._table.bucketCount))
   }
   
   @_alwaysEmitIntoClient
   @_transparent
+  @unsafe
   internal func _valuePtr(
     at bucket: _HTable.Bucket
   ) -> UnsafeMutablePointer<Value> {
-    assert(_keys._table.isValid(bucket))
-    return _values.advanced(by: bucket.offset)
+    assert(unsafe _keys._table.isValid(bucket))
+    return unsafe _values.advanced(by: bucket.offset)
   }
   
   @_alwaysEmitIntoClient
   @_transparent
+  @unsafe
   internal func _keyPtr(
     at bucket: _HTable.Bucket
   ) -> UnsafeMutablePointer<Key> {
-    _keys._memberPtr(at: bucket)
+    unsafe _keys._memberPtr(at: bucket)
   }
 }
 

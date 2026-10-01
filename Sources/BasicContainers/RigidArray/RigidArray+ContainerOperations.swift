@@ -29,7 +29,7 @@ extension RigidArray where Element: ~Copyable {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public var count: Int { _count }
+  public var count: Int { unsafe _assumeNonNegative(_count) }
 }
 
 @available(SwiftStdlib 5.0, *)
@@ -68,7 +68,7 @@ extension RigidArray where Element: ~Copyable {
   @_transparent
   package func _checkItemIndex(_ index: Int) {
     precondition(
-      UInt(bitPattern: index) < UInt(bitPattern: _count),
+      UInt(bitPattern: index) < UInt(bitPattern: self.count),
       "Index out of bounds")
   }
 
@@ -76,7 +76,7 @@ extension RigidArray where Element: ~Copyable {
   @_transparent
   package func _checkValidIndex(_ index: Int) {
     precondition(
-      UInt(bitPattern: index) <= UInt(bitPattern: _count),
+      UInt(bitPattern: index) <= UInt(bitPattern: self.count),
       "Index out of bounds")
   }
 
@@ -84,7 +84,7 @@ extension RigidArray where Element: ~Copyable {
   @_transparent
   package func _checkValidBounds(_ subrange: Range<Int>) {
     precondition(
-      subrange.lowerBound >= 0 && subrange.upperBound <= _count,
+      subrange.lowerBound >= 0 && subrange.upperBound <= self.count,
       "Index range out of bounds")
   }
 }
@@ -92,18 +92,20 @@ extension RigidArray where Element: ~Copyable {
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
   @inlinable @inline(__always)
+  @unsafe
   package func _ptr(to index: Int) -> UnsafePointer<Element> {
     _checkItemIndex(index)
-    let p = _storage.baseAddress.unsafelyUnwrapped.advanced(by: index)
-    return UnsafePointer(p)
+    let p = unsafe _storage.baseAddress.unsafelyUnwrapped.advanced(by: index)
+    return unsafe UnsafePointer(p)
   }
 
   @inlinable @inline(__always)
+  @unsafe
   package mutating func _mutablePtr(
     to index: Int
   ) -> UnsafeMutablePointer<Element> {
     _checkItemIndex(index)
-    return _storage.baseAddress.unsafelyUnwrapped.advanced(by: index)
+    return unsafe _storage.baseAddress.unsafelyUnwrapped.advanced(by: index)
   }
 
 #if compiler(>=6.4)
@@ -119,12 +121,12 @@ extension RigidArray where Element: ~Copyable {
     @inline(__always)
     @_unsafeSelfDependentResult
     borrow {
-      _ptr(to: position).pointee
+      unsafe _ptr(to: position).pointee
     }
     @inline(__always)
     @_unsafeSelfDependentResult
     mutate {
-      &_mutablePtr(to: position).pointee
+      unsafe &_mutablePtr(to: position).pointee
     }
   }
 #else
@@ -397,7 +399,7 @@ extension RigidArray where Element: ~Copyable {
     after index: inout Int
   ) -> MutableSpan<Element> {
     _checkValidIndex(index)
-    return _mutableSpan(in: Range(uncheckedBounds: (index, count)))
+    return _mutableSpan(in: unsafe Range(uncheckedBounds: (index, count)))
   }
 
   @inlinable
@@ -410,7 +412,7 @@ extension RigidArray where Element: ~Copyable {
     precondition(maxCount > 0, "maxCount must be positive")
     let end = index._clampedUp(
       towards: count, maxDistance: maxCount, limitedBy: limit)
-    return _mutableSpan(in: Range(uncheckedBounds: (index, end)))
+    return _mutableSpan(in: unsafe Range(uncheckedBounds: (index, end)))
   }
 
   @_alwaysEmitIntoClient
@@ -437,6 +439,6 @@ extension RigidArray where Element: ~Copyable {
     precondition(maxCount > 0, "maxCount must be positive")
     let start = index
     index = start &- Swift.min(maxCount, start)
-    return _span(in: Range(uncheckedBounds: (start, index)))
+    return _span(in: unsafe Range(uncheckedBounds: (start, index)))
   }
 }

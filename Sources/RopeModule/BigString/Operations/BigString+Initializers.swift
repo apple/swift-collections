@@ -96,11 +96,11 @@ extension String {
     }
 
     self.init(unsafeUninitializedCapacity: big._utf8Count) {
-      var buffer = $0
+      var buffer = unsafe $0
 
       for chunk in big._rope {
-        let result = buffer.initialize(fromContentsOf: chunk._bytes)
-        buffer = buffer.extracting(result...)
+        let result = unsafe buffer.initialize(fromContentsOf: chunk._bytes)
+        unsafe buffer = buffer.extracting(result...)
       }
 
       return big._utf8Count
@@ -123,28 +123,28 @@ extension String {
       let startRopeIndex = start._rope!
       let endRopeIndex = end._rope!
 
-      var dest = $0
+      var dest = unsafe $0
 
       // Fast path: The entire contents of range exist within the same chunk.
       if startRopeIndex == endRopeIndex {
-        let src = big._rope[startRopeIndex]._bytes.extracting(start._chunkIndex.utf8Offset ..< end._chunkIndex.utf8Offset)
-        return dest.initialize(fromContentsOf: src)
+        let src = unsafe big._rope[startRopeIndex]._bytes.extracting(start._chunkIndex.utf8Offset ..< end._chunkIndex.utf8Offset)
+        return unsafe dest.initialize(fromContentsOf: src)
       }
 
-      var src = big._rope[startRopeIndex]._bytes.extracting(start._chunkIndex.utf8Offset...)
-      var result = dest.initialize(fromContentsOf: src)
-      dest = dest.extracting(result...)
+      var src = unsafe big._rope[startRopeIndex]._bytes.extracting(start._chunkIndex.utf8Offset...)
+      var result = unsafe dest.initialize(fromContentsOf: src)
+      unsafe dest = dest.extracting(result...)
 
       var i = big._rope.index(after: startRopeIndex)
       while i < endRopeIndex {
-        let initialized = dest.initialize(fromContentsOf: big._rope[i]._bytes)
+        let initialized = unsafe dest.initialize(fromContentsOf: big._rope[i]._bytes)
         result += initialized
-        dest = dest.extracting(initialized...)
+        unsafe dest = dest.extracting(initialized...)
         big._rope.formIndex(after: &i)
       }
 
-      src = big._rope[endRopeIndex]._bytes.extracting(..<end._chunkIndex.utf8Offset)
-      result += dest.initialize(fromContentsOf: src)
+      unsafe src = big._rope[endRopeIndex]._bytes.extracting(..<end._chunkIndex.utf8Offset)
+      unsafe result += dest.initialize(fromContentsOf: src)
 
       return result
     }

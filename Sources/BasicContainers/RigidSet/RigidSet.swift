@@ -30,44 +30,50 @@ public struct RigidSet<Element: Hashable>: ~Copyable {
 /// elements.
 @available(SwiftStdlib 5.0, *)
 @frozen
+@safe
 public struct RigidSet<Element: Hashable & ~Copyable>: ~Copyable {
   @usableFromInline
   package typealias _Bucket = _HTable.Bucket
 
   @_alwaysEmitIntoClient
+  @unsafe
   package var _members: UnsafeMutablePointer<Element>?
   
   @_alwaysEmitIntoClient
+  @unsafe // FIXME: Only mutations are unsafe
   package var _table: _HTable
 
   @inlinable
   @_transparent
+  @unsafe
   package init(
     _table: consuming _HTable
   ) {
     assert(_table.isEmpty)
     if _table.capacity == 0 {
-      self._members = nil
+      unsafe self._members = nil
     } else {
-      self._members = .allocate(capacity: _table.storageCapacity)
+      unsafe self._members = .allocate(capacity: _table.storageCapacity)
     }
-    self._table = _table
+    unsafe self._table = _table
   }
 
   @_alwaysEmitIntoClient
   deinit {
     if !isEmpty {
-      _deinitializeMembers()
+      unsafe _deinitializeMembers()
     }
-    _members?.deallocate()
+    unsafe _members?.deallocate()
   }
   
   @_alwaysEmitIntoClient
+  @unsafe
   internal func _deinitializeMembers() {
-    let storage = _memberBuf
-    var it = _table.makeBucketIterator()
+    // FIXME: This should be declared mutating and update stored properties.
+    let storage = unsafe _memberBuf
+    var it = unsafe _table.makeBucketIterator()
     while let range = it.nextOccupiedRegion() {
-      storage._extracting(unchecked: range._offsets).deinitialize()
+      unsafe storage._extracting(unchecked: range._offsets).deinitialize()
     }
   }
 }
@@ -77,13 +83,13 @@ extension RigidSet where Element: ~Copyable {
   @inlinable
   @inline(__always)
   public var count: Int {
-    _assumeNonNegative(_table.count)
+    unsafe _assumeNonNegative(_table.count)
   }
   
   @inlinable
   @inline(__always)
   public var capacity: Int {
-    _assumeNonNegative(_table.capacity)
+    unsafe _assumeNonNegative(_table.capacity)
   }
   
   @inlinable
@@ -107,13 +113,19 @@ extension RigidSet where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
   public var _scale: UInt8 {
-    _table.scale
+    unsafe _table.scale
   }
   
   @_alwaysEmitIntoClient
   @_transparent
   public var _storageCapacity: Int {
-    _table.storageCapacity
+    unsafe _table.storageCapacity
+  }
+
+  @_alwaysEmitIntoClient
+  @_transparent
+  public var _isSmall: Bool {
+    unsafe _table.isSmall
   }
 }
 
@@ -121,17 +133,19 @@ extension RigidSet where Element: ~Copyable {
 extension RigidSet where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
+  @unsafe
   internal var _memberBuf: UnsafeMutableBufferPointer<Element> {
-    .init(start: _members, count: Int(bitPattern: _table.bucketCount))
+    unsafe .init(start: _members, count: Int(bitPattern: _table.bucketCount))
   }
   
   @_alwaysEmitIntoClient
   @_transparent
+  @unsafe
   internal func _memberPtr(
     at bucket: _Bucket
   ) -> UnsafeMutablePointer<Element> {
-    assert(_table.isValid(bucket))
-    return _members.unsafelyUnwrapped.advanced(by: bucket.offset)
+    assert(unsafe _table.isValid(bucket))
+    return unsafe _members.unsafelyUnwrapped.advanced(by: bucket.offset)
   }
 }
 
@@ -140,9 +154,9 @@ extension RigidSet where Element: ~Copyable {
   @_alwaysEmitIntoClient
   internal var _seed: Int {
 #if COLLECTIONS_DETERMINISTIC_HASHING
-    Int(_table.scale)
+    unsafe Int(_table.scale)
 #else
-    Int(bitPattern: _members)
+    unsafe Int(bitPattern: _members)
 #endif
   }
 
@@ -151,8 +165,8 @@ extension RigidSet where Element: ~Copyable {
   internal borrowing func _hashValue(
     at bucket: _Bucket
   ) -> Int {
-    assert(bucket.offset >= 0 && bucket.offset < _table.storageCapacity)
-    return _hashValue(for: _members.unsafelyUnwrapped[bucket.offset])
+    assert(unsafe bucket.offset >= 0 && bucket.offset < _table.storageCapacity)
+    return unsafe _hashValue(for: _members.unsafelyUnwrapped[bucket.offset])
   }
 
   @_alwaysEmitIntoClient

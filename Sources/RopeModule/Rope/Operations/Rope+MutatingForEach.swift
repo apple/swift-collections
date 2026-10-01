@@ -66,28 +66,28 @@ extension Rope._Node {
     var delta = Summary.zero
     defer { self.summary.add(delta) }
     if h > 0 {
-      let r = updateInner {
-        let c = $0.mutableChildren
+      let r = unsafe updateInner {
+        let c = unsafe $0.mutableChildren
         while slot < c.count {
-          let (r, d) = c[slot].mutatingForEach(from: &index, body: body)
+          let (r, d) = unsafe c[slot].mutatingForEach(from: &index, body: body)
           delta.add(d)
           guard r else { return false }
           slot += 1
           index._path.clear(below: h)
           index._path[h] = slot
         }
-        index._leaf = nil
+        unsafe index._leaf = nil
         return true
       }
       return (r, delta)
     }
-    index._leaf = asUnmanagedLeaf
-    let r = updateLeaf {
-      let c = $0.mutableChildren
+    unsafe index._leaf = asUnmanagedLeaf
+    let r = unsafe updateLeaf {
+      let c = unsafe $0.mutableChildren
       while slot < c.count {
-        let sum = c[slot].summary
-        let r = body(&c[slot].value)
-        delta.add(c[slot].summary.subtracting(sum))
+        let sum = unsafe c[slot].summary
+        let r = unsafe body(&c[slot].value)
+        delta.add(unsafe c[slot].summary.subtracting(sum))
         guard r else { return false }
         slot += 1
         index._path[h] = slot

@@ -20,6 +20,7 @@ import InternalCollectionsUtilities
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque: Iterable where Element: ~Copyable {
   @frozen
+  @safe
   public struct BorrowingIterator: ~Escapable, BorrowingIteratorProtocol {
     @usableFromInline
     package var _currentSegment: Span<Element>
@@ -33,11 +34,11 @@ extension RigidDeque: Iterable where Element: ~Copyable {
     @_alwaysEmitIntoClient
     @_lifetime(borrow _deque)
     package init(_deque: borrowing RigidDeque<Element>) {
-      let segments = _deque._handle.segments()
-      self._currentSegment = _overrideLifetime(
+      let segments = unsafe _deque._handle.segments()
+      self._currentSegment = unsafe _overrideLifetime(
         Span(_unsafeElements: segments.first),
         borrowing: _deque)
-      self._nextSegment = _overrideLifetime(
+      self._nextSegment = unsafe _overrideLifetime(
         Span(
           _unsafeElements: segments.second ?? UnsafeBufferPointer._empty),
         borrowing: _deque)
@@ -54,11 +55,11 @@ extension RigidDeque: Iterable where Element: ~Copyable {
       precondition(start >= 0 && start <= _deque.count, "Index out of bounds")
       precondition(end >= 0 && end <= _deque.count, "Index out of bounds")
       precondition(start <= end, "The start must not be greater than the end")
-      let segments = _deque._handle.segments(forOffsets: start ..< end)
-      self._currentSegment = _overrideLifetime(
+      let segments = unsafe _deque._handle.segments(forOffsets: start ..< end)
+      self._currentSegment = unsafe _overrideLifetime(
         Span(_unsafeElements: segments.first),
         borrowing: _deque)
-      self._nextSegment = _overrideLifetime(
+      self._nextSegment = unsafe _overrideLifetime(
         Span(
           _unsafeElements: segments.second ?? UnsafeBufferPointer._empty),
         borrowing: _deque)

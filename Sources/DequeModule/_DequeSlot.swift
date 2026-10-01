@@ -13,6 +13,7 @@
 
 @usableFromInline
 @frozen
+@safe
 package struct _DequeSlot {
   @usableFromInline
   internal var position: Int
@@ -75,6 +76,6 @@ extension Range where Bound == _DequeSlot {
   @_alwaysEmitIntoClient
   @_transparent
   internal var _offsets: Range<Int> {
-    Range<Int>(uncheckedBounds: (lowerBound.position, upperBound.position))
+    unsafe Range<Int>(uncheckedBounds: (lowerBound.position, upperBound.position))
   }
 }

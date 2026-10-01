@@ -97,14 +97,14 @@ extension ContainerFilter: BorrowingIteratorProtocol where Element: ~Copyable {
     while true {
       // Drop filtered out items from prefix of _remainder
       var i = 0
-      while i < _remainder.count, !_isIncluded(_remainder[unchecked: i]) {
+      while i < _remainder.count, unsafe !_isIncluded(_remainder[unchecked: i]) {
         i &+= 1
       }
       _remainder = _remainder.extracting(droppingFirst: i)
       if !_remainder.isEmpty {
         let c = Swift.min(_remainder.count, maxCount)
         i = 1
-        while i < c, _isIncluded(_remainder[unchecked: i]) {
+        while i < c, unsafe _isIncluded(_remainder[unchecked: i]) {
           i &+= 1
         }
         return _remainder._trim(first: i)

@@ -69,7 +69,13 @@ extension UniqueSet where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
   public var _scale: UInt8 {
-    _storage._table.scale
+    unsafe _storage._table.scale
+  }
+
+  @_alwaysEmitIntoClient
+  @_transparent
+  public var _isSmall: Bool {
+    _storage._isSmall
   }
 }
 #endif

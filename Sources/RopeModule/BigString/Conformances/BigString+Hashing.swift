@@ -39,7 +39,7 @@ extension BigString {
   /// Feed the UTF-8 encoding of `self` into hasher, with a terminating byte.
   internal func hashUTF8(into hasher: inout Hasher) {
     for chunk in self._rope {
-      hasher.combine(bytes: UnsafeRawBufferPointer(chunk._bytes))
+      unsafe hasher.combine(bytes: UnsafeRawBufferPointer(chunk._bytes))
     }
     hasher.combine(0xFF as UInt8)
   }
@@ -47,8 +47,8 @@ extension BigString {
   /// Feed the UTF-8 encoding of `self[start..<end]` into hasher, with a terminating byte.
   internal func hashUTF8(into hasher: inout Hasher, from start: Index, to end: Index) {
     assert(start <= end)
-    _foreachChunk(from: start, to: end) { buffer in
-      hasher.combine(bytes: UnsafeRawBufferPointer(buffer))
+    unsafe _foreachChunk(from: start, to: end) { buffer in
+      unsafe hasher.combine(bytes: UnsafeRawBufferPointer(buffer))
     }
     hasher.combine(0xFF as UInt8)
   }

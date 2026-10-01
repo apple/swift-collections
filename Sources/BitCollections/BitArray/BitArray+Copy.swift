@@ -20,8 +20,8 @@ extension BitArray {
     from range: Range<Int>,
     to target: Int
   ) {
-    _update { handle in
-      handle.copy(from: range, to: target)
+    unsafe _update { handle in
+      unsafe handle.copy(from: range, to: target)
     }
   }
 
@@ -30,8 +30,8 @@ extension BitArray {
     in source: UnsafeBufferPointer<_Word>,
     to target: Int
   ) {
-    _update { handle in
-      handle.copy(from: range, in: source, to: target)
+    unsafe _update { handle in
+      unsafe handle.copy(from: range, in: source, to: target)
     }
   }
 
@@ -48,7 +48,7 @@ extension BitArray {
   ) {
     let range = source._bounds
     source.base._storage.withUnsafeBufferPointer { words in
-      self._copy(from: range, in: words, to: target)
+      unsafe self._copy(from: range, in: words, to: target)
     }
   }
 
@@ -56,7 +56,7 @@ extension BitArray {
     from source: S,
     to range: Range<Int>
   ) where S.Element == Bool {
-    _update { $0.copy(from: source, to: range) }
+    unsafe _update { unsafe $0.copy(from: source, to: range) }
   }
 }
 
@@ -66,21 +66,21 @@ extension BitArray._UnsafeHandle {
   ) {
     assert(count <= _Word.capacity)
     assert(count == _Word.capacity || bits.shiftedDown(by: count).isEmpty)
-    assert(target.value + count <= _count)
+    assert(target.value + count <= self.count)
     let start = target.split
     let end = _BitPosition(target.value + count).endSplit
-    let words = _mutableWords
+    let words = unsafe _mutableWords
     if start.word == end.word {
       let mask = _Word(from: start.bit, to: end.bit)
-      words[start.word].formIntersection(mask.complement())
-      words[start.word].formUnion(bits.shiftedUp(by: start.bit))
+      unsafe words[start.word].formIntersection(mask.complement())
+      unsafe words[start.word].formUnion(bits.shiftedUp(by: start.bit))
       return
     }
     assert(start.word + 1 == end.word)
-    words[start.word].formIntersection(_Word(upTo: start.bit))
-    words[start.word].formUnion(bits.shiftedUp(by: start.bit))
-    words[end.word].formIntersection(_Word(upTo: end.bit).complement())
-    words[end.word].formUnion(
+    unsafe words[start.word].formIntersection(_Word(upTo: start.bit))
+    unsafe words[start.word].formUnion(bits.shiftedUp(by: start.bit))
+    unsafe words[end.word].formIntersection(_Word(upTo: end.bit).complement())
+    unsafe words[end.word].formUnion(
       bits.shiftedDown(by: _Word._capacity &- start.bit))
   }
 
@@ -91,7 +91,7 @@ extension BitArray._UnsafeHandle {
     assert(
       range.lowerBound >= 0 && range.upperBound <= self.count,
       "Source range out of bounds")
-    copy(from: range, in: _words, to: target)
+    unsafe copy(from: range, in: _words, to: target)
   }
 
   internal mutating func copy(
@@ -114,17 +114,17 @@ extension BitArray._UnsafeHandle {
       let upperSource = _BitPosition(range.upperBound).endSplit
 
       
-      let targetPtr = _words._ptr(at: target.word)
-      let lowerSourcePtr = source._ptr(at: lowerSource.word)
-      let upperSourcePtr = source._ptr(at: upperSource.word)
+      let targetPtr = unsafe _words._ptr(at: target.word)
+      let lowerSourcePtr = unsafe source._ptr(at: lowerSource.word)
+      let upperSourcePtr = unsafe source._ptr(at: upperSource.word)
 
-      if targetPtr < lowerSourcePtr || targetPtr > upperSourcePtr {
+      if unsafe targetPtr < lowerSourcePtr || targetPtr > upperSourcePtr {
         return true
       }
-      if targetPtr == lowerSourcePtr, target.bit < lowerSource.bit {
+      if unsafe targetPtr == lowerSourcePtr, target.bit < lowerSource.bit {
         return true
       }
-      if targetPtr == upperSourcePtr, target.bit >= upperSource.bit {
+      if unsafe targetPtr == upperSourcePtr, target.bit >= upperSource.bit {
         return true
       }
       return false
@@ -132,20 +132,20 @@ extension BitArray._UnsafeHandle {
     
     if goForward() {
       // Copy forward from a disjoint or following overlapping range.
-      var src = _ChunkedBitsForwardIterator(words: source, range: range)
+      var src = unsafe _ChunkedBitsForwardIterator(words: source, range: range)
       var dst = _BitPosition(target)
-      while let (bits, count) = src.next() {
-        _copy(bits: bits, count: count, to: dst)
+      while let (bits, count) = unsafe src.next() {
+        unsafe _copy(bits: bits, count: count, to: dst)
         dst.value += count
       }
       assert(dst.value == target + range.count)
     } else {
       // Copy backward from a non-following overlapping range.
-      var src = _ChunkedBitsBackwardIterator(words: source, range: range)
+      var src = unsafe _ChunkedBitsBackwardIterator(words: source, range: range)
       var dst = _BitPosition(target + range.count)
-      while let (bits, count) = src.next() {
+      while let (bits, count) = unsafe src.next() {
         dst.value -= count
-        _copy(bits: bits, count: count, to: dst)
+        unsafe _copy(bits: bits, count: count, to: dst)
       }
       assert(dst.value == target)
     }
@@ -163,14 +163,14 @@ extension BitArray._UnsafeHandle {
     if pos.bit > 0 {
       let (bits, count) = it._nextChunk(
         maxCount: _Word._capacity - pos.bit)
-      _copy(bits: bits, count: count, to: pos)
+      unsafe _copy(bits: bits, count: count, to: pos)
       pos.value += count
     }
     while true {
       let (bits, count) = it._nextChunk()
       guard count > 0 else { break }
       assert(pos.bit == 0)
-      _copy(bits: bits, count: count, to: pos)
+      unsafe _copy(bits: bits, count: count, to: pos)
       pos.value += count
     }
     precondition(pos.value == range.upperBound)

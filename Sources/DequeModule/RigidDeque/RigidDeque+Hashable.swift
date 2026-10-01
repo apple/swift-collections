@@ -25,10 +25,10 @@ extension RigidDeque where Element: Hashable & ~Copyable {
   @inlinable
   public func hash(into hasher: inout Hasher) {
     hasher.combine(self.count)
-    let segments = self._handle.segments()
-    segments.first.span._hashContents(into: &hasher)
-    if let second = segments.second {
-      second.span._hashContents(into: &hasher)
+    let segments = unsafe self._handle.segments()
+    unsafe segments.first.span._hashContents(into: &hasher)
+    if let second = unsafe segments.second {
+      unsafe second.span._hashContents(into: &hasher)
     }
   }
 }
@@ -38,10 +38,10 @@ extension RigidDeque where Element: Hashable {
   @inlinable
   public func hash(into hasher: inout Hasher) {
     hasher.combine(self.count)
-    let segments = self._handle.segments()
-    segments.first.span._hashContents(into: &hasher)
-    if let second = segments.second {
-      second.span._hashContents(into: &hasher)
+    let segments = unsafe self._handle.segments()
+    unsafe segments.first.span._hashContents(into: &hasher)
+    if let second = unsafe segments.second {
+      unsafe second.span._hashContents(into: &hasher)
     }
   }
 }

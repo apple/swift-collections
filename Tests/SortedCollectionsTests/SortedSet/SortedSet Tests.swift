@@ -294,7 +294,7 @@ class SortedSetTests: CollectionTestCase {
           return
         }
         expectEqual(context.debugDescription,
-                    "Decoded elements out of order.")
+                    "Decoded elements out of order")
       }
     }
   }

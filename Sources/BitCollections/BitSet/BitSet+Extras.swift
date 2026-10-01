@@ -76,8 +76,8 @@ extension BitSet {
       } else if member >= _capacity {
         return
       }
-      _updateThenShrink { handle, shrink in
-        shrink = handle.update(member, to: newValue)
+      unsafe _updateThenShrink { handle, shrink in
+        shrink = unsafe handle.update(member, to: newValue)
       }
     }
   }
@@ -98,27 +98,27 @@ extension BitSet {
   ///
   /// - Complexity: Equivalent to two invocations of `index(after:)`.
   public subscript(members bounds: Range<Int>) -> Slice<BitSet> {
-    let bounds: Range<Index> = _read { handle in
+    let bounds: Range<Index> = unsafe _read { handle in
       let bounds = bounds._clampedToUInt()
       var lower = _UnsafeBitSet.Index(bounds.lowerBound)
       if lower >= handle.endIndex {
         lower = handle.endIndex
-      } else if !handle.contains(lower.value) {
-        lower = handle.index(after: lower)
+      } else if unsafe !handle.contains(lower.value) {
+        lower = unsafe handle.index(after: lower)
       }
-      assert(lower == handle.endIndex || handle.contains(lower.value))
+      assert(unsafe lower == handle.endIndex || handle.contains(lower.value))
 
       var upper = _UnsafeBitSet.Index(bounds.upperBound)
       if upper <= lower {
         upper = lower
       } else if upper >= handle.endIndex {
         upper = handle.endIndex
-      } else if !handle.contains(upper.value) {
-        upper = handle.index(after: upper)
+      } else if unsafe !handle.contains(upper.value) {
+        upper = unsafe handle.index(after: upper)
       }
-      assert(upper == handle.endIndex || handle.contains(upper.value))
+      assert(unsafe upper == handle.endIndex || handle.contains(upper.value))
       assert(lower <= upper)
-      return Range(
+      return unsafe Range(
         uncheckedBounds: (Index(_position: lower), Index(_position: upper)))
     }
     return Slice(base: self, bounds: bounds)
@@ -187,10 +187,10 @@ extension BitSet {
   ) rethrows -> Self {
     var words = [_Word](repeating: .empty, count: _storage.count)
     try words.withUnsafeMutableBufferPointer { buffer in
-      var target = _UnsafeHandle(words: buffer, mutable: true)
+      var target = unsafe _UnsafeHandle(words: buffer, mutable: true)
       for i in self {
         guard try isIncluded(i) else { continue }
-        target.insert(UInt(i))
+        unsafe target.insert(UInt(i))
       }
     }
     return BitSet(_words: words)

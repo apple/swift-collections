@@ -402,9 +402,9 @@ extension OrderedSet {
       return
     }
     _ensureUnique()
-    _table!.update { hashTable in
-      hashTable.clear()
-      hashTable.fill(uncheckedUniqueElements: _elements)
+    unsafe _table!.update { hashTable in
+      unsafe hashTable.clear()
+      unsafe hashTable.fill(uncheckedUniqueElements: _elements)
     }
   }
 
@@ -414,8 +414,8 @@ extension OrderedSet {
       return
     }
     _ensureUnique()
-    _table!.update { hashTable in
-      hashTable.reverse(count: _elements.count)
+    unsafe _table!.update { hashTable in
+      unsafe hashTable.reverse(count: _elements.count)
     }
   }
 }
@@ -446,10 +446,10 @@ extension OrderedSet {
   internal func _find_inlined(_ item: Element) -> (index: Int?, bucket: _Bucket) {
     _elements.withUnsafeBufferPointer { elements in
       guard let table = _table else {
-        return (elements._firstIndex(of: item), _Bucket(offset: 0))
+        return unsafe (elements._firstIndex(of: item), _Bucket(offset: 0))
       }
-      return table.read { hashTable in
-        hashTable._find(item, in: elements)
+      return unsafe table.read { hashTable in
+        unsafe hashTable._find(item, in: elements)
       }
     }
   }
@@ -457,9 +457,9 @@ extension OrderedSet {
   @inlinable
   internal func _bucket(for index: Int) -> _Bucket {
     guard let table = _table else { return _Bucket(offset: 0) }
-    return table.read { hashTable in
-      var it = hashTable.bucketIterator(for: _elements[index])
-      it.advance(until: index)
+    return unsafe table.read { hashTable in
+      var it = unsafe hashTable.bucketIterator(for: _elements[index])
+      unsafe it.advance(until: index)
       precondition(it.isOccupied, "Corrupt hash table")
       return it.currentBucket
     }
@@ -501,10 +501,10 @@ extension UnsafeBufferPointer where Element: Equatable {
   func _firstIndex(of element: Element) -> Index? {
     var i = self.startIndex
     while i != self.endIndex {
-      if self[i] == element {
+      if unsafe self[i] == element {
         return i
       }
-      self.formIndex(after: &i)
+      unsafe self.formIndex(after: &i)
     }
     return nil
   }
@@ -518,8 +518,8 @@ extension OrderedSet {
     count: Int? = nil,
     extraCapacity: Int = 0
   ) -> Self {
-    let c = count ?? bitset.count
-    assert(c == 0 || bitset.max()! <= self.count)
+    let c = unsafe count ?? bitset.count
+    assert(unsafe c == 0 || bitset.max()! <= self.count)
     if c == 0 { return Self(minimumCapacity: extraCapacity) }
     if c == self.count {
       if extraCapacity <= self._capacity - self.count {
@@ -530,8 +530,8 @@ extension OrderedSet {
       return copy
     }
     var result = Self(minimumCapacity: c + extraCapacity)
-    for offset in bitset {
-      result._appendNew(_elements[Int(bitPattern: offset)])
+    for unsafe offset in unsafe bitset {
+      unsafe result._appendNew(_elements[Int(bitPattern: offset)])
     }
     assert(result.count == c)
     result._checkInvariants()
@@ -542,6 +542,7 @@ extension OrderedSet {
 extension OrderedSet {
   @inlinable
   @discardableResult
+  @unsafe
   internal mutating func _removeExistingMember(
     at index: Int,
     in bucket: _Bucket
@@ -557,14 +558,14 @@ extension OrderedSet {
 
     defer { _checkInvariants() }
     _ensureUnique()
-    _table!.update { hashTable in
+    unsafe _table!.update { hashTable in
       // Delete the entry for the removed member.
-      hashTable.delete(
+      unsafe hashTable.delete(
         bucket: bucket,
         hashValueGenerator: { offset, seed in
           _elements[offset]._rawHashValue(seed: seed)
         })
-      hashTable.adjustContents(preparingForRemovalOf: index, in: _elements)
+      unsafe hashTable.adjustContents(preparingForRemovalOf: index, in: _elements)
     }
     return _elements.remove(at: index)
   }
@@ -585,11 +586,11 @@ extension OrderedSet {
   public func filter(
     _ isIncluded: (Element) throws -> Bool
   ) rethrows -> Self {
-    try _UnsafeBitSet.withTemporaryBitSet(capacity: self.count) { bitset in
+    unsafe try _UnsafeBitSet.withTemporaryBitSet(capacity: self.count) { bitset in
       for i in _elements.indices where try isIncluded(_elements[i]) {
-        bitset.insert(i)
+        unsafe bitset.insert(i)
       }
-      return self._extractSubset(using: bitset)
+      return unsafe self._extractSubset(using: bitset)
     }
   }
 }

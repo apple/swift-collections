@@ -36,7 +36,7 @@ extension UniqueDictionary where Key: ~Copyable, Value: ~Copyable {
     forKey key: borrowing Key
   ) -> Ref<Value>? {
     // FIXME: Why is this override necessary? Is it sound? It was triggered by RigidDictionary becoming `@_addressableForDependencies`.
-    _overrideLifetime(_storage.value(forKey: key), borrowing: self)
+    unsafe _overrideLifetime(_storage.value(forKey: key), borrowing: self)
   }
 
   /// Checks if the given key is present in the `RigidDictionary`, and returns

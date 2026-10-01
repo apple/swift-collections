@@ -145,8 +145,8 @@ extension Heap {
   public mutating func insert(_ element: Element) {
     _storage.append(element)
 
-    _update { handle in
-      handle.bubbleUp(_HeapNode(offset: handle.count - 1))
+    unsafe _update { handle in
+      unsafe handle.bubbleUp(_HeapNode(offset: handle.count - 1))
     }
     _checkInvariants()
   }
@@ -170,11 +170,11 @@ extension Heap {
         // If count is 1, the last (and only) item is the max
         // If count is 2, the last item is the max (as it's the only item in the
         // first max level)
-        return buffer.last
+        return unsafe buffer.last
       }
       // We have at least 3 items -- return the larger of the two in the first
       // max level
-      return Swift.max(buffer[1], buffer[2])
+      return unsafe Swift.max(buffer[1], buffer[2])
     }
   }
 
@@ -188,10 +188,10 @@ extension Heap {
     var removed = _storage.removeLast()
 
     if _storage.count > 0 {
-      _update { handle in
+      unsafe _update { handle in
         let minNode = _HeapNode.root
-        handle.swapAt(minNode, with: &removed)
-        handle.trickleDownMin(minNode)
+        unsafe handle.swapAt(minNode, with: &removed)
+        unsafe handle.trickleDownMin(minNode)
       }
     }
 
@@ -208,15 +208,15 @@ extension Heap {
 
     var removed = _storage.removeLast()
 
-    _update { handle in
+    unsafe _update { handle in
       if handle.count == 2 {
-        if handle[.leftMax] > removed {
-          handle.swapAt(.leftMax, with: &removed)
+        if unsafe handle[.leftMax] > removed {
+          unsafe handle.swapAt(.leftMax, with: &removed)
         }
       } else {
-        let maxNode = handle.maxValue(.leftMax, .rightMax)
-        handle.swapAt(maxNode, with: &removed)
-        handle.trickleDownMax(maxNode)
+        let maxNode = unsafe handle.maxValue(.leftMax, .rightMax)
+        unsafe handle.swapAt(maxNode, with: &removed)
+        unsafe handle.trickleDownMax(maxNode)
       }
     }
 
@@ -262,10 +262,10 @@ extension Heap {
     precondition(!isEmpty, "No element to replace")
 
     var removed = replacement
-    _update { handle in
+    unsafe _update { handle in
       let minNode = _HeapNode.root
-      handle.swapAt(minNode, with: &removed)
-      handle.trickleDownMin(minNode)
+      unsafe handle.swapAt(minNode, with: &removed)
+      unsafe handle.trickleDownMin(minNode)
     }
     _checkInvariants()
     return removed
@@ -284,8 +284,8 @@ extension Heap {
   ) rethrows {
     defer {
       if _storage.count > 1 {
-        _update { handle in
-          handle.heapify()
+        unsafe _update { handle in
+          unsafe handle.heapify()
         }
       }
       _checkInvariants()
@@ -309,18 +309,18 @@ extension Heap {
     precondition(!isEmpty, "No element to replace")
 
     var removed = replacement
-    _update { handle in
+    unsafe _update { handle in
       switch handle.count {
       case 1:
-        handle.swapAt(.root, with: &removed)
+        unsafe handle.swapAt(.root, with: &removed)
       case 2:
-        handle.swapAt(.leftMax, with: &removed)
-        handle.bubbleUp(.leftMax)
+        unsafe handle.swapAt(.leftMax, with: &removed)
+        unsafe handle.bubbleUp(.leftMax)
       default:
-        let maxNode = handle.maxValue(.leftMax, .rightMax)
-        handle.swapAt(maxNode, with: &removed)
-        handle.bubbleUp(maxNode)  // This must happen first
-        handle.trickleDownMax(maxNode)  // Either new element or dethroned min
+        let maxNode = unsafe handle.maxValue(.leftMax, .rightMax)
+        unsafe handle.swapAt(maxNode, with: &removed)
+        unsafe handle.bubbleUp(maxNode)  // This must happen first
+        unsafe handle.trickleDownMax(maxNode)  // Either new element or dethroned min
       }
     }
     _checkInvariants()
@@ -339,8 +339,8 @@ extension Heap {
     _storage = ContiguousArray(elements)
     guard _storage.count > 1 else { return }
 
-    _update { handle in
-      handle.heapify()
+    unsafe _update { handle in
+      unsafe handle.heapify()
     }
     _checkInvariants()
   }
@@ -384,12 +384,12 @@ extension Heap {
     // FIXME: Write a benchmark to verify this heuristic.
     let heuristicLimit = 2 &* newCount / newCount._binaryLogarithm()
     let useFloyd = (newCount - origCount) > heuristicLimit
-    _update { handle in
+    unsafe _update { handle in
       if useFloyd {
-        handle.heapify()
+        unsafe handle.heapify()
       } else {
         for offset in origCount ..< handle.count {
-          handle.bubbleUp(_HeapNode(offset: offset))
+          unsafe handle.bubbleUp(_HeapNode(offset: offset))
         }
       }
     }

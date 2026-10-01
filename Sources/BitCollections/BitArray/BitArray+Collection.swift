@@ -176,14 +176,14 @@ extension BitArray: RandomAccessCollection, MutableCollection {
   public subscript(position: Int) -> Bool {
     get {
       precondition(position >= 0 && position < _count, "Index out of bounds")
-      return _read { handle in
-        handle[position]
+      return unsafe _read { handle in
+        unsafe handle[position]
       }
     }
     set {
       precondition(position >= 0 && position < _count, "Index out of bounds")
-      return _update { handle in
-        handle[position] = newValue
+      return unsafe _update { handle in
+        unsafe handle[position] = newValue
       }
     }
   }

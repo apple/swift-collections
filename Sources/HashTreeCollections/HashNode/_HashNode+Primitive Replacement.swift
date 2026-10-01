@@ -13,36 +13,39 @@
 
 extension _HashNode {
   @inlinable
+  @unsafe
   internal mutating func replaceItem(
     at bucket: _Bucket, _ slot: _HashSlot, with item: __owned Element
   ) {
-    update {
-      assert($0.isCollisionNode || $0.itemMap.contains(bucket))
-      assert($0.isCollisionNode || slot == $0.itemMap.slot(of: bucket))
-      assert(!$0.isCollisionNode || slot.value < $0.collisionCount)
-      $0[item: slot] = item
+    unsafe update {
+      assert(unsafe $0.isCollisionNode || $0.itemMap.contains(bucket))
+      assert(unsafe $0.isCollisionNode || slot == $0.itemMap.slot(of: bucket))
+      assert(unsafe !$0.isCollisionNode || slot.value < $0.collisionCount)
+      unsafe $0[item: slot] = item
     }
   }
 
   @inlinable
+  @unsafe
   internal mutating func replaceChild(
     at bucket: _Bucket, with child: __owned _HashNode
   ) -> Int {
-    let slot = read { $0.childMap.slot(of: bucket) }
-    return replaceChild(at: bucket, slot, with: child)
+    let slot = unsafe read { unsafe $0.childMap.slot(of: bucket) }
+    return unsafe replaceChild(at: bucket, slot, with: child)
   }
 
   @inlinable
+  @unsafe
   internal mutating func replaceChild(
     at bucket: _Bucket, _ slot: _HashSlot, with child: __owned _HashNode
   ) -> Int {
-    let delta: Int = update {
-      assert(!$0.isCollisionNode)
-      assert($0.childMap.contains(bucket))
-      assert($0.childMap.slot(of: bucket) == slot)
-      let p = $0.childPtr(at: slot)
-      let delta = child.count &- p.pointee.count
-      p.pointee = child
+    let delta: Int = unsafe update {
+      assert(unsafe !$0.isCollisionNode)
+      assert(unsafe $0.childMap.contains(bucket))
+      assert(unsafe $0.childMap.slot(of: bucket) == slot)
+      let p = unsafe $0.childPtr(at: slot)
+      let delta = unsafe child.count &- p.pointee.count
+      unsafe p.pointee = child
       return delta
     }
     self.count &+= delta
@@ -50,6 +53,7 @@ extension _HashNode {
   }
 
   @inlinable
+  @unsafe
   internal func replacingChild(
     _ level: _HashLevel,
     at bucket: _Bucket,
@@ -57,26 +61,26 @@ extension _HashNode {
     with child: __owned Builder
   ) -> Builder {
     assert(child.level == level.descend())
-    read {
-      assert(!$0.isCollisionNode)
-      assert($0.childMap.contains(bucket))
-      assert(slot == $0.childMap.slot(of: bucket))
+    unsafe read {
+      assert(unsafe !$0.isCollisionNode)
+      assert(unsafe $0.childMap.contains(bucket))
+      assert(unsafe slot == $0.childMap.slot(of: bucket))
     }
     switch child.kind {
     case .empty:
-      return _removingChild(level, at: bucket, slot)
+      return unsafe _removingChild(level, at: bucket, slot)
     case let .item(item, _):
       if hasSingletonChild {
         return .item(level, item, at: bucket)
       }
       var node = self.copy(withFreeSpace: _HashNode.spaceForInlinedChild)
-      _ = node.removeChild(at: bucket, slot)
-      node.insertItem(item, at: bucket)
+      _ = unsafe node.removeChild(at: bucket, slot)
+      unsafe node.insertItem(item, at: bucket)
       node._invariantCheck()
       return .node(level, node)
     case let .node(node):
       var copy = self.copy()
-      _ = copy.replaceChild(at: bucket, slot, with: node)
+      _ = unsafe copy.replaceChild(at: bucket, slot, with: node)
       return .node(level, copy)
     case let .collisionNode(node):
       if hasSingletonChild {
@@ -85,7 +89,7 @@ extension _HashNode {
         return .collisionNode(level, node)
       }
       var copy = self.copy()
-      _ = copy.replaceChild(at: bucket, slot, with: node)
+      _ = unsafe copy.replaceChild(at: bucket, slot, with: node)
       return .node(level, copy)
     }
   }

@@ -37,6 +37,7 @@ extension _HTable {
   ///     iterator values outside the closure call that produced the original
   ///     hash table.
   @usableFromInline
+  @safe
   package struct BucketIterator: ~Escapable {
     @usableFromInline
     package typealias Bucket = _HTable.Bucket
@@ -72,17 +73,17 @@ extension _HTable {
       assert(table.isValid(bucket) || bucket == table.endBucket)
       assert(table.endBucket.bit == 0 || table.endBucket.word == 0) // We rely on this throughout the code below
       self._bucket = bucket
-      if let bitmap = table._bitmap {
-        self._words = .init(bitmap)
+      if let bitmap = unsafe table._bitmap {
+        unsafe self._words = .init(bitmap)
         self._endBucket = table.endBucket
-        self._nextBits = bitmap[_bucket.word].shiftedDown(by: _bucket.bit)
+        self._nextBits = unsafe bitmap[_bucket.word].shiftedDown(by: _bucket.bit)
         if table.endBucket._offset < Word.capacity {
           self._nextBitCount = UInt8(table.endBucket.bit &- _bucket.bit)
         } else {
           self._nextBitCount = UInt8(Word._capacity &- _bucket.bit)
         }
       } else {
-        self._words = nil
+        unsafe self._words = nil
         self._endBucket = Bucket(offset: table.count) // Note: not capacity!
         self._nextBits = .empty
         self._nextBitCount = 0
@@ -108,7 +109,7 @@ extension _HTable.BucketIterator {
   @_transparent
   package var isOccupied: Bool {
     assert(!isAtEnd)
-    if _words == nil { return true }
+    if unsafe _words == nil { return true }
     return _nextBits.contains(0)
   }
 
@@ -117,8 +118,8 @@ extension _HTable.BucketIterator {
   package mutating func restart() {
     _wrapped = true
     _bucket._offset = 0
-    if let words = _words {
-      _nextBits = words[_bucket.word]
+    if let words = unsafe _words {
+      _nextBits = unsafe words[_bucket.word]
       _nextBitCount = UInt8(Swift.min(Word._capacity, _endBucket._offset))
     }
   }
@@ -148,8 +149,8 @@ extension _HTable.BucketIterator {
       advanceToEnd()
       return false
     }
-    if let words = _words{
-      _nextBits = words[_bucket.word]
+    if let words = unsafe _words {
+      _nextBits = unsafe words[_bucket.word]
       _nextBitCount = UInt8(Word._capacity)
     }
     return true
@@ -161,8 +162,8 @@ extension _HTable.BucketIterator {
     _bucket.advanceToNextWord()
     if isAtEnd {
       _wrap()
-    } else if let words = _words {
-      _nextBits = words[_bucket.word]
+    } else if let words = unsafe _words {
+      _nextBits = unsafe words[_bucket.word]
       _nextBitCount = UInt8(Word._capacity)
     }
   }
@@ -177,14 +178,14 @@ extension _HTable.BucketIterator {
       advanceToEnd()
       return false
     }
-    guard let words = _words else { return true }
+    guard let words = unsafe _words else { return true }
     assert(_nextBitCount > 0)
     _nextBitCount &-= 1
     if _nextBitCount > 0 {
       _nextBits = _nextBits.shiftedDown(by: 1)
     } else {
       assert(_bucket.bit == 0)
-      _nextBits = words[_bucket.word]
+      _nextBits = unsafe words[_bucket.word]
       _nextBitCount = UInt8(Word._capacity)
     }
     return true
@@ -198,13 +199,13 @@ extension _HTable.BucketIterator {
       _wrap()
       return
     }
-    guard let words = _words else { return }
+    guard let words = unsafe _words else { return }
     assert(_nextBitCount > 0)
     _nextBitCount &-= 1
     if _nextBitCount > 0 {
       _nextBits = _nextBits.shiftedDown(by: 1)
     } else {
-      _nextBits = words[_bucket.word]
+      _nextBits = unsafe words[_bucket.word]
       _nextBitCount = UInt8(Word._capacity)
     }
   }
@@ -215,7 +216,7 @@ extension _HTable.BucketIterator {
   @_lifetime(self: copy self)
   package mutating func advanceToOccupied() -> Bool {
     if isAtEnd { return false }
-    if _words == nil {
+    if unsafe _words == nil {
       return true
     }
     while true {
@@ -239,7 +240,7 @@ extension _HTable.BucketIterator {
   ) -> Bool {
     var remainder = UInt(bitPattern: maxCount)
     if isAtEnd { return false }
-    if _words == nil {
+    if unsafe _words == nil {
       let delta = Swift.min(_endBucket._offset &- _bucket._offset, remainder)
       _bucket._offset &+= delta
       return true
@@ -269,7 +270,7 @@ extension _HTable.BucketIterator {
   @usableFromInline
   @_lifetime(self: copy self)
   package mutating func wrapToOccupied() {
-    if _words == nil {
+    if unsafe _words == nil {
       wrapToNextBit()
       return
     }
@@ -290,7 +291,7 @@ extension _HTable.BucketIterator {
   @_lifetime(self: copy self)
   package mutating func advanceToUnoccupied() -> Bool {
     assert(!isAtEnd)
-    if _words == nil {
+    if unsafe _words == nil {
       _bucket = _endBucket
       return false
     }
@@ -317,7 +318,7 @@ extension _HTable.BucketIterator {
     assert(maxCount > 0)
     assert(!isAtEnd)
     var remainder = UInt(bitPattern: maxCount)
-    if _words == nil {
+    if unsafe _words == nil {
       let delta = Swift.min(_endBucket._offset &- _bucket._offset, remainder)
       _bucket._offset &+= delta
       return false
@@ -348,7 +349,7 @@ extension _HTable.BucketIterator {
   @usableFromInline
   @_lifetime(self: copy self)
   package mutating func wrapToUnoccupied() {
-    if _words == nil {
+    if unsafe _words == nil {
       _bucket = _endBucket
       return
     }
@@ -374,7 +375,7 @@ extension _HTable.BucketIterator {
     let start = self.currentBucket
     self.advanceToUnoccupied(maxCount: maxCount)
     let end = self.currentBucket
-    return Range(uncheckedBounds: (start, end))
+    return unsafe Range(uncheckedBounds: (start, end))
   }
 
   @usableFromInline
@@ -388,6 +389,6 @@ extension _HTable.BucketIterator {
     let start = self.currentBucket
     self.advanceToOccupied(maxCount: maxCount)
     let end = self.currentBucket
-    return Range(uncheckedBounds: (start, end))
+    return unsafe Range(uncheckedBounds: (start, end))
   }
 }

@@ -63,9 +63,9 @@ extension Rope {
     var lower = bounds.lowerBound
     var upper = bounds.upperBound
     while !node.isLeaf {
-      let (l, u) = node.readInner {
-        let l = $0.findSlot(at: lower, in: metric, preferEnd: false)
-        let u = $0.findSlot(from: l, offsetBy: upper - lower, in: metric, preferEnd: true)
+      let (l, u) = unsafe node.readInner {
+        let l = unsafe $0.findSlot(at: lower, in: metric, preferEnd: false)
+        let u = unsafe $0.findSlot(from: l, offsetBy: upper - lower, in: metric, preferEnd: true)
         return (l, u)
       }
       if l.slot < u.slot {
@@ -78,9 +78,9 @@ extension Rope {
       upper = u.remaining
     }
 
-    let (l, u) = node.readLeaf {
-      let l = $0.findSlot(at: lower, in: metric, preferEnd: false)
-      let u = $0.findSlot(from: l, offsetBy: bounds.count, in: metric, preferEnd: true)
+    let (l, u) = unsafe node.readLeaf {
+      let l = unsafe $0.findSlot(at: lower, in: metric, preferEnd: false)
+      let u = unsafe $0.findSlot(from: l, offsetBy: bounds.count, in: metric, preferEnd: true)
       return (l, u)
     }
     if l.slot < u.slot {
@@ -117,7 +117,9 @@ extension Rope._Node {
 
     guard isLeaf else {
       // Extract children on boundaries.
-      let (lower, upper) = readInner { ($0.children[start.slot], $0.children[end.slot]) }
+      let (lower, upper) = unsafe readInner {
+        unsafe ($0.children[start.slot], $0.children[end.slot])
+      }
 
       // Descend a lever lower.
       lower.removeSuffix(from: start.remaining, in: metric, into: &builder)
@@ -125,7 +127,9 @@ extension Rope._Node {
       return
     }
     // Extract items on boundaries.
-    var (lower, upper) = readLeaf { ($0.children[start.slot], $0.children[end.slot]) }
+    var (lower, upper) = unsafe readLeaf {
+      unsafe ($0.children[start.slot], $0.children[end.slot])
+    }
 
     let i1 = metric.index(at: start.remaining, in: lower.value)
     let i2 = metric.index(at: end.remaining, in: upper.value)
@@ -152,11 +156,13 @@ extension Rope._Node {
 
       guard !node.isLeaf else { break }
 
-      let r = node.readInner { $0.findSlot(at: position, in: metric) }
+      let r = unsafe node.readInner { unsafe $0.findSlot(at: position, in: metric) }
       position = r.remaining
       node._innerRemoveSuffix(descending: r.slot, into: &builder)
     }
-    let r = node.readLeaf { $0.findSlot(at: position, in: metric, preferEnd: false) }
+    let r = unsafe node.readLeaf {
+      unsafe $0.findSlot(at: position, in: metric, preferEnd: false)
+    }
     var item = node._leafRemoveSuffix(returning: r.slot, into: &builder)
     let i = metric.index(at: r.remaining, in: item.value)
     _ = item.split(at: i)
@@ -180,11 +186,11 @@ extension Rope._Node {
 
       guard !node.isLeaf else { break }
 
-      let r = node.readInner { $0.findSlot(at: position, in: metric) }
+      let r = unsafe node.readInner { unsafe $0.findSlot(at: position, in: metric) }
       position = r.remaining
       node._innerRemovePrefix(descending: r.slot, into: &builder)
     }
-    let r = node.readLeaf { $0.findSlot(at: position, in: metric) }
+    let r = unsafe node.readLeaf { unsafe $0.findSlot(at: position, in: metric) }
     var item = node._leafRemovePrefix(returning: r.slot, into: &builder)
     let i = metric.index(at: r.remaining, in: item.value)
     builder._insertAfterTip(item.split(at: i))
@@ -199,13 +205,13 @@ extension Rope._Node {
     assert(slot >= 0 && slot <= childCount)
 
     if slot == 0 {
-      self = readInner { $0.children[0] }
+      self = unsafe readInner { unsafe $0.children[0] }
       return
     }
     if slot == 1 {
-      let (remaining, new) = readInner {
-        let c = $0.children
-        return (c[0], c[1])
+      let (remaining, new) = unsafe readInner {
+        let c = unsafe $0.children
+        return unsafe (c[0], c[1])
       }
       builder._insertBeforeTip(remaining)
       self = new
@@ -214,7 +220,9 @@ extension Rope._Node {
 
     ensureUnique()
     if slot < childCount - 1 {
-      let delta = updateInner { $0._removeSuffix($0.childCount - slot - 1) }
+      let delta = unsafe updateInner {
+        unsafe $0._removeSuffix($0.childCount - slot - 1)
+      }
       self.summary.subtract(delta)
     }
     var n = _removeNode(at: slot)
@@ -232,12 +240,12 @@ extension Rope._Node {
     assert(slot >= 0 && slot < childCount)
 
     if slot == 0 {
-      return readLeaf { $0.children[0] }
+      return unsafe readLeaf { unsafe $0.children[0] }
     }
     if slot == 1 {
-      let (remaining, new) = readLeaf {
-        let c = $0.children
-        return (c[0], c[1])
+      let (remaining, new) = unsafe readLeaf {
+        let c = unsafe $0.children
+        return unsafe (c[0], c[1])
       }
       builder._insertBeforeTip(remaining)
       return new
@@ -246,7 +254,9 @@ extension Rope._Node {
     var n = self
     n.ensureUnique()
     if slot < n.childCount - 1 {
-      let delta = n.updateLeaf { $0._removeSuffix($0.childCount - slot - 1) }
+      let delta = unsafe n.updateLeaf {
+        unsafe $0._removeSuffix($0.childCount - slot - 1)
+      }
       n.summary.subtract(delta)
     }
     let item = n._removeItem(at: slot).removed
@@ -263,13 +273,13 @@ extension Rope._Node {
     assert(slot >= 0 && slot < childCount)
 
     if slot == childCount - 1 {
-      self = readInner { $0.children[$0.childCount - 1] }
+      self = unsafe readInner { unsafe $0.children[$0.childCount - 1] }
       return
     }
     if slot == childCount - 2 {
-      let (new, remaining) = readInner {
-        let c = $0.children
-        return (c[$0.childCount - 2], c[$0.childCount - 1])
+      let (new, remaining) = unsafe readInner {
+        let c = unsafe $0.children
+        return unsafe (c[$0.childCount - 2], c[$0.childCount - 1])
       }
       builder._insertAfterTip(remaining)
       self = new
@@ -277,9 +287,9 @@ extension Rope._Node {
     }
 
     ensureUnique()
-    var (delta, n) = updateInner {
-      let n = $0.children[slot]
-      let delta = $0._removePrefix(slot + 1)
+    var (delta, n) = unsafe updateInner {
+      let n = unsafe $0.children[slot]
+      let delta = unsafe $0._removePrefix(slot + 1)
       return (delta, n)
     }
     self.summary.subtract(delta)
@@ -297,12 +307,12 @@ extension Rope._Node {
     assert(slot >= 0 && slot <= childCount)
 
     if slot == childCount - 1 {
-      return readLeaf { $0.children[$0.childCount - 1] }
+      return unsafe readLeaf { unsafe $0.children[$0.childCount - 1] }
     }
     if slot == childCount - 2 {
-      let (new, remaining) = readLeaf {
-        let c = $0.children
-        return (c[$0.childCount - 2], c[$0.childCount - 1])
+      let (new, remaining) = unsafe readLeaf {
+        let c = unsafe $0.children
+        return unsafe (c[$0.childCount - 2], c[$0.childCount - 1])
       }
       builder._insertAfterTip(remaining)
       return new
@@ -310,9 +320,9 @@ extension Rope._Node {
 
     var n = self
     n.ensureUnique()
-    let (delta, item) = n.updateLeaf {
-      let n = $0.children[slot]
-      let delta = $0._removePrefix(slot + 1)
+    let (delta, item) = unsafe n.updateLeaf {
+      let n = unsafe $0.children[slot]
+      let delta = unsafe $0._removePrefix(slot + 1)
       return (delta, n)
     }
     n.summary.subtract(delta)

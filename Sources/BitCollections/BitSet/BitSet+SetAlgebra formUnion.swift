@@ -28,9 +28,9 @@ extension BitSet {
   /// - Complexity: O(*max*), where *max* is the largest item in either input.
   public mutating func formUnion(_ other: BitSet) {
     _ensureCapacity(limit: other._capacity)
-    _update { target in
-      other._read { source in
-        target.combineSharedPrefix(with: source) { $0.formUnion($1) }
+    unsafe _update { target in
+      unsafe other._read { source in
+        unsafe target.combineSharedPrefix(with: source) { $0.formUnion($1) }
       }
     }
   }
@@ -64,8 +64,8 @@ extension BitSet {
     }
     guard !other.isEmpty else { return }
     _ensureCapacity(limit: other.upperBound)
-    _update { handle in
-      handle.formUnion(other)
+    unsafe _update { handle in
+      unsafe handle.formUnion(other)
     }
   }
 

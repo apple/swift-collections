@@ -19,7 +19,7 @@ extension RigidSet where Element: ~Copyable {
   public mutating func remove(_ member: borrowing Element) -> Element? {
     let r = _find(member)
     guard let bucket = r.bucket else { return nil }
-    return _remove(at: bucket)
+    return unsafe _remove(at: bucket)
   }
   
   /// Remove the member currently at the specified occupied bucket,
@@ -28,33 +28,35 @@ extension RigidSet where Element: ~Copyable {
   ///
   /// This operation is intended to be used just before resizing the table.
   @inlinable
+  @unsafe
   package mutating func _punchHole(at bucket: _Bucket) -> Element {
-    assert(_table.isOccupied(bucket))
-    _table.createHole(at: bucket)
-    let result = _memberPtr(at: bucket).move()
-    let members = _members.unsafelyUnwrapped
-    _table.finalizeHole(
+    assert(unsafe _table.isOccupied(bucket))
+    unsafe _table.createHole(at: bucket)
+    let result = unsafe _memberPtr(at: bucket).move()
+    let members = unsafe _members.unsafelyUnwrapped
+    unsafe _table.finalizeHole(
       at: bucket,
       mover: {
-        (members + $1.offset).initialize(to: (members + $0.offset).move())
+        unsafe (members + $1.offset).initialize(to: (members + $0.offset).move())
       })
     return result
   }
   
   @inlinable
+  @unsafe
   package mutating func _remove(at bucket: _Bucket) -> Element {
-    assert(_table.isOccupied(bucket))
-    _table.createHole(at: bucket)
-    let result = _memberPtr(at: bucket).move()
+    assert(unsafe _table.isOccupied(bucket))
+    unsafe _table.createHole(at: bucket)
+    let result = unsafe _memberPtr(at: bucket).move()
     let seed = self._seed
-    let members = _members.unsafelyUnwrapped
-    _table.resolveHole(
+    let members = unsafe _members.unsafelyUnwrapped
+    unsafe _table.resolveHole(
       at: bucket,
       hashGenerator: {
-        members[$0.offset]._rawHashValue(seed: seed)
+        unsafe members[$0.offset]._rawHashValue(seed: seed)
       },
       mover: {
-        (members + $1.offset).initialize(to: (members + $0.offset).move())
+        unsafe (members + $1.offset).initialize(to: (members + $0.offset).move())
       })
     return result
   }
@@ -62,8 +64,8 @@ extension RigidSet where Element: ~Copyable {
   @inlinable
   public mutating func removeAll() {
     if isEmpty { return }
-    _deinitializeMembers()
-    _table.clear()
+    unsafe _deinitializeMembers()
+    unsafe _table.clear()
   }
 }
 

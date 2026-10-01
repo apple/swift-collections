@@ -34,23 +34,23 @@ extension SortedDictionary {
     }
     
     _modify {
-      var (cursor, found) = self._root.takeCursor(forKey: key)
-      
+      var (cursor, found) = unsafe self._root.takeCursor(forKey: key)
+
       var value: Value?
       if found {
-        value = cursor.moveValue()
+        value = unsafe cursor.moveValue()
       }
       
       defer {
         if found {
           if let value = value {
-            cursor.initializeValue(to: value)
+            unsafe cursor.initializeValue(to: value)
           } else {
-            cursor.removeElement(hasValueHole: true)
+            unsafe cursor.removeElement(hasValueHole: true)
           }
         } else {
           if let value = value {
-            cursor.insertElement(
+            unsafe cursor.insertElement(
               (key, value),
               capacity: self._root.internalCapacity
             )
@@ -59,7 +59,7 @@ extension SortedDictionary {
           }
         }
         
-        cursor.apply(to: &self._root)
+        unsafe cursor.apply(to: &self._root)
       }
       
       yield &value
@@ -101,26 +101,25 @@ extension SortedDictionary {
     }
     
     _modify {
-      var (cursor, found) = self._root.takeCursor(forKey: key)
-      
+      var (cursor, found) = unsafe self._root.takeCursor(forKey: key)
+
       var value: Value
       if found {
-        value = cursor.moveValue()
+        value = unsafe cursor.moveValue()
       } else {
         value = defaultValue()
       }
       
       defer {
         if found {
-          cursor.initializeValue(to: value)
+          unsafe cursor.initializeValue(to: value)
         } else {
-          cursor.insertElement(
+          unsafe cursor.insertElement(
             (key, value),
-            capacity: self._root.internalCapacity
-          )
+            capacity: self._root.internalCapacity)
         }
         
-        cursor.apply(to: &self._root)
+        unsafe cursor.apply(to: &self._root)
       }
       
       yield &value

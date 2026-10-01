@@ -175,7 +175,7 @@ extension OrderedDictionary {
     where shouldBeRemoved: (Self.Element) throws -> Bool
   ) rethrows {
     let pivot = try _values.withUnsafeMutableBufferPointer { values in
-      try _keys._halfStablePartition(
+      unsafe try _keys._halfStablePartition(
         values: values,
         by: shouldBeRemoved)
     }

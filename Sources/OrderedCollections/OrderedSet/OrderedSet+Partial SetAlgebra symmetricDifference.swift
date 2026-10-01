@@ -43,24 +43,25 @@ extension OrderedSet {
   ///    `Element` implements high-quality hashing.
   @inlinable
   public __consuming func symmetricDifference(_ other: __owned Self) -> Self {
-    _UnsafeBitSet.withTemporaryBitSet(capacity: self.count) { bitset1 in
-      _UnsafeBitSet.withTemporaryBitSet(capacity: other.count) { bitset2 in
-        bitset1.insertAll(upTo: self.count)
+    unsafe _UnsafeBitSet.withTemporaryBitSet(capacity: self.count) { bitset1 in
+      unsafe _UnsafeBitSet.withTemporaryBitSet(capacity: other.count) { bitset2 in
+        unsafe bitset1.insertAll(upTo: self.count)
         for item in other {
           if let index = self._find(item).index {
-            bitset1.remove(index)
+            unsafe bitset1.remove(index)
           }
         }
-        bitset2.insertAll(upTo: other.count)
+        unsafe bitset2.insertAll(upTo: other.count)
         for item in self {
           if let index = other._find(item).index {
-            bitset2.remove(index)
+            unsafe bitset2.remove(index)
           }
         }
-        var result = self._extractSubset(using: bitset1,
-                                         extraCapacity: bitset2.count)
-        for offset in bitset2 {
-          result._appendNew(other._elements[Int(bitPattern: offset)])
+        var result = unsafe self._extractSubset(
+          using: bitset1,
+          extraCapacity: bitset2.count)
+        for unsafe offset in unsafe bitset2 {
+          unsafe result._appendNew(other._elements[Int(bitPattern: offset)])
         }
         result._checkInvariants()
         return result
@@ -118,19 +119,19 @@ extension OrderedSet {
   public __consuming func symmetricDifference(
     _ other: __owned some Sequence<Element>
   ) -> Self {
-    _UnsafeBitSet.withTemporaryBitSet(capacity: self.count) { bitset in
+    unsafe _UnsafeBitSet.withTemporaryBitSet(capacity: self.count) { bitset in
       var new = Self()
-      bitset.insertAll(upTo: self.count)
+      unsafe bitset.insertAll(upTo: self.count)
       for item in other {
         if let index = self._find(item).index {
-          bitset.remove(index)
+          unsafe bitset.remove(index)
         } else {
           new.append(item)
         }
       }
-      var result = _extractSubset(using: bitset, extraCapacity: new.count)
+      var result = unsafe _extractSubset(using: bitset, extraCapacity: new.count)
       for item in new._elements {
-        result._appendNew(item)
+        unsafe result._appendNew(item)
       }
       result._checkInvariants()
       return result

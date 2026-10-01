@@ -24,6 +24,7 @@ extension _HashNode {
   /// they're called on a read-only view.
   @usableFromInline
   @frozen
+  @unsafe
   internal struct UnsafeHandle {
     @usableFromInline
     internal typealias Element = (key: Key, value: Value)
@@ -36,6 +37,7 @@ extension _HashNode {
 
     #if DEBUG
     @usableFromInline
+    @safe
     internal let _isMutable: Bool
     #endif
 
@@ -45,8 +47,8 @@ extension _HashNode {
       _ memory: UnsafeMutableRawPointer,
       isMutable: Bool
     ) {
-      self._header = header
-      self._memory = memory
+      unsafe self._header = header
+      unsafe self._memory = memory
       #if DEBUG
       self._isMutable = isMutable
       #endif
@@ -57,6 +59,7 @@ extension _HashNode {
 extension _HashNode.UnsafeHandle {
   @inlinable
   @inline(__always)
+  @safe
   func assertMutable() {
 #if DEBUG
     assert(_isMutable)
@@ -70,9 +73,9 @@ extension _HashNode.UnsafeHandle {
     _ node: _UnmanagedHashNode,
     _ body: (Self) throws -> R
   ) rethrows -> R {
-    try node.ref._withUnsafeGuaranteedRef { storage in
-      try storage.withUnsafeMutablePointers { header, elements in
-        try body(Self(header, UnsafeMutableRawPointer(elements), isMutable: false))
+    unsafe try node.ref._withUnsafeGuaranteedRef { storage in
+      unsafe try storage.withUnsafeMutablePointers { header, elements in
+        unsafe try body(Self(header, UnsafeMutableRawPointer(elements), isMutable: false))
       }
     }
   }
@@ -82,8 +85,8 @@ extension _HashNode.UnsafeHandle {
     _ storage: _RawHashStorage,
     _ body: (Self) throws -> R
   ) rethrows -> R {
-    try storage.withUnsafeMutablePointers { header, elements in
-      try body(Self(header, UnsafeMutableRawPointer(elements), isMutable: false))
+    unsafe try storage.withUnsafeMutablePointers { header, elements in
+      unsafe try body(Self(header, UnsafeMutableRawPointer(elements), isMutable: false))
     }
   }
 
@@ -92,9 +95,9 @@ extension _HashNode.UnsafeHandle {
     _ node: _UnmanagedHashNode,
     _ body: (Self) throws -> R
   ) rethrows -> R {
-    try node.ref._withUnsafeGuaranteedRef { storage in
-      try storage.withUnsafeMutablePointers { header, elements in
-        try body(Self(header, UnsafeMutableRawPointer(elements), isMutable: true))
+    unsafe try node.ref._withUnsafeGuaranteedRef { storage in
+      unsafe try storage.withUnsafeMutablePointers { header, elements in
+        unsafe try body(Self(header, UnsafeMutableRawPointer(elements), isMutable: true))
       }
     }
   }
@@ -104,8 +107,8 @@ extension _HashNode.UnsafeHandle {
     _ storage: _RawHashStorage,
     _ body: (Self) throws -> R
   ) rethrows -> R {
-    try storage.withUnsafeMutablePointers { header, elements in
-      try body(Self(header, UnsafeMutableRawPointer(elements), isMutable: true))
+    unsafe try storage.withUnsafeMutablePointers { header, elements in
+      unsafe try body(Self(header, UnsafeMutableRawPointer(elements), isMutable: true))
     }
   }
 }
@@ -114,184 +117,188 @@ extension _HashNode.UnsafeHandle {
   @inlinable @inline(__always)
   internal var itemMap: _Bitmap {
     get {
-      _header.pointee.itemMap
+      unsafe _header.pointee.itemMap
     }
     nonmutating set {
       assertMutable()
-      _header.pointee.itemMap = newValue
+      unsafe _header.pointee.itemMap = newValue
     }
   }
 
   @inlinable @inline(__always)
   internal var childMap: _Bitmap {
     get {
-      _header.pointee.childMap
+      unsafe _header.pointee.childMap
     }
     nonmutating set {
       assertMutable()
-      _header.pointee.childMap = newValue
+      unsafe _header.pointee.childMap = newValue
     }
   }
 
   @inlinable @inline(__always)
   internal var byteCapacity: Int {
-    _header.pointee.byteCapacity
+    unsafe _header.pointee.byteCapacity
   }
 
   @inlinable @inline(__always)
   internal var bytesFree: Int {
-    get { _header.pointee.bytesFree }
+    get {
+      unsafe _header.pointee.bytesFree
+    }
     nonmutating set {
       assertMutable()
-      _header.pointee.bytesFree = newValue
+      unsafe _header.pointee.bytesFree = newValue
     }
   }
 
   @inlinable @inline(__always)
   internal var isCollisionNode: Bool {
-    _header.pointee.isCollisionNode
+    unsafe _header.pointee.isCollisionNode
   }
 
   @inlinable @inline(__always)
   internal var collisionCount: Int {
-    get { _header.pointee.collisionCount }
+    get {
+      unsafe _header.pointee.collisionCount
+    }
     nonmutating set {
       assertMutable()
-      _header.pointee.collisionCount = newValue
+      unsafe _header.pointee.collisionCount = newValue
     }
   }
 
   @inlinable @inline(__always)
   internal var collisionHash: _Hash {
     get {
-      assert(isCollisionNode)
-      return _memory.load(as: _Hash.self)
+      assert(unsafe isCollisionNode)
+      return unsafe _memory.load(as: _Hash.self)
     }
     nonmutating set {
       assertMutable()
-      assert(isCollisionNode)
-      _memory.storeBytes(of: newValue, as: _Hash.self)
+      assert(unsafe isCollisionNode)
+      unsafe _memory.storeBytes(of: newValue, as: _Hash.self)
     }
   }
 
   @inlinable @inline(__always)
   internal var _childrenStart: UnsafeMutablePointer<_HashNode> {
-    _memory.assumingMemoryBound(to: _HashNode.self)
+    unsafe _memory.assumingMemoryBound(to: _HashNode.self)
   }
 
   @inlinable @inline(__always)
   internal var hasChildren: Bool {
-    _header.pointee.hasChildren
+    unsafe _header.pointee.hasChildren
   }
 
   @inlinable @inline(__always)
   internal var childCount: Int {
-    _header.pointee.childCount
+    unsafe _header.pointee.childCount
   }
 
   @inlinable
   internal func childBucket(at slot: _HashSlot) -> _Bucket {
-    guard !isCollisionNode else { return .invalid }
-    return childMap.bucket(at: slot)
+    guard unsafe !isCollisionNode else { return .invalid }
+    return unsafe childMap.bucket(at: slot)
   }
 
   @inlinable @inline(__always)
   internal var childrenEndSlot: _HashSlot {
-    _header.pointee.childrenEndSlot
+    unsafe _header.pointee.childrenEndSlot
   }
 
   @inlinable
   internal var children: UnsafeMutableBufferPointer<_HashNode> {
-    UnsafeMutableBufferPointer(start: _childrenStart, count: childCount)
+    unsafe UnsafeMutableBufferPointer(start: _childrenStart, count: childCount)
   }
 
   @inlinable
   internal func childPtr(at slot: _HashSlot) -> UnsafeMutablePointer<_HashNode> {
-    assert(slot.value < childCount)
-    return _childrenStart + slot.value
+    assert(unsafe slot.value < childCount)
+    return unsafe _childrenStart + slot.value
   }
 
   @inlinable
   internal subscript(child slot: _HashSlot) -> _HashNode {
     unsafeAddress {
-      UnsafePointer(childPtr(at: slot))
+      unsafe UnsafePointer(childPtr(at: slot))
     }
     nonmutating unsafeMutableAddress {
       assertMutable()
-      return childPtr(at: slot)
+      return unsafe childPtr(at: slot)
     }
   }
 
   @inlinable
   internal var _itemsEnd: UnsafeMutablePointer<Element> {
-    (_memory + _header.pointee.byteCapacity)
+    unsafe (_memory + _header.pointee.byteCapacity)
       .assumingMemoryBound(to: Element.self)
   }
 
   @inlinable @inline(__always)
   internal var hasItems: Bool {
-    _header.pointee.hasItems
+    unsafe _header.pointee.hasItems
   }
 
   @inlinable @inline(__always)
   internal var itemCount: Int {
-    _header.pointee.itemCount
+    unsafe _header.pointee.itemCount
   }
 
   @inlinable
   internal func itemBucket(at slot: _HashSlot) -> _Bucket {
-    guard !isCollisionNode else { return .invalid }
-    return itemMap.bucket(at: slot)
+    guard unsafe !isCollisionNode else { return .invalid }
+    return unsafe itemMap.bucket(at: slot)
   }
 
   @inlinable @inline(__always)
   internal var itemsEndSlot: _HashSlot {
-    _header.pointee.itemsEndSlot
+    unsafe _header.pointee.itemsEndSlot
   }
 
   @inlinable
   internal var reverseItems: UnsafeMutableBufferPointer<Element> {
-    let c = itemCount
-    return UnsafeMutableBufferPointer(start: _itemsEnd - c, count: c)
+    let c = unsafe itemCount
+    return unsafe UnsafeMutableBufferPointer(start: _itemsEnd - c, count: c)
   }
 
   @inlinable
   internal func itemPtr(at slot: _HashSlot) -> UnsafeMutablePointer<Element> {
-    assert(slot.value <= itemCount)
-    return _itemsEnd.advanced(by: -1 &- slot.value)
+    assert(unsafe slot.value <= itemCount)
+    return unsafe _itemsEnd.advanced(by: -1 &- slot.value)
   }
 
   @inlinable
   internal subscript(item slot: _HashSlot) -> Element {
     unsafeAddress {
-      UnsafePointer(itemPtr(at: slot))
+      unsafe UnsafePointer(itemPtr(at: slot))
     }
     nonmutating unsafeMutableAddress {
       assertMutable()
-      return itemPtr(at: slot)
+      return unsafe itemPtr(at: slot)
     }
   }
 
   @inlinable
   internal func clear() {
     assertMutable()
-    _header.pointee.clear()
+    unsafe _header.pointee.clear()
   }
 }
 
 extension _HashNode.UnsafeHandle {
   @inlinable
   internal var hasSingletonItem: Bool {
-    _header.pointee.hasSingletonItem
+    unsafe _header.pointee.hasSingletonItem
   }
 
   @inlinable
   internal var hasSingletonChild: Bool {
-    _header.pointee.hasSingletonChild
+    unsafe _header.pointee.hasSingletonChild
   }
 
   @inlinable
   internal var isAtrophiedNode: Bool {
-    hasSingletonChild && self[child: .zero].isCollisionNode
+    unsafe hasSingletonChild && self[child: .zero].isCollisionNode
   }
 }

@@ -14,6 +14,7 @@
 extension Rope {
   @usableFromInline
   @frozen // Not really! This module isn't ABI stable.
+  @unsafe
   internal struct _UnsafeHandle<Child: _RopeItem<Summary>> {
     @usableFromInline internal typealias Summary = Rope.Summary
     
@@ -24,6 +25,7 @@ extension Rope {
     internal let _start: UnsafeMutablePointer<Child>
 #if DEBUG
     @usableFromInline
+    @safe
     internal let _isMutable: Bool
 #endif
 
@@ -33,14 +35,15 @@ extension Rope {
       header: UnsafeMutablePointer<_RopeStorageHeader>,
       start: UnsafeMutablePointer<Child>
     ) {
-      self._header = header
-      self._start = start
+      unsafe self._header = header
+      unsafe self._start = start
 #if DEBUG
       self._isMutable = isMutable
 #endif
     }
     
     @inlinable @inline(__always)
+    @safe
     internal func assertMutable() {
 #if DEBUG
       assert(_isMutable)
@@ -51,58 +54,59 @@ extension Rope {
 
 extension Rope._UnsafeHandle {
   @inlinable @inline(__always)
+  @safe
   internal var capacity: Int { Summary.maxNodeSize }
   
   @inlinable @inline(__always)
-  internal var height: UInt8 { _header.pointee.height }
+  internal var height: UInt8 { unsafe _header.pointee.height }
 
   @inlinable
   internal var childCount: Int {
-    get { _header.pointee.childCount }
+    get { unsafe _header.pointee.childCount }
     nonmutating set {
       assertMutable()
-      _header.pointee.childCount = newValue
+      unsafe _header.pointee.childCount = newValue
     }
   }
 
   @inlinable
   internal var children: UnsafeBufferPointer<Child> {
-    UnsafeBufferPointer(start: _start, count: childCount)
+    unsafe UnsafeBufferPointer(start: _start, count: childCount)
   }
 
   @inlinable
   internal func child(at slot: Int) -> Child? {
     assert(slot >= 0)
-    guard slot < childCount else { return nil }
-    return (_start + slot).pointee
+    guard unsafe slot < childCount else { return nil }
+    return unsafe (_start + slot).pointee
   }
 
   @inlinable
   internal var mutableChildren: UnsafeMutableBufferPointer<Child> {
     assertMutable()
-    return UnsafeMutableBufferPointer(start: _start, count: childCount)
+    return unsafe UnsafeMutableBufferPointer(start: _start, count: childCount)
   }
 
   @inlinable
   internal func mutableChildPtr(at slot: Int) -> UnsafeMutablePointer<Child> {
     assertMutable()
-    assert(slot >= 0 && slot < childCount)
-    return _start + slot
+    assert(unsafe slot >= 0 && slot < childCount)
+    return unsafe _start + slot
   }
 
   @inlinable
   internal var mutableBuffer: UnsafeMutableBufferPointer<Child> {
     assertMutable()
-    return UnsafeMutableBufferPointer(start: _start, count: capacity)
+    return unsafe UnsafeMutableBufferPointer(start: _start, count: capacity)
   }
 
   @inlinable
   internal func copy() -> Rope._Storage<Child> {
-    let new = Rope._Storage<Child>.create(height: self.height)
-    let c = self.childCount
+    let new = unsafe Rope._Storage<Child>.create(height: self.height)
+    let c = unsafe self.childCount
     new.header.childCount = c
-    new.withUnsafeMutablePointerToElements { target in
-      target.initialize(from: self._start, count: c)
+    unsafe new.withUnsafeMutablePointerToElements { target in
+      unsafe target.initialize(from: self._start, count: c)
     }
     return new
   }
@@ -111,13 +115,13 @@ extension Rope._UnsafeHandle {
   internal func copy(
     slots: Range<Int>
   ) -> (object: Rope._Storage<Child>, summary: Summary) {
-    assert(slots.lowerBound >= 0 && slots.upperBound <= childCount)
-    let object = Rope._Storage<Child>.create(height: self.height)
+    assert(unsafe slots.lowerBound >= 0 && slots.upperBound <= childCount)
+    let object = unsafe Rope._Storage<Child>.create(height: self.height)
     let c = slots.count
-    let summary = object.withUnsafeMutablePointers { h, p in
-      h.pointee.childCount = c
-      p.initialize(from: self._start + slots.lowerBound, count: slots.count)
-      return UnsafeBufferPointer(start: p, count: c)._sum()
+    let summary = unsafe object.withUnsafeMutablePointers { h, p in
+      unsafe h.pointee.childCount = c
+      unsafe p.initialize(from: self._start + slots.lowerBound, count: slots.count)
+      return unsafe UnsafeBufferPointer(start: p, count: c)._sum()
     }
     return (object, summary)
   }
@@ -125,57 +129,57 @@ extension Rope._UnsafeHandle {
   @inlinable
   internal func _insertChild(_ child: __owned Child, at slot: Int) {
     assertMutable()
-    assert(childCount < capacity)
-    assert(slot >= 0 && slot <= childCount)
-    (_start + slot + 1).moveInitialize(from: _start + slot, count: childCount - slot)
-    (_start + slot).initialize(to: child)
-    childCount += 1
+    assert(unsafe childCount < capacity)
+    assert(unsafe slot >= 0 && slot <= childCount)
+    unsafe (_start + slot + 1).moveInitialize(from: _start + slot, count: childCount - slot)
+    unsafe (_start + slot).initialize(to: child)
+    unsafe childCount += 1
   }
 
   @inlinable
   internal func _appendChild(_ child: __owned Child) {
     assertMutable()
-    assert(childCount < capacity)
-    (_start + childCount).initialize(to: child)
-    childCount += 1
+    assert(unsafe childCount < capacity)
+    unsafe (_start + childCount).initialize(to: child)
+    unsafe childCount += 1
   }
 
   @inlinable
   internal func _removeChild(at slot: Int) -> Child {
     assertMutable()
-    assert(slot >= 0 && slot < childCount)
-    let result = (_start + slot).move()
-    (_start + slot).moveInitialize(from: _start + slot + 1, count: childCount - slot - 1)
-    childCount -= 1
+    assert(unsafe slot >= 0 && slot < childCount)
+    let result = unsafe (_start + slot).move()
+    unsafe (_start + slot).moveInitialize(from: _start + slot + 1, count: childCount - slot - 1)
+    unsafe childCount -= 1
     return result
   }
 
   @inlinable
   internal func _removePrefix(_ n: Int) -> Summary {
     assertMutable()
-    assert(n <= childCount)
+    assert(unsafe n <= childCount)
     var delta = Summary.zero
-    let c = mutableChildren
+    let c = unsafe mutableChildren
     for i in 0 ..< n {
-      let child = c.moveElement(from: i)
+      let child = unsafe c.moveElement(from: i)
       delta.add(child.summary)
     }
-    childCount -= n
-    _start.moveInitialize(from: _start + n, count: childCount)
+    unsafe childCount -= n
+    unsafe _start.moveInitialize(from: _start + n, count: childCount)
     return delta
   }
 
   @inlinable
   internal func _removeSuffix(_ n: Int) -> Summary {
     assertMutable()
-    assert(n <= childCount)
+    assert(unsafe n <= childCount)
     var delta = Summary.zero
-    let c = mutableChildren
-    for i in childCount - n ..< childCount {
-      let child = c.moveElement(from: i)
+    let c = unsafe mutableChildren
+    for i in unsafe childCount - n ..< childCount {
+      let child = unsafe c.moveElement(from: i)
       delta.add(child.summary)
     }
-    childCount -= n
+    unsafe childCount -= n
     return delta
   }
 
@@ -185,16 +189,16 @@ extension Rope._UnsafeHandle {
   ) -> Summary {
     assertMutable()
     src.assertMutable()
-    assert(self.height == src.height)
+    assert(unsafe self.height == src.height)
     guard count > 0 else { return .zero }
-    assert(count >= 0 && count <= src.childCount)
-    assert(count <= capacity - self.childCount)
-    
-    (_start + childCount).moveInitialize(from: src._start, count: count)
-    src._start.moveInitialize(from: src._start + count, count: src.childCount - count)
-    childCount += count
-    src.childCount -= count
-    return children.suffix(count)._sum()
+    assert(unsafe count >= 0 && count <= src.childCount)
+    assert(unsafe count <= capacity - self.childCount)
+
+    unsafe (_start + childCount).moveInitialize(from: src._start, count: count)
+    unsafe src._start.moveInitialize(from: src._start + count, count: src.childCount - count)
+    unsafe childCount += count
+    unsafe src.childCount -= count
+    return unsafe children.suffix(count)._sum()
   }
 
   @inlinable
@@ -203,16 +207,16 @@ extension Rope._UnsafeHandle {
   ) -> Summary {
     assertMutable()
     src.assertMutable()
-    assert(self.height == src.height)
+    assert(unsafe self.height == src.height)
     guard count > 0 else { return .zero }
-    assert(count >= 0 && count <= src.childCount)
-    assert(count <= capacity - childCount)
-    
-    (_start + count).moveInitialize(from: _start, count: childCount)
-    _start.moveInitialize(from: src._start + src.childCount - count, count: count)
-    childCount += count
-    src.childCount -= count
-    return children.prefix(count)._sum()
+    assert(unsafe count >= 0 && count <= src.childCount)
+    assert(unsafe count <= capacity - childCount)
+
+    unsafe (_start + count).moveInitialize(from: _start, count: childCount)
+    unsafe _start.moveInitialize(from: src._start + src.childCount - count, count: count)
+    unsafe childCount += count
+    unsafe src.childCount -= count
+    return unsafe children.prefix(count)._sum()
   }
 
   @inlinable
@@ -220,11 +224,11 @@ extension Rope._UnsafeHandle {
     from start: Int, to end: Int, in metric: some RopeMetric<Element>
   ) -> Int {
     if start <= end {
-      return children[start ..< end].reduce(into: 0) {
+      return unsafe children[start ..< end].reduce(into: 0) {
         $0 += metric._nonnegativeSize(of: $1.summary)
       }
     }
-    return -children[end ..< start].reduce(into: 0) {
+    return unsafe -children[end ..< start].reduce(into: 0) {
       $0 += metric._nonnegativeSize(of: $1.summary)
     }
   }

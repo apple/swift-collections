@@ -62,9 +62,9 @@ extension BigString {
     var remaining = left._utf8Count
 
     while remaining > 0 {
-      let consumed = it1.next(maximumCount: remaining) { b1 in
-        let consumed = it2.next(maximumCount: b1.count) { b2 in
-          guard b2.elementsEqual(b1.prefix(b2.count)) else { return (0, 0) }
+      let consumed = unsafe it1.next(maximumCount: remaining) { b1 in
+        let consumed = unsafe it2.next(maximumCount: b1.count) { b2 in
+          guard unsafe b2.elementsEqual(b1.prefix(b2.count)) else { return (0, 0) }
           return (b2.count, b2.count)
         }
         return (consumed, consumed)
@@ -90,9 +90,9 @@ extension BigString {
     var it2 = BigString.UTF8View.Iterator(_base: right, from: rightRange.lowerBound)
 
     while remaining > 0 {
-      let consumed = it1.next(maximumCount: remaining) { b1 in
-        let consumed = it2.next(maximumCount: b1.count) { b2 in
-          guard b2.elementsEqual(b1.prefix(b2.count)) else { return (0, 0) }
+      let consumed = unsafe it1.next(maximumCount: remaining) { b1 in
+        let consumed = unsafe it2.next(maximumCount: b1.count) { b2 in
+          guard unsafe b2.elementsEqual(b1.prefix(b2.count)) else { return (0, 0) }
           return (b2.count, b2.count)
         }
         return (consumed, consumed)

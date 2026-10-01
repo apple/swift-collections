@@ -77,11 +77,11 @@ struct NodeTemplateBuilder {
       case let c as NodeTemplate:
         children.append(c)
       default:
-        preconditionFailure("NodeTemplate child must be either key or child.")
+        preconditionFailure("NodeTemplate child must be either key or child")
       }
     }
     precondition(children.count == 0 || children.count == keys.count + 1,
-                 "NodeTemplate must be either leaf or internal node.")
+                 "NodeTemplate must be either leaf or internal node")
     return NodeTemplate(keys: keys, children: children.isEmpty ? nil : children)
   }
 }

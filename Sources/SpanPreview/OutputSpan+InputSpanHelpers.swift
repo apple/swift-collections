@@ -24,11 +24,11 @@ extension OutputSpan where Element: ~Copyable {
   @_lifetime(source: copy source)
   package mutating func _append(moving source: inout InputSpan<Element>) {
     // FIXME: This needs to be in the stdlib.
-    source.withUnsafeMutableBufferPointer { src, srcCount in
-      let srcItems = src._extracting(
+    unsafe source.withUnsafeMutableBufferPointer { src, srcCount in
+      let srcItems = unsafe src._extracting(
         uncheckedFrom: src.count &- srcCount,
         to: src.count)
-      self._append(moving: srcItems)
+      unsafe self._append(moving: srcItems)
       srcCount = 0
     }
   }
@@ -38,8 +38,8 @@ extension OutputSpan where Element: ~Copyable {
   package mutating func _consumeAll<Failure: Error>(
     consumingWith consumer: (inout InputSpan<Element>) throws(Failure) -> Void
   ) throws(Failure) {
-    try self.withUnsafeMutableBufferPointer { buffer, count throws(Failure) in
-      var span = InputSpan(
+    unsafe try self.withUnsafeMutableBufferPointer { buffer, count throws(Failure) in
+      var span = unsafe InputSpan(
         buffer: buffer._extracting(first: count),
         initializedCount: count)
       try consumer(&span)

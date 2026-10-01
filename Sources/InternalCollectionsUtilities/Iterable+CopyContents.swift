@@ -16,17 +16,18 @@
 @available(SwiftStdlib 6.4, *)
 extension Iterable where Self: ~Copyable & ~Escapable, Element: Copyable {
   @inlinable
+  @unsafe
   package func _copyContents(
     intoPrefixOf buffer: UnsafeMutableBufferPointer<Element>
   ) throws(Failure) -> Int {
-    var target = buffer
+    var target = unsafe buffer
     var it = self.makeBorrowingIterator()
     while target.count != 0 {
       let span = try it.nextSpan(maxCount: target.count)
       if span.isEmpty {
         return buffer.count - target.count
       }
-      target._initializeAndDropPrefix(copying: span)
+      unsafe target._initializeAndDropPrefix(copying: span)
     }
     let test = try it.nextSpan()
     precondition(test.isEmpty, "Contents do not fit in target buffer")

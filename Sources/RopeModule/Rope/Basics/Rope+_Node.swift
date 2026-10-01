@@ -33,8 +33,8 @@ extension Rope {
     internal init(leaf: _Storage<_Item>, summary: Summary? = nil) {
       self.object = leaf
       self.summary = .zero
-      self.summary = readLeaf { handle in
-        handle.children.reduce(into: .zero) { $0.add($1.summary) }
+      self.summary = unsafe readLeaf { handle in
+        unsafe handle.children.reduce(into: .zero) { $0.add($1.summary) }
       }
     }
 
@@ -43,8 +43,8 @@ extension Rope {
       assert(inner.header.height > 0)
       self.object = inner
       self.summary = .zero
-      self.summary = readInner { handle in
-        handle.children.reduce(into: .zero) { $0.add($1.summary) }
+      self.summary = unsafe readInner { handle in
+        unsafe handle.children.reduce(into: .zero) { $0.add($1.summary) }
       }
     }
   }
@@ -57,14 +57,14 @@ extension Rope._Node: @unchecked Sendable where Element: Sendable {
 extension Rope._Node {
   @inlinable
   internal var _headerPtr: UnsafePointer<_RopeStorageHeader> {
-    let p = _getUnsafePointerToStoredProperties(object)
+    let p = unsafe _getUnsafePointerToStoredProperties(object)
       .assumingMemoryBound(to: _RopeStorageHeader.self)
-    return .init(p)
+    return unsafe .init(p)
   }
 
   @inlinable
   internal var header: _RopeStorageHeader {
-    _headerPtr.pointee
+    unsafe _headerPtr.pointee
   }
 
   @inlinable @inline(__always)
@@ -76,13 +76,13 @@ extension Rope._Node {
   @inlinable @inline(__always)
   internal var asLeaf: _Storage<_Item> {
     assert(height == 0)
-    return unsafeDowncast(object, to: _Storage<_Item>.self)
+    return unsafe unsafeDowncast(object, to: _Storage<_Item>.self)
   }
   
   @inlinable @inline(__always)
   internal var asInner: _Storage<Self> {
     assert(height > 0)
-    return unsafeDowncast(object, to: _Storage<Self>.self)
+    return unsafe unsafeDowncast(object, to: _Storage<Self>.self)
   }
   
   @inlinable @inline(__always)
@@ -127,9 +127,9 @@ extension Rope._Node {
     var new = createInner(height: left.height + 1)
     new.summary = left.summary
     new.summary.add(right.summary)
-    new.updateInner { h in
-      h._appendChild(left)
-      h._appendChild(right)
+    unsafe new.updateInner { h in
+      unsafe h._appendChild(left)
+      unsafe h._appendChild(right)
     }
     return new
   }
@@ -154,28 +154,29 @@ extension Rope._Node {
   @inlinable @inline(never)
   internal func copy() -> Self {
     if isLeaf {
-      return Self(leaf: readLeaf { $0.copy() }, summary: self.summary)
+      return Self(leaf: unsafe readLeaf { unsafe $0.copy() }, summary: self.summary)
     }
-    return Self(inner: readInner { $0.copy() }, summary: self.summary)
+    return Self(inner: unsafe readInner { unsafe $0.copy() }, summary: self.summary)
   }
 
   @inlinable @inline(never)
   internal func copy(slots: Range<Int>) -> Self {
     if isLeaf {
-      let (object, summary) = readLeaf { $0.copy(slots: slots) }
+      let (object, summary) = unsafe readLeaf { unsafe $0.copy(slots: slots) }
       return Self(leaf: object, summary: summary)
     }
-    let (object, summary) = readInner { $0.copy(slots: slots) }
+    let (object, summary) = unsafe readInner { unsafe $0.copy(slots: slots) }
     return Self(inner: object, summary: summary)
   }
 
   @inlinable @inline(__always)
+  @unsafe
   internal func readLeaf<R>(
     _ body: (_UnsafeHandle<_Item>) -> R
   ) -> R {
-    asLeaf.withUnsafeMutablePointers { h, p in
-      let handle = _UnsafeHandle(isMutable: false, header: h, start: p)
-      return body(handle)
+    unsafe asLeaf.withUnsafeMutablePointers { h, p in
+      let handle = unsafe _UnsafeHandle(isMutable: false, header: h, start: p)
+      return unsafe body(handle)
     }
   }
   
@@ -183,9 +184,9 @@ extension Rope._Node {
   internal mutating func updateLeaf<R>(
     _ body: (_UnsafeHandle<_Item>) -> R
   ) -> R {
-    asLeaf.withUnsafeMutablePointers { h, p in
-      let handle = _UnsafeHandle(isMutable: true, header: h, start: p)
-      return body(handle)
+    unsafe asLeaf.withUnsafeMutablePointers { h, p in
+      let handle = unsafe _UnsafeHandle(isMutable: true, header: h, start: p)
+      return unsafe body(handle)
     }
   }
   
@@ -193,9 +194,9 @@ extension Rope._Node {
   internal func readInner<R>(
     _ body: (_UnsafeHandle<Self>) -> R
   ) -> R {
-    asInner.withUnsafeMutablePointers { h, p in
-      let handle = _UnsafeHandle(isMutable: false, header: h, start: p)
-      return body(handle)
+    unsafe asInner.withUnsafeMutablePointers { h, p in
+      let handle = unsafe _UnsafeHandle(isMutable: false, header: h, start: p)
+      return unsafe body(handle)
     }
   }
   
@@ -203,9 +204,9 @@ extension Rope._Node {
   internal mutating func updateInner<R>(
     _ body: (_UnsafeHandle<Self>) -> R
   ) -> R {
-    asInner.withUnsafeMutablePointers { h, p in
-      let handle = _UnsafeHandle(isMutable: true, header: h, start: p)
-      return body(handle)
+    unsafe asInner.withUnsafeMutablePointers { h, p in
+      let handle = unsafe _UnsafeHandle(isMutable: true, header: h, start: p)
+      return unsafe body(handle)
     }
   }
 }
@@ -216,7 +217,7 @@ extension Rope._Node {
     assert(isLeaf)
     ensureUnique()
     self.summary.add(item.summary)
-    updateLeaf { $0._insertChild(item, at: slot) }
+    unsafe updateLeaf { unsafe $0._insertChild(item, at: slot) }
   }
 
   @inlinable
@@ -225,7 +226,7 @@ extension Rope._Node {
     assert(self.height == node.height + 1)
     ensureUnique()
     self.summary.add(node.summary)
-    updateInner { $0._insertChild(node, at: slot) }
+    unsafe updateInner { unsafe $0._insertChild(node, at: slot) }
   }
 }
 
@@ -235,7 +236,7 @@ extension Rope._Node {
     assert(isLeaf)
     ensureUnique()
     self.summary.add(item.summary)
-    updateLeaf { $0._appendChild(item) }
+    unsafe updateLeaf { unsafe $0._appendChild(item) }
   }
 
   @inlinable
@@ -243,7 +244,7 @@ extension Rope._Node {
     assert(!isLeaf)
     ensureUnique()
     self.summary.add(node.summary)
-    updateInner { $0._appendChild(node) }
+    unsafe updateInner { unsafe $0._appendChild(node) }
   }
 }
 
@@ -254,7 +255,7 @@ extension Rope._Node {
   ) -> (removed: _Item, delta: Summary) {
     assert(isLeaf)
     ensureUnique()
-    let item = updateLeaf { $0._removeChild(at: slot) }
+    let item = unsafe updateLeaf { unsafe $0._removeChild(at: slot) }
     let delta = item.summary
     self.summary.subtract(delta)
     return (item, delta)
@@ -264,7 +265,7 @@ extension Rope._Node {
   internal mutating func _removeNode(at slot: Int) -> Self {
     assert(!isLeaf)
     ensureUnique()
-    let result = updateInner { $0._removeChild(at: slot) }
+    let result = unsafe updateInner { unsafe $0._removeChild(at: slot) }
     self.summary.subtract(result.summary)
     return result
   }
@@ -346,15 +347,15 @@ extension Rope._Node {
     assert(self.height == other.height)
     let delta: Summary
     if isLeaf {
-      delta = self.updateLeaf { dst in
-        other.updateLeaf { src in
-          dst._appendChildren(movingFromPrefixOf: src, count: count)
+      delta = unsafe self.updateLeaf { dst in
+        unsafe other.updateLeaf { src in
+          unsafe dst._appendChildren(movingFromPrefixOf: src, count: count)
         }
       }
     } else {
-      delta = self.updateInner { dst in
-        other.updateInner { src in
-          dst._appendChildren(movingFromPrefixOf: src, count: count)
+      delta = unsafe self.updateInner { dst in
+        unsafe other.updateInner { src in
+          unsafe dst._appendChildren(movingFromPrefixOf: src, count: count)
         }
       }
     }
@@ -369,15 +370,15 @@ extension Rope._Node {
     assert(self.height == other.height)
     let delta: Summary
     if isLeaf {
-      delta = self.updateLeaf { dst in
-        other.updateLeaf { src in
-          dst._prependChildren(movingFromSuffixOf: src, count: count)
+      delta = unsafe self.updateLeaf { dst in
+        unsafe other.updateLeaf { src in
+          unsafe dst._prependChildren(movingFromSuffixOf: src, count: count)
         }
       }
     } else {
-      delta = self.updateInner { dst in
-        other.updateInner { src in
-          dst._prependChildren(movingFromSuffixOf: src, count: count)
+      delta = unsafe self.updateInner { dst in
+        unsafe other.updateInner { src in
+          unsafe dst._prependChildren(movingFromSuffixOf: src, count: count)
         }
       }
     }
@@ -395,7 +396,7 @@ extension Rope._Node {
   @inlinable
   internal var lastPath: _Path {
     var path = _Path(height: self.height)
-    _ = descendToLastItem(under: &path)
+    _ = unsafe descendToLastItem(under: &path)
     return path
   }
 
@@ -407,7 +408,7 @@ extension Rope._Node {
   @inlinable
   internal func descendToFirstItem(under path: inout _Path) -> _UnmanagedLeaf {
     path.clear(below: self.height + 1)
-    return unmanagedLeaf(at: path)
+    return unsafe unmanagedLeaf(at: path)
   }
 
   @inlinable
@@ -416,9 +417,11 @@ extension Rope._Node {
     let slot = self.childCount - 1
     path[h] = slot
     if h > 0 {
-      return readInner { $0.children[slot].descendToLastItem(under: &path) }
+      return unsafe readInner {
+        unsafe $0.children[slot].descendToLastItem(under: &path)
+      }
     }
-    return asUnmanagedLeaf
+    return unsafe asUnmanagedLeaf
   }
 }
 
@@ -427,7 +430,7 @@ extension Rope {
   internal func _unmanagedLeaf(at path: _Path) -> _UnmanagedLeaf? {
     assert(path.height == self._height)
     guard path < _endPath else { return nil }
-    return root.unmanagedLeaf(at: path)
+    return unsafe root.unmanagedLeaf(at: path)
   }
 }
 
@@ -435,16 +438,16 @@ extension Rope._Node {
   @inlinable
   internal var asUnmanagedLeaf: _UnmanagedLeaf {
     assert(height == 0)
-    return _UnmanagedLeaf(unsafeDowncast(self.object, to: _Storage<_Item>.self))
+    return unsafe _UnmanagedLeaf(unsafe unsafeDowncast(self.object, to: _Storage<_Item>.self))
   }
 
   @inlinable
   internal func unmanagedLeaf(at path: _Path) -> _UnmanagedLeaf {
     if height == 0 {
-      return asUnmanagedLeaf
+      return unsafe asUnmanagedLeaf
     }
     let slot = path[height]
-    return readInner { $0.children[slot].unmanagedLeaf(at: path) }
+    return unsafe readInner { unsafe $0.children[slot].unmanagedLeaf(at: path) }
   }
 }
 
@@ -459,12 +462,12 @@ extension Rope._Node {
         return false
       }
       i._path[h] = slot
-      i._leaf = asUnmanagedLeaf
+      unsafe i._leaf = asUnmanagedLeaf
       return true
     }
-    return readInner {
-      let c = $0.children
-      if c[slot].formSuccessor(of: &i) {
+    return unsafe readInner {
+      let c = unsafe $0.children
+      if unsafe c[slot].formSuccessor(of: &i) {
         return true
       }
       slot += 1
@@ -472,7 +475,7 @@ extension Rope._Node {
         return false
       }
       i._path[h] = slot
-      i._leaf = c[slot].descendToFirstItem(under: &i._path)
+      unsafe i._leaf = c[slot].descendToFirstItem(under: &i._path)
       return true
     }
   }
@@ -486,12 +489,12 @@ extension Rope._Node {
         return false
       }
       i._path[h] = slot &- 1
-      i._leaf = asUnmanagedLeaf
+      unsafe i._leaf = asUnmanagedLeaf
       return true
     }
-    return readInner {
-      let c = $0.children
-      if slot < c.count, c[slot].formPredecessor(of: &i) {
+    return unsafe readInner {
+      let c = unsafe $0.children
+      if slot < c.count, unsafe c[slot].formPredecessor(of: &i) {
         return true
       }
       guard slot > 0 else {
@@ -499,7 +502,7 @@ extension Rope._Node {
       }
       slot -= 1
       i._path[h] = slot
-      i._leaf = c[slot].descendToLastItem(under: &i._path)
+      unsafe i._leaf = c[slot].descendToLastItem(under: &i._path)
       return true
     }
   }
@@ -513,9 +516,9 @@ extension Rope._Node {
     }
     _modify {
       assert(childCount > 0)
-      var state = _prepareModifyLast()
+      var state = unsafe _prepareModifyLast()
       defer {
-        _ = _finalizeModify(&state)
+        _ = unsafe _finalizeModify(&state)
       }
       yield &state.item
     }
@@ -538,15 +541,15 @@ extension Rope._Node {
       let slot = path[h]
       precondition(slot < childCount, "Path out of bounds")
       guard h == 0 else {
-        return readInner { $0.children[slot][path] }
+        return unsafe readInner { unsafe $0.children[slot][path] }
       }
-      return readLeaf { $0.children[slot] }
+      return unsafe readLeaf { unsafe $0.children[slot] }
     }
     @inline(__always)
     _modify {
-      var state = _prepareModify(at: path)
+      var state = unsafe _prepareModify(at: path)
       defer {
-        _ = _finalizeModify(&state)
+        _ = unsafe _finalizeModify(&state)
       }
       yield &state.item
     }
@@ -568,38 +571,50 @@ extension Rope._Node {
   }
 
   @inlinable
+  @unsafe
   internal mutating func _prepareModify(at path: _Path) -> _ModifyState {
     ensureUnique()
     let h = height
     let slot = path[h]
     precondition(slot < childCount, "Path out of bounds")
     guard h == 0 else {
-      return updateInner { $0.mutableChildren[slot]._prepareModify(at: path) }
+      return unsafe updateInner {
+        unsafe $0.mutableChildren[slot]._prepareModify(at: path)
+      }
     }
-    let item = updateLeaf { $0.mutableChildren.moveElement(from: slot) }
+    let item = unsafe updateLeaf {
+      unsafe $0.mutableChildren.moveElement(from: slot)
+    }
     return _ModifyState(path: path, item: item, summary: item.summary)
   }
 
   @inlinable
+  @unsafe
   internal mutating func _prepareModifyLast() -> _ModifyState {
     var path = _Path(height: height)
-    return _prepareModifyLast(&path)
+    return unsafe _prepareModifyLast(&path)
   }
 
   @inlinable
+  @unsafe
   internal mutating func _prepareModifyLast(_ path: inout _Path) -> _ModifyState {
     ensureUnique()
     let h = height
     let slot = self.childCount - 1
     path[h] = slot
     guard h == 0 else {
-      return updateInner { $0.mutableChildren[slot]._prepareModifyLast(&path) }
+      return unsafe updateInner {
+        unsafe $0.mutableChildren[slot]._prepareModifyLast(&path)
+      }
     }
-    let item = updateLeaf { $0.mutableChildren.moveElement(from: slot) }
+    let item = unsafe updateLeaf {
+      unsafe $0.mutableChildren.moveElement(from: slot)
+    }
     return _ModifyState(path: path, item: item, summary: item.summary)
   }
 
   @inlinable
+  @unsafe
   internal mutating func _finalizeModify(
     _ state: inout _ModifyState
   ) -> (delta: Summary, leaf: _UnmanagedLeaf) {
@@ -608,13 +623,17 @@ extension Rope._Node {
     let slot = state.path[h]
     assert(slot < childCount, "Path out of bounds")
     guard h == 0 else {
-      let r = updateInner { $0.mutableChildren[slot]._finalizeModify(&state) }
-      summary.add(r.delta)
-      return r
+      let r = unsafe updateInner {
+        unsafe $0.mutableChildren[slot]._finalizeModify(&state)
+      }
+      unsafe summary.add(r.delta)
+      return unsafe r
     }
     let delta = state.item.summary.subtracting(state.summary)
-    updateLeaf { $0.mutableChildren.initializeElement(at: slot, to: state.item) }
+    unsafe updateLeaf {
+      unsafe $0.mutableChildren.initializeElement(at: slot, to: state.item)
+    }
     summary.add(delta)
-    return (delta, asUnmanagedLeaf)
+    return (delta, unsafe asUnmanagedLeaf)
   }
 }

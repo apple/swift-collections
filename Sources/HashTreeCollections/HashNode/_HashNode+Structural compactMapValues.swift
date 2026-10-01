@@ -17,30 +17,30 @@ extension _HashNode {
     _ level: _HashLevel,
     _ transform: (Value) throws -> T?
   ) rethrows -> _HashNode<Key, T>.Builder {
-    return try self.read {
+    return unsafe try self.read {
       var result: _HashNode<Key, T>.Builder = .empty(level)
 
       if isCollisionNode {
-        let items = $0.reverseItems
+        let items = unsafe $0.reverseItems
         for i in items.indices {
-          if let v = try transform(items[i].value) {
-            result.addNewCollision(level, (items[i].key, v), $0.collisionHash)
+          if let v = unsafe try transform(items[i].value) {
+            unsafe result.addNewCollision(level, (items[i].key, v), $0.collisionHash)
           }
         }
         return result
       }
 
-      for (bucket, slot) in $0.itemMap {
-        let p = $0.itemPtr(at: slot)
-        if let v = try transform(p.pointee.value) {
-          result.addNewItem(level, (p.pointee.key, v), at: bucket)
+      for (bucket, slot) in unsafe $0.itemMap {
+        let p = unsafe $0.itemPtr(at: slot)
+        if let v = unsafe try transform(p.pointee.value) {
+          unsafe result.addNewItem(level, (p.pointee.key, v), at: bucket)
         }
       }
 
-      for (bucket, slot) in $0.childMap {
-        let branch = try $0[child: slot]
+      for (bucket, slot) in unsafe $0.childMap {
+        let branch = unsafe try $0[child: slot]
           .compactMapValues(level.descend(), transform)
-        result.addNewChildBranch(level, branch, at: bucket)
+        unsafe result.addNewChildBranch(level, branch, at: bucket)
       }
       return result
     }

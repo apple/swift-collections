@@ -655,9 +655,9 @@ where
 
     let res: Range<Index>? = items.withContiguousStorageIfAvailable { buffer in
       precondition(buffer.count == c, "Broken Collection: mismatching count")
-      var buffer = buffer
+      var buffer = unsafe buffer
       let res = self.replaceSubrange(subrange, addingCount: c) { target in
-        target._append(copying: buffer._trim(first: target.freeCapacity))
+        unsafe target._append(copying: buffer._trim(first: target.freeCapacity))
       }
       precondition(buffer.count == 0, "Invalid RangeReplaceableContainer")
       return res
@@ -719,7 +719,7 @@ where
     let res: Range<Index>? = items.withContiguousStorageIfAvailable { buffer in
       precondition(buffer.count == newCount, "Broken Collection: mismatching count")
       return self.insert(addingCount: buffer.count, at: index) { target in
-        target._append(copying: buffer)
+        unsafe target._append(copying: buffer)
       }
     }
     if let res { return res }

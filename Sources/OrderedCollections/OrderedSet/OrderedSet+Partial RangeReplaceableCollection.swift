@@ -30,8 +30,8 @@ extension OrderedSet {
     }
     guard _table != nil else { return }
     _ensureUnique()
-    _table!.update { hashTable in
-      hashTable.clear()
+    unsafe _table!.update { hashTable in
+      unsafe hashTable.clear()
     }
   }
 
@@ -52,7 +52,7 @@ extension OrderedSet {
   public mutating func remove(at index: Int) -> Self.Element {
     _elements._failEarlyRangeCheck(index, bounds: startIndex ..< endIndex)
     let bucket = _bucket(for: index)
-    return _removeExistingMember(at: index, in: bucket)
+    return unsafe _removeExistingMember(at: index, in: bucket)
   }
 
   /// Removes the specified subrange of elements from the collection.
@@ -86,18 +86,18 @@ extension OrderedSet {
     }
 
     _ensureUnique()
-    _table!.update { hashTable in
+    unsafe _table!.update { hashTable in
       // Delete the hash table entries for all members we're removing.
       for item in _elements[bounds] {
-        let (offset, bucket) = hashTable._find(item, in: _elements)
+        let (offset, bucket) = unsafe hashTable._find(item, in: _elements)
         precondition(offset != nil, "Corrupt hash table")
-        hashTable.delete(
+        unsafe hashTable.delete(
           bucket: bucket,
           hashValueGenerator: { offset, seed in
             return _elements[offset]._rawHashValue(seed: seed)
           })
       }
-      hashTable.adjustContents(preparingForRemovalOf: bounds, in: _elements)
+      unsafe hashTable.adjustContents(preparingForRemovalOf: bounds, in: _elements)
     }
     _elements.removeSubrange(bounds)
     _checkInvariants()
@@ -136,11 +136,11 @@ extension OrderedSet {
     defer { _checkInvariants() }
     let old = _elements.removeLast()
     _ensureUnique()
-    _table!.update { hashTable in
-      var it = hashTable.bucketIterator(for: old)
-      it.advance(until: _elements.count)
+    unsafe _table!.update { hashTable in
+      var it = unsafe hashTable.bucketIterator(for: old)
+      unsafe it.advance(until: _elements.count)
       // Delete the entry for the removed member.
-      hashTable.delete(
+      unsafe hashTable.delete(
         bucket: it.currentBucket,
         hashValueGenerator: { offset, seed in
           _elements[offset]._rawHashValue(seed: seed)

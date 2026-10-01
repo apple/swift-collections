@@ -15,11 +15,14 @@
 import InternalCollectionsUtilities
 #endif
 
+@unsafe
 internal struct _ChunkedBitsForwardIterator {
   internal typealias _BitPosition = _UnsafeBitSet.Index
 
   internal let words: UnsafeBufferPointer<_Word>
+  @safe
   internal let end: _BitPosition
+  @safe
   internal var position: _BitPosition
   
   internal init(
@@ -28,7 +31,7 @@ internal struct _ChunkedBitsForwardIterator {
   ) {
     assert(range.lowerBound >= 0)
     assert(range.upperBound <= words.count * _Word.capacity)
-    self.words = words
+    unsafe self.words = words
     self.end = _BitPosition(range.upperBound)
     self.position = _BitPosition(range.lowerBound)
   }
@@ -38,7 +41,7 @@ internal struct _ChunkedBitsForwardIterator {
     let (w, b) = position.split
     if w == end.word {
       position = end
-      return (
+      return unsafe (
         bits: words[w]
           .intersection(_Word(upTo: end.bit))
           .shiftedDown(by: b),
@@ -46,15 +49,18 @@ internal struct _ChunkedBitsForwardIterator {
     }
     let c = _Word._capacity - b
     position.value += c
-    return (bits: words[w].shiftedDown(by: b), count: c)
+    return unsafe (bits: words[w].shiftedDown(by: b), count: c)
   }
 }
 
+@unsafe
 internal struct _ChunkedBitsBackwardIterator {
   internal typealias _BitPosition = _UnsafeBitSet.Index
 
   internal let words: UnsafeBufferPointer<_Word>
+  @safe
   internal let start: _BitPosition
+  @safe
   internal var position: _BitPosition
   
   internal init(
@@ -63,7 +69,7 @@ internal struct _ChunkedBitsBackwardIterator {
   ) {
     assert(range.lowerBound >= 0)
     assert(range.upperBound <= words.count * _Word.capacity)
-    self.words = words
+    unsafe self.words = words
     self.start = _BitPosition(range.lowerBound)
     self.position = _BitPosition(range.upperBound)
   }
@@ -73,7 +79,7 @@ internal struct _ChunkedBitsBackwardIterator {
     let (w, b) = position.endSplit
     if w == start.word {
       position = start
-      return (
+      return unsafe (
         bits: words[w]
           .intersection(_Word(upTo: b))
           .shiftedDown(by: start.bit),
@@ -81,7 +87,7 @@ internal struct _ChunkedBitsBackwardIterator {
     }
     let c = b
     position.value -= c
-    return (bits: words[w].intersection(_Word(upTo: b)), count: c)
+    return unsafe (bits: words[w].intersection(_Word(upTo: b)), count: c)
   }
 }
 

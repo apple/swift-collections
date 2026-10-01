@@ -17,6 +17,7 @@ import InternalCollectionsUtilities
 
 @frozen
 @usableFromInline
+@unsafe
 internal struct _UnsafeDequeSegments<Element: ~Copyable> {
   @usableFromInline
   internal let first: UnsafeBufferPointer<Element>
@@ -30,9 +31,9 @@ internal struct _UnsafeDequeSegments<Element: ~Copyable> {
     _ first: UnsafeBufferPointer<Element>,
     _ second: UnsafeBufferPointer<Element>? = nil
   ) {
-    self.first = first
-    self.second = second
-    assert(first.count > 0 || second == nil)
+    unsafe self.first = first
+    unsafe self.second = second
+    assert(unsafe first.count > 0 || second == nil)
   }
 
   @_alwaysEmitIntoClient
@@ -41,7 +42,7 @@ internal struct _UnsafeDequeSegments<Element: ~Copyable> {
     start: UnsafePointer<Element>,
     count: Int
   ) {
-    self.init(UnsafeBufferPointer(start: start, count: count))
+    unsafe self.init(UnsafeBufferPointer(start: start, count: count))
   }
 
   @_alwaysEmitIntoClient
@@ -52,19 +53,21 @@ internal struct _UnsafeDequeSegments<Element: ~Copyable> {
     second start2: UnsafePointer<Element>,
     count count2: Int
   ) {
-    self.init(UnsafeBufferPointer(start: start1, count: count1),
-              UnsafeBufferPointer(start: start2, count: count2))
+    unsafe self.init(
+      UnsafeBufferPointer(start: start1, count: count1),
+      UnsafeBufferPointer(start: start2, count: count2))
   }
 
   @_alwaysEmitIntoClient
   @_transparent
-  internal var count: Int { first.count + (second?.count ?? 0) }
+  internal var count: Int { unsafe first.count + (second?.count ?? 0) }
 
   @_alwaysEmitIntoClient
   @_transparent
+  @safe
   internal func isIdentical(to other: Self) -> Bool {
-    guard self.first._isIdentical(to: other.first) else { return false }
-    switch (self.second, other.second) {
+    guard unsafe self.first._isIdentical(to: other.first) else { return false }
+    switch (unsafe self.second, unsafe other.second) {
     case (nil, nil): return true
     case let (a?, b?): return a._isIdentical(to: b)
     default: return false
@@ -74,6 +77,7 @@ internal struct _UnsafeDequeSegments<Element: ~Copyable> {
 
 @frozen
 @usableFromInline
+@unsafe
 internal struct _UnsafeMutableDequeSegments<Element: ~Copyable> {
   @usableFromInline
   internal let first: UnsafeMutableBufferPointer<Element>
@@ -84,8 +88,8 @@ internal struct _UnsafeMutableDequeSegments<Element: ~Copyable> {
   @_alwaysEmitIntoClient
   @_transparent
   internal init() {
-    self.first = .init(start: nil, count: 0)
-    self.second = nil
+    unsafe self.first = .init(start: nil, count: 0)
+    unsafe self.second = nil
   }
 
   @_alwaysEmitIntoClient
@@ -94,9 +98,9 @@ internal struct _UnsafeMutableDequeSegments<Element: ~Copyable> {
     _ first: UnsafeMutableBufferPointer<Element>,
     _ second: UnsafeMutableBufferPointer<Element>? = nil
   ) {
-    self.first = first
-    self.second = second?.count == 0 ? nil : second
-    assert(first.count > 0 || second == nil)
+    unsafe self.first = first
+    unsafe self.second = second?.count == 0 ? nil : second
+    assert(unsafe first.count > 0 || second == nil)
   }
 
   @_alwaysEmitIntoClient
@@ -105,7 +109,7 @@ internal struct _UnsafeMutableDequeSegments<Element: ~Copyable> {
     start: UnsafeMutablePointer<Element>,
     count: Int
   ) {
-    self.init(UnsafeMutableBufferPointer(start: start, count: count))
+    unsafe self.init(UnsafeMutableBufferPointer(start: start, count: count))
   }
 
   @_alwaysEmitIntoClient
@@ -116,15 +120,17 @@ internal struct _UnsafeMutableDequeSegments<Element: ~Copyable> {
     second start2: UnsafeMutablePointer<Element>,
     count count2: Int
   ) {
-    self.init(UnsafeMutableBufferPointer(start: start1, count: count1),
-              UnsafeMutableBufferPointer(start: start2, count: count2))
+    unsafe self.init(
+      UnsafeMutableBufferPointer(start: start1, count: count1),
+      UnsafeMutableBufferPointer(start: start2, count: count2))
   }
 
   @_alwaysEmitIntoClient
   @_transparent
   internal init(mutating buffer: _UnsafeDequeSegments<Element>) {
-    self.init(.init(mutating: buffer.first),
-              buffer.second.map { .init(mutating: $0) })
+    unsafe self.init(
+      .init(mutating: buffer.first),
+      buffer.second.map { unsafe .init(mutating: $0) })
   }
 }
 
@@ -135,7 +141,7 @@ extension _UnsafeMutableDequeSegments {
     _ first: UnsafeMutableBufferPointer<Element>.SubSequence,
     _ second: UnsafeMutableBufferPointer<Element>? = nil
   ) {
-    self.init(UnsafeMutableBufferPointer(rebasing: first), second)
+    unsafe self.init(UnsafeMutableBufferPointer(rebasing: first), second)
   }
 
   @_alwaysEmitIntoClient
@@ -144,51 +150,52 @@ extension _UnsafeMutableDequeSegments {
     _ first: UnsafeMutableBufferPointer<Element>,
     _ second: UnsafeMutableBufferPointer<Element>.SubSequence
   ) {
-    self.init(first, UnsafeMutableBufferPointer(rebasing: second))
+    unsafe self.init(first, UnsafeMutableBufferPointer(rebasing: second))
   }
 }
 
 extension _UnsafeMutableDequeSegments where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
-  internal var count: Int { first.count + (second?.count ?? 0) }
+  internal var count: Int { unsafe first.count + (second?.count ?? 0) }
 
   @_alwaysEmitIntoClient
   @_transparent
   internal func prefix(_ n: Int) -> Self {
     assert(n >= 0)
-    if n >= self.count {
-      return self
+    if unsafe n >= self.count {
+      return unsafe self
     }
-    if n <= first.count {
-      return Self(first._extracting(first: n))
+    if unsafe n <= first.count {
+      return unsafe Self(first._extracting(first: n))
     }
-    return Self(first, second!._extracting(first: n - first.count))
+    return unsafe Self(first, second!._extracting(first: n - first.count))
   }
 
   @_alwaysEmitIntoClient
   @_transparent
   internal func suffix(_ n: Int) -> Self {
     assert(n >= 0)
-    if n >= self.count {
-      return self
+    if unsafe n >= self.count {
+      return unsafe self
     }
-    guard let second = second else {
-      return Self(first._extracting(last: n))
+    guard let second = unsafe second else {
+      return unsafe Self(first._extracting(last: n))
     }
     if n <= second.count {
-      return Self(second._extracting(last: n))
+      return unsafe Self(second._extracting(last: n))
     }
-    return Self(first._extracting(last: n - second.count), second)
+    return unsafe Self(first._extracting(last: n - second.count), second)
   }
 }
 
 extension _UnsafeMutableDequeSegments where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
+  @unsafe
   internal func deinitialize() {
-    first.deinitialize()
-    second?.deinitialize()
+    unsafe first.deinitialize()
+    unsafe second?.deinitialize()
   }
 }
 
@@ -201,20 +208,20 @@ extension _UnsafeMutableDequeSegments {
   ) -> Int
   where I.Element == Element {
     var copied = 0
-    var gap = first
+    var gap = unsafe first
     var wrapped = false
     while true {
       if copied == gap.count {
-        guard !wrapped, let second = second, second.count > 0 else { break }
-        gap = second
+        guard !wrapped, let second = unsafe second, second.count > 0 else { break }
+        unsafe gap = second
         copied = 0
         wrapped = true
       }
       guard let next = iterator.next() else { break }
-      (gap.baseAddress! + copied).initialize(to: next)
+      unsafe (gap.baseAddress! + copied).initialize(to: next)
       copied += 1
     }
-    return wrapped ? first.count + copied : copied
+    return wrapped ? unsafe first.count + copied : copied
   }
 
   @_alwaysEmitIntoClient
@@ -223,9 +230,9 @@ extension _UnsafeMutableDequeSegments {
     fromSequencePrefix elements: __owned S
   ) -> (iterator: S.Iterator, count: Int)
   where S.Element == Element {
-    guard second == nil || first.count >= elements.underestimatedCount else {
+    guard unsafe second == nil || first.count >= elements.underestimatedCount else {
       var it = elements.makeIterator()
-      let copied = initialize(copyingPrefixOf: &it)
+      let copied = unsafe initialize(copyingPrefixOf: &it)
       return (it, copied)
     }
     // Note: Array._copyContents traps when not given enough space, so we
@@ -233,12 +240,12 @@ extension _UnsafeMutableDequeSegments {
     //
     // FIXME: Add support for segmented (a.k.a. piecewise contiguous)
     // collections to the stdlib.
-    var (it, copied) = elements._copyContents(initializing: first)
-    if copied == first.count, let second = second {
+    var (it, copied) = unsafe elements._copyContents(initializing: first)
+    if unsafe copied == first.count, let second = unsafe second {
       var i = 0
       while i < second.count {
         guard let next = it.next() else { break }
-        (second.baseAddress! + i).initialize(to: next)
+        unsafe (second.baseAddress! + i).initialize(to: next)
         i += 1
       }
       copied += i
@@ -251,13 +258,13 @@ extension _UnsafeMutableDequeSegments {
   internal func initialize(
     copying elements: UnsafeBufferPointer<Element>
   ) {
-    assert(self.count == elements.count)
-    if let second = second {
-      let wrap = first.count
-      first.initializeAll(fromContentsOf: elements._extracting(first: wrap))
-      second.initializeAll(fromContentsOf: elements._extracting(last: second.count))
+    assert(unsafe self.count == elements.count)
+    if let second = unsafe second {
+      let wrap = unsafe first.count
+      unsafe first.initializeAll(fromContentsOf: elements._extracting(first: wrap))
+      unsafe second.initializeAll(fromContentsOf: elements._extracting(last: second.count))
     } else {
-      first.initializeAll(fromContentsOf: elements)
+      unsafe first.initializeAll(fromContentsOf: elements)
     }
   }
 
@@ -266,7 +273,7 @@ extension _UnsafeMutableDequeSegments {
   internal func initialize(
     copying elements: UnsafeMutableBufferPointer<Element>
   ) {
-    self.initialize(copying: UnsafeBufferPointer(elements))
+    unsafe self.initialize(copying: UnsafeBufferPointer(elements))
   }
 
   @_alwaysEmitIntoClient
@@ -274,13 +281,13 @@ extension _UnsafeMutableDequeSegments {
   internal func initialize(
     copying elements: __owned some Collection<Element>
   ) {
-    assert(self.count == elements.count)
-    if let second = second {
-      let wrap = elements.index(elements.startIndex, offsetBy: first.count)
-      first.initializeAll(fromContentsOf: elements[..<wrap])
-      second.initializeAll(fromContentsOf: elements[wrap...])
+    assert(unsafe self.count == elements.count)
+    if let second = unsafe second {
+      let wrap = unsafe elements.index(elements.startIndex, offsetBy: first.count)
+      unsafe first.initializeAll(fromContentsOf: elements[..<wrap])
+      unsafe second.initializeAll(fromContentsOf: elements[wrap...])
     } else {
-      first.initializeAll(fromContentsOf: elements)
+      unsafe first.initializeAll(fromContentsOf: elements)
     }
   }
 
@@ -289,8 +296,8 @@ extension _UnsafeMutableDequeSegments {
   internal func reassign<C: Collection>(
     copying elements: C
   ) where C.Element == Element {
-    assert(elements.count == self.count)
-    deinitialize()
-    initialize(copying: elements)
+    assert(unsafe elements.count == self.count)
+    unsafe deinitialize()
+    unsafe initialize(copying: elements)
   }
 }

@@ -92,7 +92,7 @@ extension OrderedDictionary {
 
     // Replace the key through OrderedSet's shared primitive, then overwrite the
     // value at `index` — each step is O(1).
-    let oldKey = _keys._replaceNew(at: index, with: key, in: bucket)
+    let oldKey = unsafe _keys._replaceNew(at: index, with: key, in: bucket)
     let oldValue = exchange(&_values[index], with: value)
 
     _checkInvariants()
@@ -121,7 +121,7 @@ extension OrderedDictionary {
     by belongsInSecondPartition: (Element) throws -> Bool
   ) rethrows -> Int {
     let pivot = try _values.withUnsafeMutableBufferPointer { values in
-      try _keys._partition(values: values, by: belongsInSecondPartition)
+      unsafe try _keys._partition(values: values, by: belongsInSecondPartition)
     }
     _checkInvariants()
     return pivot
@@ -173,8 +173,8 @@ extension OrderedDictionary {
     let temp = try self.sorted(by: areInIncreasingOrder)
     precondition(temp.count == self.count)
     temp.withUnsafeBufferPointer { source in
-      _keys = OrderedSet(uncheckedUniqueElements: source.lazy.map { $0.key })
-      _values = ContiguousArray(source.lazy.map { $0.value })
+      unsafe _keys = OrderedSet(uncheckedUniqueElements: source.lazy.map { $0.key })
+      unsafe _values = ContiguousArray(source.lazy.map { $0.value })
     }
     _checkInvariants()
   }

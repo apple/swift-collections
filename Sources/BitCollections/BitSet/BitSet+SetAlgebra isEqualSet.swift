@@ -43,7 +43,7 @@ extension BitSet {
   public func isEqualSet(to other: Range<Int>) -> Bool {
     if other.isEmpty { return isEmpty }
     guard let other = other._toUInt() else { return false }
-    return _read { $0.isEqualSet(to: other) }
+    return unsafe _read { unsafe $0.isEqualSet(to: other) }
   }
 
   /// Returns a Boolean value indicating whether this bit set contains the same

@@ -93,7 +93,7 @@ where
   public mutating func next() throws(Failure) -> Element? {
     let span = try _it.nextSpan(maxCount: 1)
     guard !span.isEmpty else { return nil }
-    return try _transform(span[unchecked: 0])
+    return unsafe try _transform(span[unchecked: 0])
   }
 
   @inlinable
@@ -110,7 +110,7 @@ where
       c += span.count
       var i = 0
       while i < span.count {
-        target.append(try _transform(span[unchecked: i]))
+        unsafe target.append(try _transform(span[unchecked: i]))
         i &+= 1
       }
     }

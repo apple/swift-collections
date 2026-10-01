@@ -76,7 +76,7 @@ extension SortedDictionary {
     var previousKey: Key? = nil
     for (key, value) in keysAndValues {
       precondition(previousKey == nil || previousKey! < key,
-             "Sequence out of order.")
+             "Sequence out of order")
       builder.append((key, value))
       previousKey = key
     }
@@ -104,7 +104,7 @@ extension SortedDictionary {
     var previousKey: Key? = nil
     for (key, value) in keysAndValues {
       precondition(previousKey == nil || previousKey! < key,
-             "Sequence out of order.")
+             "Sequence out of order")
       builder.append((key, value))
       previousKey = key
     }

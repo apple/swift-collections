@@ -32,8 +32,8 @@ extension Rope {
   @inlinable
   public func grease(_ index: inout Index) {
     validate(index)
-    guard index._leaf == nil else { return }
-    index._leaf = _unmanagedLeaf(at: index._path)
+    guard unsafe index._leaf == nil else { return }
+    unsafe index._leaf = _unmanagedLeaf(at: index._path)
   }
 }
 
@@ -69,12 +69,12 @@ extension Rope: BidirectionalCollection {
   @inlinable
   public var startIndex: Index {
     // Note: `leaf` is intentionally not set here, to speed up accessing this property.
-    return Index(version: _version, path: _startPath, leaf: nil)
+    return Index(version: _version, path: _startPath)
   }
 
   @inlinable
   public var endIndex: Index {
-    Index(version: _version, path: _endPath, leaf: nil)
+    Index(version: _version, path: _endPath)
   }
 
   @inlinable
@@ -95,11 +95,11 @@ extension Rope: BidirectionalCollection {
   public func formIndex(after i: inout Index) {
     validate(i)
     precondition(i < endIndex, "Cannot advance above endIndex")
-    if let leaf = i._leaf {
-      let done = leaf.read {
-        let slot = i._path[$0.height] &+ 1
-        guard slot < $0.childCount else { return false }
-        i._path[$0.height] = slot
+    if let leaf = unsafe i._leaf {
+      let done = unsafe leaf.read {
+        let slot = unsafe i._path[$0.height] &+ 1
+        guard unsafe slot < $0.childCount else { return false }
+        unsafe i._path[$0.height] = slot
         return true
       }
       if done { return }
@@ -113,11 +113,11 @@ extension Rope: BidirectionalCollection {
   public func formIndex(before i: inout Index) {
     validate(i)
     precondition(i > startIndex, "Cannot advance below startIndex")
-    if let leaf = i._leaf {
-      let done = leaf.read {
-        let slot = i._path[$0.height]
+    if let leaf = unsafe i._leaf {
+      let done = unsafe leaf.read {
+        let slot = unsafe i._path[$0.height]
         guard slot > 0 else { return false }
-        i._path[$0.height] = slot &- 1
+        unsafe i._path[$0.height] = slot &- 1
         return true
       }
       if done { return }
@@ -130,9 +130,9 @@ extension Rope: BidirectionalCollection {
   public subscript(i: Index) -> Element {
     get {
       validate(i)
-      if let ref = i._leaf {
-        return ref.read {
-          $0.children[i._path[$0.height]].value
+      if let ref = unsafe i._leaf {
+        return unsafe ref.read {
+          unsafe $0.children[i._path[$0.height]].value
         }
       }
       return root[i._path].value
@@ -154,11 +154,11 @@ extension Rope {
     by body: (inout Element) -> R
   ) -> R {
     validate(index)
-    var state = root._prepareModify(at: index._path)
+    var state = unsafe root._prepareModify(at: index._path)
     defer {
       _invalidateIndices()
       index._version = self._version
-      index._leaf = root._finalizeModify(&state).leaf
+      unsafe index._leaf = root._finalizeModify(&state).leaf
     }
     return body(&state.item.value)
   }
@@ -225,13 +225,13 @@ extension Rope {
     validate(end)
     if start == end { return 0 }
     precondition(_root != nil, "Invalid index")
-    if start._leaf == end._leaf, let leaf = start._leaf {
+    if unsafe start._leaf == end._leaf, let leaf = unsafe start._leaf {
       // Fast path: both indices are pointing within the same leaf.
-      return leaf.read {
-        let h = $0.height
+      return unsafe leaf.read {
+        let h = unsafe $0.height
         let a = start._path[h]
         let b = end._path[h]
-        return $0.distance(from: a, to: b, in: metric)
+        return unsafe $0.distance(from: a, to: b, in: metric)
       }
     }
     if start < end {
@@ -260,11 +260,11 @@ extension Rope._Node {
       return metric._nonnegativeSize(of: self.summary)
     }
     if height == 0 {
-      return readLeaf { $0.distance(from: 0, to: slot, in: metric) }
+      return unsafe readLeaf { unsafe $0.distance(from: 0, to: slot, in: metric) }
     }
-    return readInner {
-      var distance = $0.distance(from: 0, to: slot, in: metric)
-      distance += $0.children[slot].distanceFromStart(to: index, in: metric)
+    return unsafe readInner {
+      var distance = unsafe $0.distance(from: 0, to: slot, in: metric)
+      distance += unsafe $0.children[slot].distanceFromStart(to: index, in: metric)
       return distance
     }
   }
@@ -294,16 +294,16 @@ extension Rope._Node {
     }
     if height == 0 {
       assert(a < b)
-      return readLeaf { $0.distance(from: a, to: b, in: metric) }
+      return unsafe readLeaf { unsafe $0.distance(from: a, to: b, in: metric) }
     }
-    return readInner {
-      let c = $0.children
+    return unsafe readInner {
+      let c = unsafe $0.children
       if a == b {
-        return c[a].distance(from: start, to: end, in: metric)
+        return unsafe c[a].distance(from: start, to: end, in: metric)
       }
-      var d = c[a].distanceToEnd(from: start, in: metric)
-      d += $0.distance(from: a + 1, to: b, in: metric)
-      d += c[b].distanceFromStart(to: end, in: metric)
+      var d = unsafe c[a].distanceToEnd(from: start, in: metric)
+      d += unsafe $0.distance(from: a + 1, to: b, in: metric)
+      d += unsafe c[b].distanceFromStart(to: end, in: metric)
       return d
     }
   }
@@ -329,10 +329,10 @@ extension Rope {
       precondition(success, "Position out of bounds")
       return
     }
-    if let leaf = i._leaf {
+    if let leaf = unsafe i._leaf {
       // Fast path: move within a single leaf
-      let r = leaf.read {
-        $0._seekForwardInLeaf(from: &i._path, by: &distance, in: metric, preferEnd: preferEnd)
+      let r = unsafe leaf.read {
+        unsafe $0._seekForwardInLeaf(from: &i._path, by: &distance, in: metric, preferEnd: preferEnd)
       }
       if r { return }
     }
@@ -366,12 +366,12 @@ extension Rope._UnsafeHandle {
     preferEnd: Bool
   ) -> Bool {
     assert(distance >= 0)
-    assert(height == 0)
-    let c = children
+    assert(unsafe height == 0)
+    let c = unsafe children
     var slot = path[0]
     defer { path[0] = slot }
     while slot < c.count {
-      let d = metric._nonnegativeSize(of: c[slot].summary)
+      let d = metric._nonnegativeSize(of: unsafe c[slot].summary)
       if preferEnd ? d >= distance : d > distance {
         return true
       }
@@ -389,11 +389,11 @@ extension Rope._UnsafeHandle {
     preferEnd: Bool
   ) -> Bool {
     assert(distance >= 0)
-    assert(height == 0)
-    let c = children
+    assert(unsafe height == 0)
+    let c = unsafe children
     var slot = path[0] &- 1
     while slot >= 0 {
-      let d = metric._nonnegativeSize(of: c[slot].summary)
+      let d = metric._nonnegativeSize(of: unsafe c[slot].summary)
       if preferEnd ? d > distance : d >= distance {
         path[0] = slot
         distance = d &- distance
@@ -417,29 +417,30 @@ extension Rope._Node {
     assert(distance >= 0)
 
     if height == 0 {
-      let r = readLeaf {
-        $0._seekForwardInLeaf(from: &i._path, by: &distance, in: metric, preferEnd: preferEnd)
+      let r = unsafe readLeaf {
+        unsafe $0._seekForwardInLeaf(
+          from: &i._path, by: &distance, in: metric, preferEnd: preferEnd)
       }
       if r {
-        i._leaf = asUnmanagedLeaf
+        unsafe i._leaf = asUnmanagedLeaf
       }
       return r
     }
     
-    return readInner {
+    return unsafe readInner {
       var slot = i._path[height]
       precondition(slot < childCount, "Invalid index")
-      let c = $0.children
-      if c[slot].seekForward(from: &i, by: &distance, in: metric, preferEnd: preferEnd) {
+      let c = unsafe $0.children
+      if unsafe c[slot].seekForward(from: &i, by: &distance, in: metric, preferEnd: preferEnd) {
         return true
       }
       slot &+= 1
       while slot < c.count {
-        let d = metric.size(of: c[slot].summary)
+        let d = metric.size(of: unsafe c[slot].summary)
         if preferEnd ? d >= distance : d > distance {
-          i._path[$0.height] = slot
-          i._clear(below: $0.height)
-          let success = c[slot].seekForward(
+          unsafe i._path[$0.height] = slot
+          unsafe i._clear(below: $0.height)
+          let success = unsafe c[slot].seekForward(
             from: &i, by: &distance, in: metric, preferEnd: preferEnd)
           precondition(success)
           return true
@@ -461,27 +462,31 @@ extension Rope._Node {
     assert(distance >= 0)
     guard distance > 0 || preferEnd else { return true }
     if height == 0 {
-      return readLeaf {
-        $0._seekBackwardInLeaf(from: &i._path, by: &distance, in: metric, preferEnd: preferEnd)
+      return unsafe readLeaf {
+        unsafe $0._seekBackwardInLeaf(
+          from: &i._path, by: &distance, in: metric, preferEnd: preferEnd)
       }
     }
     
-    return readInner {
+    return unsafe readInner {
       var slot = i._path[height]
       precondition(slot <= childCount, "Invalid index")
-      let c = $0.children
-      if slot < childCount,
-         c[slot].seekBackward(from: &i, by: &distance, in: metric, preferEnd: preferEnd) {
+      let c = unsafe $0.children
+      if
+        slot < childCount,
+        unsafe c[slot].seekBackward(
+          from: &i, by: &distance, in: metric, preferEnd: preferEnd)
+      {
         return true
       }
       slot -= 1
       while slot >= 0 {
-        let d = metric.size(of: c[slot].summary)
+        let d = metric.size(of: unsafe c[slot].summary)
         if preferEnd ? d > distance : d >= distance {
-          i._path[$0.height] = slot
-          i._clear(below: $0.height)
+          unsafe i._path[$0.height] = slot
+          unsafe i._clear(below: $0.height)
           distance = d - distance
-          let success = c[slot].seekForward(
+          let success = unsafe c[slot].seekForward(
             from: &i, by: &distance, in: metric, preferEnd: preferEnd)
           precondition(success)
           return true

@@ -13,6 +13,7 @@
 
 extension Rope {
   @frozen // Not really! This module isn't ABI stable.
+  @safe
   public struct Index: @unchecked Sendable {
     @usableFromInline internal typealias Summary = Rope.Summary
     @usableFromInline internal typealias _Path = Rope._Path
@@ -27,15 +28,27 @@ extension Rope {
     /// This must only be dereferenced while we own a tree with a matching
     /// version.
     @usableFromInline
+    @unsafe
     internal var _leaf: _UnmanagedLeaf?
 
     @inlinable
+    @safe
+    internal init(
+      version: _RopeVersion, path: _Path
+    ) {
+      self._version = version
+      self._path = path
+      unsafe self._leaf = nil
+    }
+
+    @inlinable
+    @unsafe
     internal init(
       version: _RopeVersion, path: _Path, leaf: __shared _UnmanagedLeaf?
     ) {
       self._version = version
       self._path = path
-      self._leaf = leaf
+      unsafe self._leaf = leaf
     }
   }
 }
@@ -43,7 +56,7 @@ extension Rope {
 extension Rope.Index {
   @inlinable
   internal static var _invalid: Self {
-    Self(version: _RopeVersion(0), path: _RopePath(_value: .max), leaf: nil)
+    Self(version: _RopeVersion(0), path: _RopePath(_value: .max))
   }
 
   @inlinable

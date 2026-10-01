@@ -89,7 +89,7 @@ extension UniqueArray where Element: ~Copyable {
     moving items: UnsafeMutableBufferPointer<Element>
   ) -> Range<Int> {
     _ensureFreeCapacity(items.count)
-    return _storage._appendUnchecked(moving: items)
+    return unsafe _storage._appendUnchecked(moving: items)
   }
 
 #if UnstableContainersPreview
@@ -131,8 +131,8 @@ extension UniqueArray where Element: ~Copyable {
     moving items: inout OutputSpan<Element>
   ) -> Range<Int> {
     _ensureFreeCapacity(items.count)
-    return items.withUnsafeMutableBufferPointer { buffer, count in
-      let source = buffer._extracting(first: count)
+    return unsafe items.withUnsafeMutableBufferPointer { buffer, count in
+      let source = unsafe buffer._extracting(first: count)
       count = 0
       return unsafe _storage._appendUnchecked(moving: source)
     }
@@ -159,9 +159,9 @@ extension UniqueArray where Element: ~Copyable {
     // FIXME: Remove in favor of the generic RRC algorithm
     _ensureFreeCapacity(items.count)
     return items.edit { source in
-      source.withUnsafeMutableBufferPointer { buffer, count in
+      unsafe source.withUnsafeMutableBufferPointer { buffer, count in
         count = 0
-        return _storage.append(moving: buffer._extracting(first: count))
+        return unsafe _storage.append(moving: buffer._extracting(first: count))
       }
     }
   }

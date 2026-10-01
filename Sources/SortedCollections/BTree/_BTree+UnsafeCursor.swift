@@ -28,6 +28,7 @@ extension _BTree {
   /// - Warning: the tree root must remain alive for the entire lifetime of a cursor otherwise bad things
   ///     may occur.
   @usableFromInline
+  @unsafe
   internal struct UnsafeCursor {
     @usableFromInline
     internal typealias Path = _FixedSizeArray<Unmanaged<Node.Storage>>
@@ -35,8 +36,8 @@ extension _BTree {
     /// This property is what takes ownership of the tree during the lifetime of the cursor. Once the cursor
     /// is consumed, it is set to nil and it is invalid to use the cursor.
     @usableFromInline
+    @safe
     internal var _root: Node.Storage?
-    
     
     /// Position of each of the parent nodes in their parents, including the bottom-most node.
     ///
@@ -51,10 +52,12 @@ extension _BTree {
     ///     │1│3│ │7│9│
     ///     └─┴─┘ └─┴─┘
     @usableFromInline
+    @safe
     internal var slots: _FixedSizeArray<_BTree.Slot>
     
     /// This stores a list of the nodes from top-to-bottom.
     @usableFromInline
+    @unsafe
     internal var path: Path
     
     /// Bottom most node that the index point to.
@@ -77,6 +80,7 @@ extension _BTree {
     /// This is notable for CoW as all values below it would need to be duplicated. Updating this to be as
     /// high as accurately possible ensures there are no unnecessary copies made.
     @usableFromInline
+    @safe
     internal var lastUniqueDepth: Int
     
     @inlinable
@@ -88,12 +92,12 @@ extension _BTree {
       lastUniqueDepth: Int
     ) {
       // Slots and path should be non-empty
-      assert(slots.depth >= 1, "Invalid tree cursor.")
-      assert(path.depth >= 1, "Invalid tree cursor.")
-      
+      assert(slots.depth >= 1, "Invalid tree cursor")
+      assert(unsafe path.depth >= 1, "Invalid tree cursor")
+
       self._root = root
       self.slots = slots
-      self.path = path
+      unsafe self.path = path
       self.lastUniqueDepth = lastUniqueDepth
     }
     
@@ -108,7 +112,7 @@ extension _BTree {
     internal func assertValid() {
       #if COLLECTIONS_INTERNAL_CHECKS
       assert(self._root != nil,
-             "Attempt to operate on an element using an invalid cursor.")
+             "Attempt to operate on an element using an invalid cursor")
       #endif
     }
     
@@ -117,8 +121,8 @@ extension _BTree {
     @inlinable
     @inline(__always)
     internal mutating func apply(to tree: inout _BTree) {
-      assertValid()
-      assert(tree.root._storage == nil, "Must apply to same tree as original.")
+      unsafe assertValid()
+      assert(tree.root._storage == nil, "Must apply to same tree as original")
       swap(&tree.root._storage, &self._root)
       tree.checkInvariants()
     }
@@ -127,7 +131,7 @@ extension _BTree {
     @inlinable
     @inline(__always)
     internal mutating func _declareUnique() {
-      self.lastUniqueDepth = Int(path.depth)
+      self.lastUniqueDepth = unsafe Int(path.depth)
     }
     
     /// Operators on a handle of the node
@@ -137,11 +141,11 @@ extension _BTree {
     internal mutating func readCurrentNode<R>(
       _ body: (Node.UnsafeHandle, Int) throws -> R
     ) rethrows -> R {
-      assertValid()
-      
+      unsafe assertValid()
+
       let slot = Int(slots[slots.depth - 1])
-      return try path[path.depth - 1]._withUnsafeGuaranteedRef {
-        try $0.read({ try body($0, slot) })
+      return unsafe try path[path.depth - 1]._withUnsafeGuaranteedRef {
+        unsafe try $0.read({ unsafe try body($0, slot) })
       }
     }
     
@@ -153,19 +157,19 @@ extension _BTree {
       atDepth depth: Int8,
       _ body: (Node.UnsafeHandle, Int) throws -> R
     ) rethrows -> (node: Node, result: R) {
-      assertValid()
-      
+      unsafe assertValid()
+
       let slot = Int(slots[depth])
       let isOnUniquePath = depth <= lastUniqueDepth
       
-      return try path[depth]._withUnsafeGuaranteedRef { storage in
+      return unsafe try path[depth]._withUnsafeGuaranteedRef { storage in
         if isOnUniquePath {
-          let result = try storage.updateGuaranteedUnique({ try body($0, slot) })
+          let result = unsafe try storage.updateGuaranteedUnique({ unsafe try body($0, slot) })
           return (Node(storage), result)
         } else {
           let storage = storage.copy()
-          path[depth] = .passUnretained(storage)
-          let result = try storage.updateGuaranteedUnique({ try body($0, slot) })
+          unsafe path[depth] = .passUnretained(storage)
+          let result = unsafe try storage.updateGuaranteedUnique({ unsafe try body($0, slot) })
           return (Node(storage), result)
         }
       }
@@ -187,19 +191,19 @@ extension _BTree {
     internal mutating func updateCurrentNode<R>(
       _ body: (Node.UnsafeHandle, Int) throws -> R
     ) rethrows -> R {
-      assertValid()
-      defer { self._declareUnique() }
-      
+      unsafe assertValid()
+      defer { unsafe self._declareUnique() }
+
       // Update the bottom-most node
-      var (node, result) = try self.updateNode(atDepth: path.depth - 1, body)
-      
+      var (node, result) = unsafe try self.updateNode(atDepth: path.depth - 1, body)
+
       // Start the node above the bottom-most node, and propagate up the change
-      var depth = path.depth - 2
+      var depth = unsafe path.depth - 2
       while depth >= 0 {
         if depth > lastUniqueDepth {
           // If we're on a
-          let (newNode, _) = self.updateNode(atDepth: depth) { (handle, slot) in
-            _ = handle.exchangeChild(atSlot: slot, with: node)
+          let (newNode, _) = unsafe self.updateNode(atDepth: depth) { (handle, slot) in
+            _ = unsafe handle.exchangeChild(atSlot: slot, with: node)
           }
           
           node = newNode
@@ -210,9 +214,9 @@ extension _BTree {
           let child = node
           let slot = Int(slots[depth])
           
-          path[depth]._withUnsafeGuaranteedRef { storage in
-            storage.updateGuaranteedUnique { handle in
-              _ = handle.exchangeChild(atSlot: slot, with: child)
+          unsafe path[depth]._withUnsafeGuaranteedRef { storage in
+            unsafe storage.updateGuaranteedUnique { handle in
+              _ = unsafe handle.exchangeChild(atSlot: slot, with: child)
             }
           }
           
@@ -238,8 +242,8 @@ extension _BTree {
     internal mutating func moveValue() -> Value {
       guard Node.hasValues else { return Node.dummyValue }
 
-      return self.updateCurrentNode { handle, slot in
-        handle.pointerToValue(atSlot: slot).move()
+      return unsafe self.updateCurrentNode { handle, slot in
+        unsafe handle.pointerToValue(atSlot: slot).move()
       }
     }
     
@@ -249,8 +253,8 @@ extension _BTree {
     internal mutating func initializeValue(to value: Value) {
       guard Node.hasValues else { return }
       
-      self.updateCurrentNode { handle, slot in
-        handle.pointerToValue(atSlot: slot).initialize(to: value)
+      unsafe self.updateCurrentNode { handle, slot in
+        unsafe handle.pointerToValue(atSlot: slot).initialize(to: value)
       }
     }
     
@@ -269,23 +273,23 @@ extension _BTree {
       _ element: Node.Element,
       capacity: Int
     ) {
-      assertValid()
-      defer { self._declareUnique() }
-      
-      var (node, splinter) = self.updateNode(atDepth: path.depth - 1) { handle, slot in
-        handle.insertElement(element, withRightChild: nil, atSlot: slot)
+      unsafe assertValid()
+      defer { unsafe self._declareUnique() }
+
+      var (node, splinter) = unsafe self.updateNode(atDepth: path.depth - 1) { handle, slot in
+        unsafe handle.insertElement(element, withRightChild: nil, atSlot: slot)
       }
 
       // Start the node above the bottom-most node, and propagate up the change
-      var depth = path.depth - 2
+      var depth = unsafe path.depth - 2
       while depth >= 0 {
-        let (newNode, _) = self.updateNode(atDepth: depth) { (handle, slot) in
-          handle.exchangeChild(atSlot: slot, with: node)
-          
+        let (newNode, _) = unsafe self.updateNode(atDepth: depth) { (handle, slot) in
+          unsafe handle.exchangeChild(atSlot: slot, with: node)
+
           if let lastSplinter = splinter {
-            splinter = handle.insertSplinter(lastSplinter, atSlot: slot)
+            splinter = unsafe handle.insertSplinter(lastSplinter, atSlot: slot)
           } else {
-            handle.subtreeCount += 1
+            unsafe handle.subtreeCount += 1
           }
         }
         
@@ -307,58 +311,58 @@ extension _BTree {
     /// - Complexity: O(`log n`). Ascends the tree once.
     @inlinable
     internal mutating func removeElement(hasValueHole: Bool = false) {
-      assertValid()
-      defer { self._declareUnique() }
-      
-      var (node, _) = self.updateNode(
+      unsafe assertValid()
+      defer { unsafe self._declareUnique() }
+
+      var (node, _) = unsafe self.updateNode(
         atDepth: path.depth - 1
       ) { handle, slot in
         if handle.isLeaf {
           // Deletion within a leaf
           // removeElement(atSlot:) automatically adjusts node counts.
           if hasValueHole {
-            handle.removeElementWithoutValue(atSlot: slot)
+            unsafe handle.removeElementWithoutValue(atSlot: slot)
           } else {
-            handle.removeElement(atSlot: slot)
+            unsafe handle.removeElement(atSlot: slot)
           }
         } else {
           // Deletion within an internal node
           
           // Swap with the predecessor
           let predecessor =
-            handle[childAt: slot].update { $0.popLastElement() }
-          
+            unsafe handle[childAt: slot].update { unsafe $0.popLastElement() }
+
           // Reduce the element count.
-          handle.subtreeCount -= 1
-          
+          unsafe handle.subtreeCount -= 1
+
           // Replace the current element with the predecessor.
           if hasValueHole {
-            _ = handle.pointerToKey(atSlot: slot).move()
-            handle.initializeElement(atSlot: slot, to: predecessor)
+            _ = unsafe handle.pointerToKey(atSlot: slot).move()
+            unsafe handle.initializeElement(atSlot: slot, to: predecessor)
           } else {
-            handle.exchangeElement(atSlot: slot, with: predecessor)
+            unsafe handle.exchangeElement(atSlot: slot, with: predecessor)
           }
           
           // Balance the predecessor child slot, as the pop operation may have
           // brought it out of balance.
-          handle.balance(atSlot: slot)
+          unsafe handle.balance(atSlot: slot)
         }
       }
       
       // Balance the parents
-      var depth = path.depth - 2
+      var depth = unsafe path.depth - 2
       while depth >= 0 {
-        var (newNode, _) = self.updateNode(atDepth: depth) { (handle, slot) in
-          handle.exchangeChild(atSlot: slot, with: node)
-          handle.subtreeCount -= 1
-          handle.balance(atSlot: slot)
+        var (newNode, _) = unsafe self.updateNode(atDepth: depth) { (handle, slot) in
+          unsafe handle.exchangeChild(atSlot: slot, with: node)
+          unsafe handle.subtreeCount -= 1
+          unsafe handle.balance(atSlot: slot)
         }
         
-        if depth == 0 && newNode.read({ $0.elementCount == 0 && !$0.isLeaf }) {
+        if unsafe depth == 0 && newNode.read({ unsafe $0.elementCount == 0 && !$0.isLeaf }) {
           // If the root has no elements, we drop it and promote the child.
-          node = newNode.update(isUnique: true) { handle in
-            let newRoot = handle.moveChild(atSlot: 0)
-            handle.drop()
+          node = unsafe newNode.update(isUnique: true) { handle in
+            let newRoot = unsafe handle.moveChild(atSlot: 0)
+            unsafe handle.drop()
             return newRoot
           }
         } else {
@@ -386,29 +390,29 @@ extension _BTree {
     
     // Initialize parents with some dummy value filling it.
     var parents =
-      UnsafeCursor.Path(repeating: .passUnretained(self.root.storage))
-    
+      unsafe UnsafeCursor.Path(repeating: .passUnretained(self.root.storage))
+
     var ownedRoot: Node.Storage
     do {
       var tempRoot: Node.Storage? = nil
       swap(&tempRoot, &self.root._storage)
-      ownedRoot = tempRoot.unsafelyUnwrapped
+      ownedRoot = unsafe tempRoot.unsafelyUnwrapped
     }
     
-    var node: Unmanaged<Node.Storage> = .passUnretained(ownedRoot)
-    
+    var node: Unmanaged<Node.Storage> = unsafe .passUnretained(ownedRoot)
+
     // The depth containing the first instance of a shared
     var lastUniqueDepth = isKnownUniquelyReferenced(&ownedRoot) ? 0 : -1
     var isOnUniquePath = isKnownUniquelyReferenced(&ownedRoot)
     
     for d in 0..<index.childSlots.depth {
-      node._withUnsafeGuaranteedRef { storage in
-        storage.read { handle in
-          parents.append(node)
-          
+      unsafe node._withUnsafeGuaranteedRef { storage in
+        unsafe storage.read { handle in
+          unsafe parents.append(node)
+
           let slot = Int(index.childSlots[d])
-          node = .passUnretained(handle[childAt: slot].storage)
-          if isOnUniquePath && handle.isChildUnique(atSlot: slot) {
+          unsafe node = .passUnretained(handle[childAt: slot].storage)
+          if unsafe isOnUniquePath && handle.isChildUnique(atSlot: slot) {
             lastUniqueDepth += 1
           } else {
             isOnUniquePath = false
@@ -416,17 +420,12 @@ extension _BTree {
         }
       }
     }
-    
-    parents.append(node)
-    
-    let cursor = UnsafeCursor(
+    unsafe parents.append(node)
+    return unsafe UnsafeCursor(
       root: ownedRoot,
       slots: slots,
       path: parents,
-      lastUniqueDepth: lastUniqueDepth
-    )
-    
-    return cursor
+      lastUniqueDepth: lastUniqueDepth)
   }
 
   /// Obtains a cursor to a given element in the tree.
@@ -446,17 +445,17 @@ extension _BTree {
     
     // Initialize parents with some dummy value filling it.
     var parents =
-      UnsafeCursor.Path(repeating: .passUnretained(self.root.storage))
-    
+      unsafe UnsafeCursor.Path(repeating: .passUnretained(self.root.storage))
+
     var ownedRoot: Node.Storage
     do {
       var tempRoot: Node.Storage? = nil
       swap(&tempRoot, &self.root._storage)
-      ownedRoot = tempRoot.unsafelyUnwrapped
+      ownedRoot = unsafe tempRoot.unsafelyUnwrapped
     }
     
-    var node: Unmanaged<Node.Storage> = .passUnretained(ownedRoot)
-    
+    var node: Unmanaged<Node.Storage> = unsafe .passUnretained(ownedRoot)
+
     // Initialize slot to some dummy value.
     var slot = -1
     var found: Bool = false
@@ -466,22 +465,22 @@ extension _BTree {
     var isOnUniquePath = isKnownUniquelyReferenced(&ownedRoot)
     
     while true {
-      let shouldStop: Bool = node._withUnsafeGuaranteedRef { storage in
-        storage.read { handle in
-          slot = handle.startSlot(forKey: key)
-          
-          if slot < handle.elementCount && handle[keyAt: slot] == key {
+      let shouldStop: Bool = unsafe node._withUnsafeGuaranteedRef { storage in
+        unsafe storage.read { handle in
+          slot = unsafe handle.startSlot(forKey: key)
+
+          if unsafe slot < handle.elementCount && handle[keyAt: slot] == key {
             found = true
             return true
           } else {
             if handle.isLeaf {
               return true
             } else {
-              parents.append(node)
+              unsafe parents.append(node)
               slots.append(UInt16(slot))
               
-              node = .passUnretained(handle[childAt: slot].storage)
-              if isOnUniquePath && handle.isChildUnique(atSlot: slot) {
+              unsafe node = .passUnretained(handle[childAt: slot].storage)
+              if unsafe isOnUniquePath && handle.isChildUnique(atSlot: slot) {
                 lastUniqueDepth += 1
               } else {
                 isOnUniquePath = false
@@ -497,17 +496,16 @@ extension _BTree {
     
     assert(slot != -1)
     
-    parents.append(node)
+    unsafe parents.append(node)
     slots.append(UInt16(slot))
     
-    let cursor = UnsafeCursor(
+    let cursor = unsafe UnsafeCursor(
       root: ownedRoot,
       slots: slots,
       path: parents,
-      lastUniqueDepth: lastUniqueDepth
-    )
+      lastUniqueDepth: lastUniqueDepth)
     
-    return (cursor, found)
+    return unsafe (cursor, found)
   }
 }
 

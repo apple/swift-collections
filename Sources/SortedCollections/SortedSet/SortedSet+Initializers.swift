@@ -47,7 +47,7 @@ extension SortedSet {
     var previousElement: Element? = nil
     for element in elements {
       precondition(previousElement == nil || previousElement! < element,
-             "Sequence out of order.")
+             "Sequence out of order")
       builder.append(element)
       previousElement = element
     }

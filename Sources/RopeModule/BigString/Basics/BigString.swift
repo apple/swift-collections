@@ -15,6 +15,7 @@
 
 /// The core of a B-tree based String implementation.
 @available(SwiftStdlib 6.2, *)
+@safe
 public struct BigString: Sendable {
   typealias _Rope = Rope<_Chunk>
 

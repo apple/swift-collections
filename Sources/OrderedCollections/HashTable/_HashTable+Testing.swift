@@ -19,28 +19,28 @@ extension _HashTable.Bucket: CustomStringConvertible {
 extension _UnsafeHashTable {
   package func debugOccupiedCount() -> Int {
     var count = 0
-    var it = bucketIterator(startingAt: Bucket(offset: 0))
+    var it = unsafe bucketIterator(startingAt: Bucket(offset: 0))
     repeat {
       if it.isOccupied {
         count += 1
       }
-      it.advance()
+      unsafe it.advance()
     } while it.currentBucket.offset != 0
     return count
   }
 
   package func debugLoadFactor() -> Double {
-    return Double(debugOccupiedCount()) / Double(bucketCount)
+    return unsafe Double(debugOccupiedCount()) / Double(bucketCount)
   }
 
   package func debugContents() -> [Int?] {
     var result: [Int?] = []
-    result.reserveCapacity(bucketCount)
-    var it = bucketIterator(startingAt: Bucket(offset: 0))
+    result.reserveCapacity(unsafe bucketCount)
+    var it = unsafe bucketIterator(startingAt: Bucket(offset: 0))
     repeat {
-      result.append(it.currentValue)
-      it.advance()
-    } while it.currentBucket.offset != 0
+      unsafe result.append(it.currentValue)
+      unsafe it.advance()
+    } while  it.currentBucket.offset != 0
     return result
   }
 }
@@ -55,12 +55,12 @@ extension _UnsafeHashTable.BucketIterator: CustomStringConvertible {
     }
     let offset = pad(String(_currentBucket.offset), to: 4)
     let value: String
-    if let v = currentValue {
+    if let v = unsafe currentValue {
       value = pad(String(v), to: 4)
     } else {
       value = " nil"
     }
     let remainingBits = pad(String(_nextBits, radix: 2), to: _remainingBitCount, by: "0")
-    return "BucketIterator(scale: \(_scale), bucket: \(offset), value: \(value), bits: \(remainingBits) (\(_remainingBitCount) bits))"
+    return "BucketIterator(scale: \(unsafe _scale), bucket: \(offset), value: \(value), bits: \(remainingBits) (\(_remainingBitCount) bits))"
   }
 }

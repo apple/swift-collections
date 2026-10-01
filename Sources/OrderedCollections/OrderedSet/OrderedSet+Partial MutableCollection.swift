@@ -35,9 +35,10 @@ extension OrderedSet {
     _elements.swapAt(i, j)
     guard _table != nil else { return }
     _ensureUnique()
-    _table!.update { hashTable in
-      hashTable.swapBucketValues(for: _elements[i], withCurrentValue: j,
-                                 and: _elements[j], withCurrentValue: i)
+    unsafe _table!.update { hashTable in
+      unsafe hashTable.swapBucketValues(
+        for: _elements[i], withCurrentValue: j,
+        and: _elements[j], withCurrentValue: i)
     }
     _checkInvariants()
   }
@@ -95,9 +96,9 @@ extension OrderedSet {
       return try _elements.partition(by: belongsInSecondPartition)
     }
     _ensureUnique()
-    let result: Int = try _table!.update { hashTable in
+    let result: Int = unsafe try _table!.update { hashTable in
       let maybeOffset: Int? = try _elements.withContiguousMutableStorageIfAvailable { buffer in
-        let pivot = try buffer._partition(
+        let pivot = unsafe try buffer._partition(
           with: hashTable,
           by: belongsInSecondPartition,
           callback: callback)
@@ -106,7 +107,7 @@ extension OrderedSet {
       if let offset = maybeOffset {
         return _elements.index(startIndex, offsetBy: offset)
       }
-      return try _elements._partition(
+      return unsafe try _elements._partition(
         with: hashTable,
         by: belongsInSecondPartition,
         callback: callback)
@@ -150,8 +151,9 @@ extension MutableCollection where Self: RandomAccessCollection, Element: Hashabl
       swapAt(low, high)
       let offsetLow = _offset(of: low)
       let offsetHigh = _offset(of: high)
-      hashTable.swapBucketValues(for: self[low], withCurrentValue: offsetHigh,
-                                 and: self[high], withCurrentValue: offsetLow)
+      unsafe hashTable.swapBucketValues(
+        for: self[low], withCurrentValue: offsetHigh,
+        and: self[high], withCurrentValue: offsetLow)
       callback(offsetLow, offsetHigh)
 
       formIndex(after: &low)
@@ -166,10 +168,11 @@ extension _UnsafeHashTable {
     for left: Element, withCurrentValue leftValue: Int,
     and right: Element, withCurrentValue rightValue: Int
   ) {
-    let left = idealBucket(for: left)
-    let right = idealBucket(for: right)
-    swapBucketValues(for: left, withCurrentValue: leftValue,
-                     and: right, withCurrentValue: rightValue)
+    let left = unsafe idealBucket(for: left)
+    let right = unsafe idealBucket(for: right)
+    unsafe swapBucketValues(
+      for: left, withCurrentValue: leftValue,
+      and: right, withCurrentValue: rightValue)
   }
 
   @usableFromInline
@@ -178,13 +181,13 @@ extension _UnsafeHashTable {
     for left: Bucket, withCurrentValue leftValue: Int,
     and right: Bucket, withCurrentValue rightValue: Int
   ) {
-    var it = bucketIterator(startingAt: left)
-    it.advance(until: leftValue)
+    var it = unsafe bucketIterator(startingAt: left)
+    unsafe it.advance(until: leftValue)
     assert(it.isOccupied)
-    it.currentValue = rightValue
+    unsafe it.currentValue = rightValue
 
-    it = bucketIterator(startingAt: right)
-    it.advance(until: rightValue)
+    unsafe it = bucketIterator(startingAt: right)
+    unsafe it.advance(until: rightValue)
     assert(it.isOccupied)
     // Note: this second update may mistake the bucket for `right` with the
     // bucket for `left` whose value we just updated. The second update will
@@ -192,7 +195,7 @@ extension _UnsafeHashTable {
     // When this happens, the lookup chains for both elements include each
     // other, so leaving the hash table unchanged still leaves us with a
     // working hash table.
-    it.currentValue = leftValue
+    unsafe it.currentValue = leftValue
   }
 }
 
@@ -371,7 +374,7 @@ extension OrderedSet {
     precondition(self.count == values.count)
     var i = 0
     try _elements.withUnsafeMutableBufferPointer { keys in
-      while i < keys.count, try !belongsInSecondPartition((keys[i], values[i])) {
+      while i < keys.count, try !belongsInSecondPartition(unsafe (keys[i], values[i])) {
         i += 1
       }
     }
@@ -384,14 +387,15 @@ extension OrderedSet {
 
     return try _elements.withUnsafeMutableBufferPointer { keys in
       for j in i + 1 ..< keys.count {
-        guard try !belongsInSecondPartition((keys[j], values[j])) else {
+        guard try !belongsInSecondPartition(unsafe (keys[j], values[j])) else {
           continue
         }
-        keys.swapAt(i, j)
-        values.swapAt(i, j)
-        table?.update { hashTable in
-          hashTable.swapBucketValues(for: keys[i], withCurrentValue: j,
-                                     and: keys[j], withCurrentValue: i)
+        unsafe keys.swapAt(i, j)
+        unsafe values.swapAt(i, j)
+        unsafe table?.update { hashTable in
+          unsafe hashTable.swapBucketValues(
+            for: keys[i], withCurrentValue: j,
+            and: keys[j], withCurrentValue: i)
         }
         i += 1
       }
@@ -422,7 +426,7 @@ extension OrderedSet {
         // Find next element from `lo` that may not be in the right place.
         while true {
           if low == high { return low }
-          if try belongsInSecondPartition((keys[low], values[low])) { break }
+          if try belongsInSecondPartition(unsafe (keys[low], values[low])) { break }
           low += 1
         }
 
@@ -430,15 +434,16 @@ extension OrderedSet {
         while true {
           high -= 1
           if low == high { return low }
-          if try !belongsInSecondPartition((keys[high], values[high])) { break }
+          if try !belongsInSecondPartition(unsafe (keys[high], values[high])) { break }
         }
 
         // Swap the two elements as well as their associated hash table buckets.
-        keys.swapAt(low, high)
-        values.swapAt(low, high)
-        table?.update { hashTable in
-          hashTable.swapBucketValues(for: keys[low], withCurrentValue: high,
-                                     and: keys[high], withCurrentValue: low)
+        unsafe keys.swapAt(low, high)
+        unsafe values.swapAt(low, high)
+        unsafe table?.update { hashTable in
+          unsafe hashTable.swapBucketValues(
+            for: keys[low], withCurrentValue: high,
+            and: keys[high], withCurrentValue: low)
         }
         low += 1
       }

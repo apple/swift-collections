@@ -172,9 +172,9 @@ extension TreeDictionary {
     @inline(__always) // https://github.com/apple/swift-collections/issues/164
     _modify {
       _invalidateIndices()
-      var state = _root.prepareValueUpdate(key, _Hash(key))
+      var state = unsafe _root.prepareValueUpdate(key, _Hash(key))
       defer {
-        _root.finalizeValueUpdate(state)
+        unsafe _root.finalizeValueUpdate(state)
       }
       yield &state.value
     }
@@ -263,10 +263,10 @@ extension TreeDictionary {
     @inline(__always) // https://github.com/apple/swift-collections/issues/164
     _modify {
       _invalidateIndices()
-      var state = _root.prepareDefaultedValueUpdate(
+      var state = unsafe _root.prepareDefaultedValueUpdate(
         .top, key, defaultValue, _Hash(key))
       defer {
-        _root.finalizeDefaultedValueUpdate(state)
+        unsafe _root.finalizeDefaultedValueUpdate(state)
       }
       yield &state.item.value
     }
@@ -288,9 +288,9 @@ extension TreeDictionary {
   ///    high-quality hashing.
   @inlinable
   public func index(forKey key: Key) -> Index? {
-    guard let path = _root.path(to: key, _Hash(key))
+    guard let path = unsafe _root.path(to: key, _Hash(key))
     else { return nil }
-    return Index(_root: _root.unmanaged, version: _version, path: path)
+    return unsafe Index(_root: _root.unmanaged, version: _version, path: path)
   }
 
   /// Updates the value stored in the dictionary for the given key, or appends a
@@ -349,15 +349,15 @@ extension TreeDictionary {
   ) -> Value? {
     defer { _fixLifetime(self) }
     let hash = _Hash(key)
-    let r = _root.updateValue(.top, forKey: key, hash) {
-      $0.initialize(to: (key, value))
+    let r = unsafe _root.updateValue(.top, forKey: key, hash) {
+      unsafe $0.initialize(to: (key, value))
     }
     _invalidateIndices()
-    if r.inserted { return nil }
-    return _UnsafeHandle.update(r.leaf) {
-      let p = $0.itemPtr(at: r.slot)
-      let old = p.pointee.value
-      p.pointee.value = value
+    if unsafe r.inserted { return nil }
+    return unsafe _UnsafeHandle.update(r.leaf) {
+      let p = unsafe $0.itemPtr(at: r.slot)
+      let old = unsafe p.pointee.value
+      unsafe p.pointee.value = value
       return old
     }
   }
@@ -369,12 +369,12 @@ extension TreeDictionary {
   ) -> Bool {
     defer { _fixLifetime(self) }
     let hash = _Hash(key)
-    let r = _root.updateValue(.top, forKey: key, hash) {
-      $0.initialize(to: (key, value))
+    let r = unsafe _root.updateValue(.top, forKey: key, hash) {
+      unsafe $0.initialize(to: (key, value))
     }
-    if r.inserted { return true }
-    _UnsafeHandle.update(r.leaf) {
-      $0[item: r.slot].value = value
+    if unsafe r.inserted { return true }
+    unsafe _UnsafeHandle.update(r.leaf) {
+      unsafe $0[item: r.slot].value = value
     }
     return false
   }
@@ -476,11 +476,11 @@ extension TreeDictionary {
   ) rethrows -> R {
     defer { _fixLifetime(self) }
     let hash = _Hash(key)
-    let r = _root.updateValue(.top, forKey: key, hash) {
-      $0.initialize(to: (key, defaultValue()))
+    let r = unsafe _root.updateValue(.top, forKey: key, hash) {
+      unsafe $0.initialize(to: (key, defaultValue()))
     }
-    return try _UnsafeHandle.update(r.leaf) {
-      try body(&$0[item: r.slot].value)
+    return unsafe try _UnsafeHandle.update(r.leaf) {
+      unsafe try body(&$0[item: r.slot].value)
     }
   }
 
@@ -521,7 +521,7 @@ extension TreeDictionary {
   @inlinable
   @discardableResult
   public mutating func removeValue(forKey key: Key) -> Value? {
-    guard let r = _root.remove(.top, key, _Hash(key)) else { return nil }
+    guard let r = unsafe _root.remove(.top, key, _Hash(key)) else { return nil }
     _invalidateIndices()
     assert(r.remainder == nil)
     _invariantCheck()
@@ -544,9 +544,9 @@ extension TreeDictionary {
   @inlinable
   public mutating func remove(at index: Index) -> Element {
     precondition(_isValid(index), "Invalid index")
-    precondition(index._path._isItem, "Cannot remove item at end index")
+    precondition(unsafe index._path._isItem, "Cannot remove item at end index")
     _invalidateIndices()
-    let r = _root.remove(.top, at: index._path)
+    let r = unsafe _root.remove(.top, at: index._path)
     assert(r.remainder == nil)
     return r.removed
   }

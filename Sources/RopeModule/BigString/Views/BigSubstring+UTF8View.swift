@@ -28,7 +28,7 @@ extension BigSubstring {
       self._base = base
       let lower = base._utf8Index(roundingDown: bounds.lowerBound)
       let upper = base._utf8Index(roundingDown: bounds.upperBound)
-      self._bounds = Range(uncheckedBounds: (lower, upper))
+      self._bounds = unsafe Range(uncheckedBounds: (lower, upper))
     }
 
     internal init(_substring: BigSubstring) {

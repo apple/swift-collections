@@ -43,7 +43,7 @@ extension _BTree {
     
     if self.count == 0 { return nil }
     
-    let removedElement = self.root.update { $0.popLastElement() }
+    let removedElement = unsafe self.root.update { unsafe $0.popLastElement() }
     self._balanceRoot()
     return removedElement
   }
@@ -80,7 +80,7 @@ extension _BTree {
     
     if self.count == 0 { return nil }
     
-    let removedElement = self.root.update { $0.popFirstElement() }
+    let removedElement = unsafe self.root.update { unsafe $0.popFirstElement() }
     self._balanceRoot()
     return removedElement
   }
@@ -115,7 +115,7 @@ extension _BTree {
   @discardableResult
   internal mutating func remove(at index: Index) -> Element {
     invalidateIndices()
-    guard index != endIndex else { preconditionFailure("Index out of bounds.") }
+    guard index != endIndex else { preconditionFailure("Index out of bounds") }
     return self.remove(atOffset: index.offset)
   }
   
@@ -131,8 +131,8 @@ extension _BTree {
   /// Removes the elements in the specified subrange from the collection.
   @inlinable
   internal mutating func removeSubrange(_ bounds: Range<Index>) {
-    guard bounds.lowerBound != endIndex else { preconditionFailure("Index out of bounds.") }
-    guard bounds.upperBound != endIndex else { preconditionFailure("Index out of bounds.") }
+    guard bounds.lowerBound != endIndex else { preconditionFailure("Index out of bounds") }
+    guard bounds.upperBound != endIndex else { preconditionFailure("Index out of bounds") }
     
     let rangeSize = self.distance(from: bounds.lowerBound, to: bounds.upperBound)
     let startOffset = bounds.lowerBound.offset

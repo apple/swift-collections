@@ -229,14 +229,14 @@ extension SortedDictionary.Values {
       position._index.ensureValid(forTree: self._base._root)
       
       // Ensure we don't attempt to dereference the endIndex
-      precondition(position != endIndex, "Attempt to subscript out of range index.")
+      precondition(position != endIndex, "Attempt to subscript out of range index")
       
-      var cursor = self._base._root.takeCursor(at: position._index)
-      var value = cursor.moveValue()
-      
+      var cursor = unsafe self._base._root.takeCursor(at: position._index)
+      var value = unsafe cursor.moveValue()
+
       defer {
-        cursor.initializeValue(to: value)
-        cursor.apply(to: &self._base._root)
+        unsafe cursor.initializeValue(to: value)
+        unsafe cursor.apply(to: &self._base._root)
       }
       
       yield &value

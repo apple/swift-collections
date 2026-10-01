@@ -65,7 +65,7 @@ where Base: ~Copyable & ~Escapable, Base.Element: ~Copyable {
       let span = try _base.nextSpan(maxCount: 1)
       if span.isEmpty { return span }
       precondition(span.count == 1, "Invalid BorrowingIterator")
-      if try _isIncluded(span[unchecked: 0]) { return span }
+      if unsafe try _isIncluded(span[unchecked: 0]) { return span }
     }
   }
 }

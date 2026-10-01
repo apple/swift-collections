@@ -67,7 +67,7 @@ extension SortedDictionary: Decodable where Key: Decodable, Value: Decodable {
       guard previousKey == nil || previousKey! < key else {
         let context = DecodingError.Context(
           codingPath: container.codingPath,
-          debugDescription: "Decoded elements out of order.")
+          debugDescription: "Decoded elements out of order")
         throw DecodingError.dataCorrupted(context)
       }
       

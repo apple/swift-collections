@@ -38,6 +38,7 @@
 /// items map.
 @usableFromInline
 @frozen
+@safe
 internal struct _HashNode<Key: Hashable, Value> {
   // Warning: This struct must be kept layout-compatible with _RawHashNode.
   // Do not add any new stored properties to this type.
@@ -72,29 +73,33 @@ extension _HashNode {
 
 extension _HashNode {
   @inlinable @inline(__always)
+  @unsafe
   internal var unmanaged: _UnmanagedHashNode {
-    _UnmanagedHashNode(raw.storage)
+    unsafe _UnmanagedHashNode(raw.storage)
   }
 
   @inlinable @inline(__always)
+  @unsafe
   internal func isIdentical(to other: _UnmanagedHashNode) -> Bool {
-    raw.isIdentical(to: other)
+    unsafe raw.isIdentical(to: other)
   }
 }
 
 extension _HashNode {
   @inlinable @inline(__always)
+  @unsafe
   internal func read<R>(
     _ body: (UnsafeHandle) throws -> R
   ) rethrows -> R {
-    try UnsafeHandle.read(raw.storage, body)
+    unsafe try UnsafeHandle.read(raw.storage, body)
   }
 
   @inlinable @inline(__always)
+  @unsafe
   internal mutating func update<R>(
     _ body: (UnsafeHandle) throws -> R
   ) rethrows -> R {
-    try UnsafeHandle.update(raw.storage, body)
+    unsafe try UnsafeHandle.update(raw.storage, body)
   }
 }
 
@@ -103,27 +108,27 @@ extension _HashNode {
 extension _HashNode {
   @inlinable
   internal var isCollisionNode: Bool {
-    self.read { $0.isCollisionNode }
+    unsafe self.read { unsafe $0.isCollisionNode }
   }
 
   @inlinable
   internal var collisionHash: _Hash {
-    self.read { $0.collisionHash }
+    unsafe self.read { unsafe $0.collisionHash }
   }
 
   @inlinable
   internal var hasSingletonItem: Bool {
-    self.read { $0.hasSingletonItem }
+    unsafe self.read { unsafe $0.hasSingletonItem }
   }
 
   @inlinable
   internal var hasSingletonChild: Bool {
-    self.read { $0.hasSingletonChild }
+    unsafe self.read { unsafe $0.hasSingletonChild }
   }
 
   @inlinable
   internal var isAtrophied: Bool {
-    self.read { $0.isAtrophiedNode }
+    unsafe self.read { unsafe $0.isAtrophiedNode }
   }
 }
 
@@ -134,7 +139,7 @@ extension _HashNode {
     // memory address of the root node is a reasonable substitute.
     // Alternatively, we could use a per-thread counter along with a thread
     // id, or some sort of global banks of atomic integer counters.
-    let address = Unmanaged.passUnretained(raw.storage).toOpaque()
+    let address = unsafe Unmanaged.passUnretained(raw.storage).toOpaque()
     return UInt(bitPattern: address)
   }
 }

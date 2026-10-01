@@ -17,8 +17,10 @@ extension _BTree: CustomDebugStringConvertible {
   #if DEBUG
   /// A textual representation of this instance, suitable for debugging.
   public var debugDescription: String {
-    return "BTree<\(Key.self), \(Value.self)>\n" +
-      self.root.read { String(reflecting: $0) }
+    return """
+      BTree<\(Key.self), \(Value.self)>
+      \(unsafe self.root.read { unsafe String(reflecting: $0) })
+      """
   }
   #else
   /// A textual representation of this instance, suitable for debugging.

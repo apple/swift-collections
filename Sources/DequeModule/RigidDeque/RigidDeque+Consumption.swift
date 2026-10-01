@@ -43,19 +43,19 @@ extension RigidDeque where Element: ~Copyable {
     consumingWith consumer: (inout InputSpan<Element>) -> Void
   ) -> Index {
     _checkValidBounds(subrange)
-    let segments = self._handle.mutableSegments(forOffsets: subrange)
+    let segments = unsafe self._handle.mutableSegments(forOffsets: subrange)
 
-    var span = InputSpan(
+    var span = unsafe InputSpan(
       buffer: segments.first, initializedCount: segments.first.count)
     consumer(&span)
     _ = consume span
 
-    if let second = segments.second {
-      var span = InputSpan(buffer: second, initializedCount: second.count)
+    if let second = unsafe segments.second {
+      var span = unsafe InputSpan(buffer: second, initializedCount: second.count)
       consumer(&span)
       _ = consume span
     }
-    _handle.closeGap(offsets: subrange)
+    unsafe _handle.closeGap(offsets: subrange)
     return subrange.lowerBound
   }
 
@@ -188,13 +188,16 @@ extension RigidDeque where Element: ~Copyable {
 
   @available(SwiftStdlib 5.0, *)
   @frozen
+  @safe
   public struct SubrangeConsumer: ~Copyable, ~Escapable {
     // FIXME: We have to use our own MutableRef because the standard one
     // provides no access to the underlying pointer. See deinit why we need it.
     @usableFromInline
+    @unsafe // Setter
     internal var _base: _MutableRef<RigidDeque>
 
     @usableFromInline
+    @unsafe // Setter
     internal var _offsetRange: Range<Int>
 
     // FIXME: This ought to be using `Element` directly, but when the package is
@@ -203,33 +206,36 @@ extension RigidDeque where Element: ~Copyable {
     // failure. The availability indicates it may be `Iterable.Element` via
     // the `Container` conformance; this is super confusing though.
     @usableFromInline
+    @unsafe
     internal var _buffer1: UnsafeMutableBufferPointer<_Element>
 
     @usableFromInline
+    @unsafe
     internal var _buffer2: UnsafeMutableBufferPointer<_Element>
 
     @_alwaysEmitIntoClient
     @inline(__always)
+    @safe
     @_lifetime(&_base)
     internal init(_base: inout RigidDeque, offsetRange: Range<Int>) {
       _base._checkValidBounds(offsetRange)
-      let segments = _base._handle.mutableSegments(forOffsets: offsetRange)
-      self._buffer1 = segments.first
-      self._buffer2 = segments.second ?? .init(start: nil, count: 0)
-      self._base = _MutableRef(&_base)
-      self._offsetRange = offsetRange
+      let segments = unsafe _base._handle.mutableSegments(forOffsets: offsetRange)
+      unsafe self._buffer1 = segments.first
+      unsafe self._buffer2 = segments.second ?? .init(start: nil, count: 0)
+      unsafe self._base = _MutableRef(&_base)
+      unsafe self._offsetRange = offsetRange
     }
 
     @inlinable
     deinit {
-      self._buffer1.deinitialize()
-      self._buffer2.deinitialize()
+      unsafe self._buffer1.deinitialize()
+      unsafe self._buffer2.deinitialize()
       // FIXME: This needs to be written as
       //    self._base[]._handle.closeGap(offsets: self._offsetRange)
       // but unfortunately we cannot mutate self in deinit yet.
       // Inout's dereferencing operation is necessarily declared mutating
       // to avoid exclusivity violations.
-      self._base._pointer.pointee._handle.closeGap(offsets: self._offsetRange)
+      unsafe self._base._pointer.pointee._handle.closeGap(offsets: self._offsetRange)
     }
   }
 }
@@ -240,28 +246,28 @@ extension RigidDeque.SubrangeConsumer where Element: ~Copyable {
 
   @inlinable
   public var count: Int {
-    _buffer1.count + _buffer2.count
+    unsafe _buffer1.count + _buffer2.count
   }
 
   @inlinable
   @_lifetime(&self)
   @_lifetime(self: copy self)
   public mutating func drainNext(maxCount: Int) -> InputSpan<Element> {
-    if _buffer1.isEmpty {
-      if _buffer2.isEmpty {
+    if unsafe _buffer1.isEmpty {
+      if unsafe _buffer2.isEmpty {
         return .init()
       }
-      swap(&_buffer1, &_buffer2)
+      unsafe swap(&_buffer1, &_buffer2)
     }
-    let buffer = _buffer1._trim(first: maxCount)
-    return _overrideLifetime(
+    let buffer = unsafe _buffer1._trim(first: maxCount)
+    return unsafe _overrideLifetime(
       InputSpan(buffer: buffer, initializedCount: buffer.count),
       mutating: &self)
   }
 
   @inlinable
   public consuming func finalize() -> Int {
-    _offsetRange.lowerBound
+    unsafe _offsetRange.lowerBound
   }
 }
 #endif

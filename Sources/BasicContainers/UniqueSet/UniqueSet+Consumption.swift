@@ -23,18 +23,15 @@ extension UniqueSet where Element: ~Copyable {
   public mutating func consumeAll(
     consumingWith consumer: (inout InputSpan<Element>) -> Void
   ) {
-    self._consumeAll { buffer in
-      var span = InputSpan(buffer: buffer, initializedCount: buffer.count)
-      consumer(&span)
-      _ = consume span
-    }
+    _storage.consumeAll(consumingWith: consumer)
   }
   
   @inlinable
+  @unsafe
   public mutating func _consumeAll(
     consumingWith consumer: (UnsafeMutableBufferPointer<Element>) -> Void
   ) {
-    _storage._consumeAll(consumingWith: consumer)
+    unsafe _storage._consumeAll(consumingWith: consumer)
   }
 
 }

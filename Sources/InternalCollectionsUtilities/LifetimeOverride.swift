@@ -13,10 +13,10 @@
 
 /// Unsafely discard any lifetime dependency on the `dependent` argument.
 /// Return a value identical to `dependent` with an immortal lifetime.
-@unsafe
 @_unsafeNonescapableResult
 @_alwaysEmitIntoClient
 @_transparent
+@unsafe
 @_lifetime(immortal)
 package func _unsafeImmortalize<T: ~Copyable & ~Escapable>(
   _ dependent: consuming T
@@ -27,10 +27,10 @@ package func _unsafeImmortalize<T: ~Copyable & ~Escapable>(
 /// Unsafely discard any lifetime dependency on the `dependent` argument.
 /// Return a value identical to `dependent` with a lifetime dependency
 /// on the caller's borrow scope of the `source` argument.
-@unsafe
 @_unsafeNonescapableResult
 @_alwaysEmitIntoClient
 @_transparent
+@unsafe
 @_lifetime(borrow source)
 package func _overrideLifetime<
   T: ~Copyable & ~Escapable, U: ~Copyable & ~Escapable
@@ -43,10 +43,10 @@ package func _overrideLifetime<
 /// Unsafely discard any lifetime dependency on the `dependent` argument.
 /// Return a value identical to `dependent` that inherits
 /// all lifetime dependencies from the `source` argument.
-@unsafe
 @_unsafeNonescapableResult
 @_alwaysEmitIntoClient
 @_transparent
+@unsafe
 @_lifetime(copy source)
 package func _overrideLifetime<
   T: ~Copyable & ~Escapable, U: ~Copyable & ~Escapable
@@ -59,10 +59,10 @@ package func _overrideLifetime<
 /// Unsafely discard any lifetime dependency on the `dependent` argument.
 /// Return a value identical to `dependent` with a lifetime dependency
 /// on the caller's exclusive borrow scope of the `source` argument.
-@unsafe
 @_unsafeNonescapableResult
 @_alwaysEmitIntoClient
 @_transparent
+@unsafe
 @_lifetime(&source)
 package func _overrideLifetime<
   T: ~Copyable & ~Escapable,
@@ -79,10 +79,10 @@ package func _overrideLifetime<
 /// Unsafely discard any lifetime dependency on the `dependent` inout
 /// argument, replacing it with a lifetime dependency on the caller's borrow
 /// scope of the `source` argument.
-@unsafe
 @_unsafeNonescapableResult
 @_alwaysEmitIntoClient
 @_transparent
+@unsafe
 @_lifetime(dependent: borrow source)
 public func _overrideLifetime<
   T: ~Copyable & ~Escapable, U: ~Copyable & ~Escapable

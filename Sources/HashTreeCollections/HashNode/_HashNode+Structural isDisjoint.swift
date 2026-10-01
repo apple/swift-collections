@@ -29,42 +29,42 @@ extension _HashNode {
       return other._isDisjointCollision(level, with: self)
     }
 
-    return self.read { l in
-      other.read { r in
-        let lmap = l.itemMap.union(l.childMap)
-        let rmap = r.itemMap.union(r.childMap)
-        if lmap.isDisjoint(with: rmap) { return true }
+    return unsafe self.read { l in
+      unsafe other.read { r in
+        let lmap = unsafe l.itemMap.union(l.childMap)
+        let rmap = unsafe r.itemMap.union(r.childMap)
+        if  lmap.isDisjoint(with: rmap) { return true }
 
-        for (bucket, _) in l.itemMap.intersection(r.itemMap) {
-          let lslot = l.itemMap.slot(of: bucket)
-          let rslot = r.itemMap.slot(of: bucket)
-          guard l[item: lslot].key != r[item: rslot].key else { return false }
+        for (bucket, _) in unsafe l.itemMap.intersection(r.itemMap) {
+          let lslot = unsafe l.itemMap.slot(of: bucket)
+          let rslot = unsafe r.itemMap.slot(of: bucket)
+          guard unsafe l[item: lslot].key != r[item: rslot].key else { return false }
         }
-        for (bucket, _) in l.itemMap.intersection(r.childMap) {
-          let lslot = l.itemMap.slot(of: bucket)
-          let hash = _Hash(l[item: lslot].key)
-          let rslot = r.childMap.slot(of: bucket)
-          let found = r[child: rslot].containsKey(
+        for (bucket, _) in unsafe l.itemMap.intersection(r.childMap) {
+          let lslot = unsafe l.itemMap.slot(of: bucket)
+          let hash = unsafe _Hash(l[item: lslot].key)
+          let rslot = unsafe r.childMap.slot(of: bucket)
+          let found = unsafe r[child: rslot].containsKey(
             level.descend(),
             l[item: lslot].key,
             hash)
           if found { return false }
         }
-        for (bucket, _) in l.childMap.intersection(r.itemMap) {
-          let lslot = l.childMap.slot(of: bucket)
-          let rslot = r.itemMap.slot(of: bucket)
-          let hash = _Hash(r[item: rslot].key)
-          let found = l[child: lslot].containsKey(
+        for (bucket, _) in unsafe l.childMap.intersection(r.itemMap) {
+          let lslot = unsafe l.childMap.slot(of: bucket)
+          let rslot = unsafe r.itemMap.slot(of: bucket)
+          let hash = unsafe _Hash(r[item: rslot].key)
+          let found = unsafe l[child: lslot].containsKey(
             level.descend(),
             r[item: rslot].key,
             hash)
           if found { return false }
         }
-        for (bucket, _) in l.childMap.intersection(r.childMap) {
-          let lslot = l.childMap.slot(of: bucket)
-          let rslot = r.childMap.slot(of: bucket)
+        for (bucket, _) in unsafe l.childMap.intersection(r.childMap) {
+          let lslot = unsafe l.childMap.slot(of: bucket)
+          let rslot = unsafe r.childMap.slot(of: bucket)
           guard
-            l[child: lslot].isDisjoint(level.descend(), with: r[child: rslot])
+            unsafe l[child: lslot].isDisjoint(level.descend(), with: r[child: rslot])
           else { return false }
         }
         return true
@@ -79,13 +79,13 @@ extension _HashNode {
   ) -> Bool {
     assert(isCollisionNode)
     if other.isCollisionNode {
-      return read { l in
-        other.read { r in
-          guard l.collisionHash == r.collisionHash else { return true }
-          let litems = l.reverseItems
-          let ritems = r.reverseItems
-          return litems.allSatisfy { li in
-            !ritems.contains { ri in li.key == ri.key }
+      return unsafe read { l in
+        unsafe other.read { r in
+          guard unsafe l.collisionHash == r.collisionHash else { return true }
+          let litems = unsafe l.reverseItems
+          let ritems = unsafe r.reverseItems
+          return unsafe litems.allSatisfy { li in
+            unsafe !ritems.contains { ri in li.key == ri.key }
           }
         }
       }
@@ -93,18 +93,18 @@ extension _HashNode {
     // `self` is on a compressed path. Try descending down by one level.
     assert(!level.isAtBottom)
     let bucket = self.collisionHash[level]
-    return other.read { r in
-      if r.childMap.contains(bucket) {
-        let slot = r.childMap.slot(of: bucket)
-        return isDisjoint(level.descend(), with: r[child: slot])
+    return unsafe other.read { r in
+      if unsafe r.childMap.contains(bucket) {
+        let slot = unsafe r.childMap.slot(of: bucket)
+        return unsafe isDisjoint(level.descend(), with: r[child: slot])
       }
-      if r.itemMap.contains(bucket) {
-        let rslot = r.itemMap.slot(of: bucket)
-        let p = r.itemPtr(at: rslot)
-        let hash = _Hash(p.pointee.key)
-        return read { l in
-          guard hash == l.collisionHash else { return true }
-          return !l.reverseItems.contains { $0.key == p.pointee.key }
+      if unsafe r.itemMap.contains(bucket) {
+        let rslot = unsafe r.itemMap.slot(of: bucket)
+        let p = unsafe r.itemPtr(at: rslot)
+        let hash = unsafe _Hash(p.pointee.key)
+        return unsafe read { l in
+          guard unsafe hash == l.collisionHash else { return true }
+          return unsafe !l.reverseItems.contains { unsafe $0.key == p.pointee.key }
         }
       }
       return true

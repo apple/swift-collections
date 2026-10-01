@@ -80,10 +80,10 @@ extension OrderedSet {
       "Destination index \(destination) out of range 0 ... \(count - c)")
     guard range.lowerBound != destination else { return }
     _elements.withUnsafeMutableBufferPointer { buffer in
-      buffer._moveSubrange(
+      unsafe buffer._moveSubrange(
         range.lowerBound ..< range.lowerBound + c, toOffset: destination)
     }
-    _updateHashAfterContiguousMove(
+    unsafe _updateHashAfterContiguousMove(
       src: range.lowerBound, count: c, to: destination)
     _checkInvariants()
   }
@@ -118,7 +118,7 @@ extension OrderedSet {
     members elements: some Sequence<Element>,
     to destination: Index
   ) {
-    _move(members: elements, to: destination)
+    unsafe _move(members: elements, to: destination)
   }
 
   /// Moves the elements at the given indices so they land just before the
@@ -149,7 +149,7 @@ extension OrderedSet {
     indices: some Sequence<Index>,
     to destination: Index
   ) {
-    _move(indices: indices, to: destination)
+    unsafe _move(indices: indices, to: destination)
   }
 }
 
@@ -172,7 +172,7 @@ extension OrderedSet {
       "Destination index \(destination) out of range 0 ... \(count)")
     // Fast path: operate directly on the sequence's storage when available.
     let handled: Void? = indices.withContiguousStorageIfAvailable { buffer in
-      _move(fromIndices: buffer, to: destination, applyingTo: body)
+      unsafe _move(fromIndices: buffer, to: destination, applyingTo: body)
     }
     if handled != nil { return }
 
@@ -204,7 +204,7 @@ extension OrderedSet {
     // elements before it gives the block's final start index.
     let target = destination - below
     sourceOffsets.withUnsafeBufferPointer { sourceOffsets in
-      _move(
+      unsafe _move(
         sourceOffsets: sourceOffsets,
         isContiguousRange: isContiguousRange,
         isSorted: isSorted,
@@ -233,12 +233,12 @@ extension OrderedSet {
     var isSorted = true
     var below = 0
     for i in 0 ..< sourceOffsets.count {
-      let index = sourceOffsets[i]
+      let index = unsafe sourceOffsets[i]
       precondition(
         index >= 0 && index < count,
         "Index \(index) at \(i) out of bounds 0 ..< \(count)")
       if i > 0 {
-        let prev = sourceOffsets[i - 1]
+        let prev = unsafe sourceOffsets[i - 1]
         if index <= prev {
           isSorted = false
           isContiguousRange = false
@@ -249,7 +249,7 @@ extension OrderedSet {
       if index < destination { below += 1 }
     }
     let target = destination - below
-    _move(
+    unsafe _move(
       sourceOffsets: sourceOffsets,
       isContiguousRange: isContiguousRange,
       isSorted: isSorted,
@@ -285,9 +285,9 @@ extension OrderedSet {
         var below = 0
         var c = 0
         for i in 0 ..< source.count {
-          guard let index = _find(source[i]).index else { continue }
+          guard let index = unsafe _find(source[i]).index else { continue }
           if c > 0 {
-            let prev = sourceOffsets[c - 1]
+            let prev = unsafe sourceOffsets[c - 1]
             if index <= prev {
               isSorted = false
               isContiguousRange = false
@@ -296,10 +296,10 @@ extension OrderedSet {
             }
           }
           if index < destination { below += 1 }
-          sourceOffsets[c] = index
+          unsafe sourceOffsets[c] = index
           c += 1
         }
-        _move(
+        unsafe _move(
           sourceOffsets: UnsafeBufferPointer(rebasing: sourceOffsets[..<c]),
           isContiguousRange: isContiguousRange,
           isSorted: isSorted,
@@ -332,7 +332,7 @@ extension OrderedSet {
     }
     let target = destination - below
     sourceOffsets.withUnsafeBufferPointer { sourceOffsets in
-      _move(
+      unsafe _move(
         sourceOffsets: sourceOffsets,
         isContiguousRange: isContiguousRange,
         isSorted: isSorted,
@@ -365,11 +365,11 @@ extension OrderedSet {
     // `target`. `isContiguousRange` (computed while scanning the input)
     // already guarantees `sourceOffsets[i] == sourceOffsets[0] + i`, so it
     // only remains to check that the run starts at `target`.
-    if isContiguousRange && sourceOffsets[0] == target { return }
+    if unsafe isContiguousRange && sourceOffsets[0] == target { return }
 
     if isSorted {
       // Already ascending: the sorted view is the input view, no copy needed.
-      _applyMove(
+      unsafe _applyMove(
         sourceOffsets: sourceOffsets,
         sortedSources: sourceOffsets,
         isContiguousRange: isContiguousRange,
@@ -377,16 +377,16 @@ extension OrderedSet {
         applyingTo: body)
     } else {
       withUnsafeTemporaryAllocation(of: Int.self, capacity: c) { sortedBuffer in
-        sortedBuffer.baseAddress!.initialize(
+        unsafe sortedBuffer.baseAddress!.initialize(
           from: sourceOffsets.baseAddress!, count: c)
-        var sorted = sortedBuffer
-        sorted.sort()
+        var sorted = unsafe sortedBuffer
+        unsafe sorted.sort()
         for i in 1 ..< c {
           precondition(
-            sortedBuffer[i] != sortedBuffer[i - 1],
+            unsafe sortedBuffer[i] != sortedBuffer[i - 1],
             "Duplicate element in move list")
         }
-        _applyMove(
+        unsafe _applyMove(
           sourceOffsets: sourceOffsets,
           sortedSources: UnsafeBufferPointer(sortedBuffer),
           isContiguousRange: isContiguousRange,
@@ -402,6 +402,7 @@ extension OrderedSet {
   ///
   /// - Parameter destination: The moved block's final start index (post-removal).
   @inlinable
+  @unsafe
   internal mutating func _applyMove(
     sourceOffsets: UnsafeBufferPointer<Int>,
     sortedSources: UnsafeBufferPointer<Int>,
@@ -412,18 +413,18 @@ extension OrderedSet {
     ) -> Void
   ) {
     _elements.withUnsafeMutableBufferPointer { buffer in
-      buffer._move(
+      unsafe buffer._move(
         sourceOffsets: sourceOffsets,
         sortedSources: sortedSources,
         isContiguousRange: isContiguousRange,
         to: destination)
     }
-    _updateHashAfterMove(
+    unsafe _updateHashAfterMove(
       sourceOffsets: sourceOffsets,
       sortedSources: sortedSources,
       isContiguousRange: isContiguousRange,
       to: destination)
-    body(sourceOffsets, sortedSources, isContiguousRange, destination)
+    unsafe body(sourceOffsets, sortedSources, isContiguousRange, destination)
   }
 }
 
@@ -432,6 +433,7 @@ extension OrderedSet {
   /// `src` was rotated to start at `destination`. `_elements` is already
   /// rearranged. `destination` is the block's final start index (post-removal).
   @inlinable
+  @unsafe
   internal mutating func _updateHashAfterContiguousMove(
     src: Int,
     count: Int,
@@ -443,53 +445,53 @@ extension OrderedSet {
     let distance: Int =
       destination < src ? src - destination : destination - src
 
-    _table!.update { hashTable in
+    unsafe _table!.update { hashTable in
       // Targeted bucket updates touch O(count + distance) buckets, while a
       // full scan touches all of `hashTable.capacity`. With a 3/4 load
       // factor, scanning becomes cheaper once the affected region grows
       // beyond roughly a third of the table.
-      let targetedUpdateLimit = hashTable.capacity / 3
+      let targetedUpdateLimit = unsafe hashTable.capacity / 3
 
       if count <= targetedUpdateLimit && distance <= targetedUpdateLimit {
         if destination < src {
           for newPos in destination ..< destination + count {
-            var it = hashTable.bucketIterator(for: _elements[newPos])
-            it.advance(until: newPos + distance)
-            it.currentValue = newPos
+            var it = unsafe hashTable.bucketIterator(for: _elements[newPos])
+            unsafe it.advance(until: newPos + distance)
+            unsafe it.currentValue = newPos
           }
           for newPos in destination + count ..< src + count {
-            var it = hashTable.bucketIterator(for: _elements[newPos])
-            it.advance(until: newPos - count)
-            it.currentValue = newPos
+            var it = unsafe hashTable.bucketIterator(for: _elements[newPos])
+            unsafe it.advance(until: newPos - count)
+            unsafe it.currentValue = newPos
           }
         } else {
           for newPos in src ..< destination {
-            var it = hashTable.bucketIterator(for: _elements[newPos])
-            it.advance(until: newPos + count)
-            it.currentValue = newPos
+            var it = unsafe hashTable.bucketIterator(for: _elements[newPos])
+            unsafe it.advance(until: newPos + count)
+            unsafe it.currentValue = newPos
           }
           for newPos in destination ..< destination + count {
-            var it = hashTable.bucketIterator(for: _elements[newPos])
-            it.advance(until: newPos - distance)
-            it.currentValue = newPos
+            var it = unsafe hashTable.bucketIterator(for: _elements[newPos])
+            unsafe it.advance(until: newPos - distance)
+            unsafe it.currentValue = newPos
           }
         }
       } else {
-        var it = hashTable.bucketIterator(startingAt: _Bucket(offset: 0))
+        var it = unsafe hashTable.bucketIterator(startingAt: _Bucket(offset: 0))
         repeat {
-          if let value = it.currentValue {
+          if let value = unsafe it.currentValue {
             if value >= src && value < src + count {
-              it.currentValue = destination < src
+              unsafe it.currentValue = destination < src
                 ? value - distance : value + distance
             } else if destination < src
                         && value >= destination && value < src {
-              it.currentValue = value + count
+              unsafe it.currentValue = value + count
             } else if destination > src
                         && value >= src + count && value < destination + count {
-              it.currentValue = value - count
+              unsafe it.currentValue = value - count
             }
           }
-          it.advance()
+          unsafe it.advance()
         } while it.currentBucket.offset != 0
       }
     }
@@ -506,17 +508,17 @@ extension OrderedSet {
     to destination: Int
   ) {
     let count = sourceOffsets.count
-    let minSource = sortedSources[0]
+    let minSource = unsafe sortedSources[0]
 
     if isContiguousRange {
-      _updateHashAfterContiguousMove(
+      unsafe _updateHashAfterContiguousMove(
         src: minSource, count: count, to: destination)
       return
     }
 
     guard _table != nil else { return }
 
-    let maxSource = sortedSources[count - 1]
+    let maxSource = unsafe sortedSources[count - 1]
     let affectedStart: Int = Swift.min(minSource, destination)
     let affectedEnd: Int = Swift.max(maxSource, destination + count - 1)
     let affectedCount: Int = affectedEnd - affectedStart + 1
@@ -528,31 +530,31 @@ extension OrderedSet {
 
     if affectedCount <= targetedUpdateLimit {
       _ensureUnique()
-      _table!.update { hashTable in
+      unsafe _table!.update { hashTable in
         for i in 0 ..< count {
-          let oldPos = sourceOffsets[i]
+          let oldPos = unsafe sourceOffsets[i]
           let newPos = destination + i
           if oldPos != newPos {
-            var it = hashTable.bucketIterator(for: _elements[newPos])
-            it.advance(until: oldPos)
-            it.currentValue = newPos
+            var it = unsafe hashTable.bucketIterator(for: _elements[newPos])
+            unsafe it.advance(until: oldPos)
+            unsafe it.currentValue = newPos
           }
         }
 
         if affectedStart < destination {
-          var oldPos = affectedStart
+          var oldPos = unsafe affectedStart
             + sortedSources._sortedCount(below: affectedStart)
           var si = oldPos - affectedStart
           for newPos in affectedStart ..< destination {
             // Mirrors the catch-up loop after the gap; see there.
-            while si < count && sortedSources[si] <= oldPos {
+            while unsafe si < count && sortedSources[si] <= oldPos {
               oldPos += 1
               si += 1
             }
             if oldPos != newPos {
-              var it = hashTable.bucketIterator(for: _elements[newPos])
-              it.advance(until: oldPos)
-              it.currentValue = newPos
+              var it = unsafe hashTable.bucketIterator(for: _elements[newPos])
+              unsafe it.advance(until: oldPos)
+              unsafe it.currentValue = newPos
             }
             oldPos += 1
           }
@@ -560,21 +562,21 @@ extension OrderedSet {
 
         if destination + count <= affectedEnd {
           let firstNSIndex = destination
-          var oldPos = firstNSIndex
+          var oldPos = unsafe firstNSIndex
             + sortedSources._sortedCount(below: firstNSIndex)
           var si = oldPos - firstNSIndex
           for newPos in (destination + count) ... affectedEnd {
             // `<=` (not `==`): the initial `oldPos` counts sources
             // strictly below `firstNSIndex`, so any source in
             // `[firstNSIndex, oldPos]` still needs folding in here.
-            while si < count && sortedSources[si] <= oldPos {
+            while unsafe si < count && sortedSources[si] <= oldPos {
               oldPos += 1
               si += 1
             }
             if oldPos != newPos {
-              var it = hashTable.bucketIterator(for: _elements[newPos])
-              it.advance(until: oldPos)
-              it.currentValue = newPos
+              var it = unsafe hashTable.bucketIterator(for: _elements[newPos])
+              unsafe it.advance(until: oldPos)
+              unsafe it.currentValue = newPos
             }
             oldPos += 1
           }
@@ -584,9 +586,9 @@ extension OrderedSet {
       // Full rebuild: build fresh storage when shared, rather than copying the
       // old table only to clear it.
       if _isUnique() {
-        _table!.update { hashTable in
-          hashTable.clear()
-          hashTable.fill(uncheckedUniqueElements: _elements)
+        unsafe _table!.update { hashTable in
+          unsafe hashTable.clear()
+          unsafe hashTable.fill(uncheckedUniqueElements: _elements)
         }
       } else {
         _regenerateHashTable(scale: _scale, reservedScale: _reservedScale)
@@ -609,26 +611,26 @@ extension UnsafeMutableBufferPointer {
     to destination: Int
   ) {
     let c = sourceOffsets.count
-    let minSource = sortedSources[0]
+    let minSource = unsafe sortedSources[0]
 
     if isContiguousRange {
-      _moveSubrange(minSource ..< minSource + c, toOffset: destination)
+      unsafe _moveSubrange(minSource ..< minSource + c, toOffset: destination)
       return
     }
 
-    if sortedSources[c - 1] - minSource == c - 1 {
+    if unsafe sortedSources[c - 1] - minSource == c - 1 {
       // Contiguous indices in a different order: rotate, then permute.
-      _moveSubrange(minSource ..< minSource + c, toOffset: destination)
+      unsafe _moveSubrange(minSource ..< minSource + c, toOffset: destination)
       withUnsafeTemporaryAllocation(of: Int.self, capacity: c) { perm in
         for i in 0 ..< c {
-          perm[i] = sourceOffsets[i] - minSource
+          unsafe perm[i] = sourceOffsets[i] - minSource
         }
-        _applyPermutation(perm, offset: destination)
+        unsafe _applyPermutation(perm, offset: destination)
       }
       return
     }
 
-    _moveScattered(
+    unsafe _moveScattered(
       movingFrom: sourceOffsets,
       sortedSources: sortedSources,
       to: destination,
@@ -647,13 +649,13 @@ extension UnsafeMutableBufferPointer {
     let src = source.lowerBound
     let count = source.count
     if destination < src {
-      _reverse(destination ..< src)
-      _reverse(src ..< src + count)
-      _reverse(destination ..< src + count)
+      unsafe _reverse(destination ..< src)
+      unsafe _reverse(src ..< src + count)
+      unsafe _reverse(destination ..< src + count)
     } else {
-      _reverse(src ..< src + count)
-      _reverse(src + count ..< destination + count)
-      _reverse(src ..< destination + count)
+      unsafe _reverse(src ..< src + count)
+      unsafe _reverse(src + count ..< destination + count)
+      unsafe _reverse(src ..< destination + count)
     }
   }
 
@@ -663,7 +665,7 @@ extension UnsafeMutableBufferPointer {
     var lo = range.lowerBound
     var hi = range.upperBound - 1
     while lo < hi {
-      swapAt(lo, hi)
+      unsafe swapAt(lo, hi)
       lo += 1
       hi -= 1
     }
@@ -686,11 +688,11 @@ extension UnsafeMutableBufferPointer {
       of: Element.self, capacity: count
     ) { saved in
       for i in 0 ..< count {
-        saved.initializeElement(at: i, to: self[sourceOffsets[i]])
+        unsafe saved.initializeElement(at: i, to: self[sourceOffsets[i]])
       }
-      defer { saved.baseAddress!.deinitialize(count: count) }
+      defer { unsafe saved.baseAddress!.deinitialize(count: count) }
 
-      _compactAndPlace(
+      unsafe _compactAndPlace(
         removing: sortedSources,
         inserting: saved,
         at: destination,
@@ -719,12 +721,12 @@ extension UnsafeMutableBufferPointer {
     var readLeft = 0
     var si = 0
     while writeLeft < destination {
-      if si < removalCount && sortedRemovals[si] == readLeft {
+      if unsafe si < removalCount && sortedRemovals[si] == readLeft {
         si += 1
         readLeft += 1
       } else {
         if writeLeft != readLeft {
-          self[writeLeft] = self[readLeft]
+          unsafe self[writeLeft] = self[readLeft]
         }
         writeLeft += 1
         readLeft += 1
@@ -737,12 +739,12 @@ extension UnsafeMutableBufferPointer {
     var readRight = totalCount - 1
     var sj = removalCount - 1
     while writeRight >= destination + removalCount {
-      if sj >= 0 && sortedRemovals[sj] == readRight {
+      if unsafe sj >= 0 && sortedRemovals[sj] == readRight {
         sj -= 1
         readRight -= 1
       } else {
         if writeRight != readRight {
-          self[writeRight] = self[readRight]
+          unsafe self[writeRight] = self[readRight]
         }
         writeRight -= 1
         readRight -= 1
@@ -751,7 +753,7 @@ extension UnsafeMutableBufferPointer {
 
     // Place inserted elements in the gap.
     for i in 0 ..< removalCount {
-      self[destination + i] = insertions[i]
+      unsafe self[destination + i] = insertions[i]
     }
   }
 
@@ -765,17 +767,17 @@ extension UnsafeMutableBufferPointer {
     offset: Int
   ) {
     for start in 0 ..< perm.count {
-      guard perm[start] != start else { continue }
+      guard unsafe perm[start] != start else { continue }
       var j = start
-      let temp = self[offset + j]
-      while perm[j] != start {
-        let from = perm[j]
-        self[offset + j] = self[offset + from]
-        perm[j] = j
+      let temp = unsafe self[offset + j]
+      while unsafe perm[j] != start {
+        let from = unsafe perm[j]
+        unsafe self[offset + j] = self[offset + from]
+        unsafe perm[j] = j
         j = from
       }
-      self[offset + j] = temp
-      perm[j] = j
+      unsafe self[offset + j] = temp
+      unsafe perm[j] = j
     }
   }
 }
@@ -789,7 +791,7 @@ extension UnsafeBufferPointer where Element == Int {
     var hi = count
     while lo < hi {
       let mid = lo + (hi - lo) / 2
-      if self[mid] < value {
+      if unsafe self[mid] < value {
         lo = mid + 1
       } else {
         hi = mid

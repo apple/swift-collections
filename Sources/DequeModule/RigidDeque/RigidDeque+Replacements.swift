@@ -70,7 +70,7 @@ extension RigidDeque where Element: ~Copyable {
     precondition(
       count - subrange.count + newItemCount <= capacity,
       "RigidDeque capacity overflow")
-    return try _handle.uncheckedReplaceSubrange(
+    return unsafe try _handle.uncheckedReplaceSubrange(
       subrange,
       addingCount: newItemCount,
       initializingWith: initializer)
@@ -146,7 +146,7 @@ extension RigidDeque where Element: ~Copyable {
     precondition(
       count - subrange.count + newItemCount <= capacity,
       "RigidDeque capacity overflow")
-    return try _handle.uncheckedReplaceSubrange(
+    return unsafe try _handle.uncheckedReplaceSubrange(
       subrange,
       consumingWith: consumer,
       addingCount: newItemCount,
@@ -187,14 +187,15 @@ extension RigidDeque where Element: ~Copyable {
   /// - Complexity: O(`self.count` + `items.count`)
   @_alwaysEmitIntoClient
   @discardableResult
+  @unsafe
   public mutating func replaceSubrange(
     _ subrange: Range<Int>,
     moving items: UnsafeMutableBufferPointer<Element>,
   ) -> Range<Int> {
-    var remainder = items
+    var remainder = unsafe items
     let range = replaceSubrange(subrange, addingCount: remainder.count) { target in
-      target.withUnsafeMutableBufferPointer { buffer, count in
-        buffer.moveInitializeAll(
+      unsafe target.withUnsafeMutableBufferPointer { buffer, count in
+        unsafe buffer.moveInitializeAll(
           fromContentsOf: remainder._trim(first: buffer.count))
         count = buffer.count
       }
@@ -236,8 +237,8 @@ extension RigidDeque where Element: ~Copyable {
     _ subrange: Range<Int>,
     moving items: inout InputSpan<Element>
   ) -> Range<Int> {
-    items.withUnsafeMutableBufferPointer { buffer, count in
-      let source = buffer._extracting(last: count)
+    unsafe items.withUnsafeMutableBufferPointer { buffer, count in
+      let source = unsafe buffer._extracting(last: count)
       count = 0
       return unsafe self.replaceSubrange(subrange, moving: source)
     }
@@ -276,8 +277,8 @@ extension RigidDeque where Element: ~Copyable {
     _ subrange: Range<Int>,
     moving items: inout OutputSpan<Element>
   ) -> Range<Int> {
-    items.withUnsafeMutableBufferPointer { buffer, count in
-      let source = buffer._extracting(first: count)
+    unsafe items.withUnsafeMutableBufferPointer { buffer, count in
+      let source = unsafe buffer._extracting(first: count)
       count = 0
       return unsafe self.replaceSubrange(subrange, moving: source)
     }
@@ -314,14 +315,15 @@ extension RigidDeque /* where Element: Copyable */ {
   /// - Complexity: O(`self.count` + `items.count`)
   @_alwaysEmitIntoClient
   @discardableResult
+  @unsafe
   public mutating func replaceSubrange(
     _ subrange: Range<Int>,
     copying items: UnsafeBufferPointer<Element>
   ) -> Range<Int> {
-    var remainder = items
+    var remainder = unsafe items
     let range = replaceSubrange(subrange, addingCount: remainder.count) { target in
-      target.withUnsafeMutableBufferPointer { dst, dstCount in
-        dst.initializeAll(fromContentsOf: remainder._trim(first: dst.count))
+      unsafe target.withUnsafeMutableBufferPointer { dst, dstCount in
+        unsafe dst.initializeAll(fromContentsOf: remainder._trim(first: dst.count))
         dstCount += dst.count
       }
     }
@@ -357,6 +359,7 @@ extension RigidDeque /* where Element: Copyable */ {
   /// - Complexity: O(`self.count` + `items.count`)
   @_alwaysEmitIntoClient
   @discardableResult
+  @unsafe
   public mutating func replaceSubrange(
     _ subrange: Range<Int>,
     copying items: UnsafeMutableBufferPointer<Element>
@@ -411,7 +414,7 @@ extension RigidDeque /* where Element: Copyable */ {
       precondition(
         src.count == newCount,
         "Broken Collection: count doesn't match contents")
-      return self.replaceSubrange(subrange, copying: src)
+      return unsafe self.replaceSubrange(subrange, copying: src)
     }
     if let res { return res }
 

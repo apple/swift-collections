@@ -37,7 +37,7 @@ extension RigidSet: Container where Element: ~Copyable {
   ) -> BorrowingIterator {
     _checkValidIndex(start)
     _checkValidIndex(end)
-    return BorrowingIterator(_set: self, from: start, to: end)
+    return unsafe BorrowingIterator(_set: self, from: start, to: end)
   }
 }
 

@@ -20,6 +20,7 @@
 /// - Warning: This may hold strong references to objects after they
 ///     do not put non-trivial types in this.
 @usableFromInline
+@safe
 internal struct _FixedSizeArray<Element> {
   @inlinable
   @inline(__always)
@@ -53,7 +54,7 @@ internal struct _FixedSizeArray<Element> {
   @inline(__always)
   internal mutating func append(_ value: __owned Element) {
     assert(depth < _FixedSizeArray.maxSize,
-           "Out of bounds access in fixed sized array.")
+           "Out of bounds access in fixed sized array")
     defer { self.depth &+= 1 }
     self[self.depth] = value
   }
@@ -92,26 +93,26 @@ internal struct _FixedSizeArray<Element> {
   internal subscript(_ position: Int8) -> Element {
     get {
       assert(position <= depth && depth <= _FixedSizeArray.maxSize,
-             "Out of bounds access in fixed sized array.")
+             "Out of bounds access in fixed sized array")
       
       return withUnsafeBytes(of: self.values) { values in
-        let p = values.baseAddress!.assumingMemoryBound(to: Element.self)
-        return p.advanced(by: Int(position)).pointee
+        let p = unsafe values.baseAddress!.assumingMemoryBound(to: Element.self)
+        return unsafe p.advanced(by: Int(position)).pointee
       }
     }
     
     _modify {
       assert(position <= depth && depth <= _FixedSizeArray.maxSize,
-             "Out of bounds access in fixed sized array.")
+             "Out of bounds access in fixed sized array")
       
       let ptr: UnsafeMutablePointer<Element> =
         withUnsafeMutableBytes(of: &self.values) { values in
-        let p = values.baseAddress!.assumingMemoryBound(to: Element.self)
-        return p.advanced(by: Int(position))
+        let p = unsafe values.baseAddress!.assumingMemoryBound(to: Element.self)
+        return unsafe p.advanced(by: Int(position))
       }
       
-      var value = ptr.move()
-      defer { ptr.initialize(to: value) }
+      var value = unsafe ptr.move()
+      defer { unsafe ptr.initialize(to: value) }
       yield &value
     }
   }

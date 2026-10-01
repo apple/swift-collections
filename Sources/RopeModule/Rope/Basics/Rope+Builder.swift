@@ -361,10 +361,10 @@ extension Rope {
       guard c > 0 else { return }
       if c == 1 {
         if node.isLeaf {
-          let item = node.readLeaf { $0.children[slots.lowerBound] }
+          let item = unsafe node.readLeaf { unsafe $0.children[slots.lowerBound] }
           _insertBeforeTip(item)
         } else {
-          let child = node.readInner { $0.children[slots.lowerBound] }
+          let child = unsafe node.readInner { unsafe $0.children[slots.lowerBound] }
           _insertBeforeTip(child)
         }
         return
@@ -380,10 +380,10 @@ extension Rope {
       guard c > 0 else { return }
       if c == 1 {
         if node.isLeaf {
-          let item = node.readLeaf { $0.children[slots.lowerBound] }
+          let item = unsafe node.readLeaf { unsafe $0.children[slots.lowerBound] }
           _insertAfterTip(item)
         } else {
-          let child = node.readInner { $0.children[slots.lowerBound] }
+          let child = unsafe node.readInner { unsafe $0.children[slots.lowerBound] }
           _insertAfterTip(child)
         }
         return

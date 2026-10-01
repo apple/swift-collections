@@ -23,6 +23,7 @@ extension Rope: Sequence {
   }
 
   @frozen // Not really! This module isn't ABI stable.
+  @safe
   public struct Iterator: IteratorProtocol {
     @usableFromInline
     internal let _rope: Rope
@@ -40,8 +41,8 @@ extension Rope: Sequence {
 
     @inlinable
     public mutating func next() -> Element? {
-      guard let leaf = _index._leaf else { return nil }
-      let item = leaf.read { $0.children[_index._path[0]].value }
+      guard let leaf = unsafe _index._leaf else { return nil }
+      let item = unsafe leaf.read { unsafe $0.children[_index._path[0]].value }
       _rope.formIndex(after: &_index)
       return item
     }
