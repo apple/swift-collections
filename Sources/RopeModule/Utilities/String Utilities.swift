@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !$Embedded
-
 extension StringProtocol {
   @inline(__always)
   internal var _indexOfLastCharacter: Index {
@@ -132,5 +130,3 @@ extension String {
     }
   }
 }
-
-#endif // !$Embedded

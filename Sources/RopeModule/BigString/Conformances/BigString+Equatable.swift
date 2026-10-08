@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !$Embedded
-
 @available(SwiftStdlib 6.2, *)
 extension BigString {
   public func isIdentical(to other: Self) -> Bool {
@@ -103,5 +101,3 @@ extension BigString {
     return true
   }
 }
-
-#endif // !$Embedded

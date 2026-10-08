@@ -15,8 +15,6 @@
 import InternalCollectionsUtilities
 #endif
 
-#if !$Embedded
-
 @available(SwiftStdlib 6.2, *)
 extension BigString._Chunk: CustomStringConvertible {
   var description: String {
@@ -28,7 +26,12 @@ extension BigString._Chunk: CustomStringConvertible {
   }
 
   var _identity: String {
+#if !$Embedded
     unsafe unsafeBitCast(storage, to: UnsafeRawPointer.self).debugDescription
+#else
+    let address = unsafe UInt(bitPattern: unsafeBitCast(storage, to: UnsafeRawPointer.self))
+    return "0x" + String(address, radix: 16)
+#endif
   }
 
   func _succinctContents(maxLength c: Int) -> String {
@@ -69,5 +72,3 @@ extension BigString._Chunk: CustomStringConvertible {
     return result
   }
 }
-
-#endif // !$Embedded

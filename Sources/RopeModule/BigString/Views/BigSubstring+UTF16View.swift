@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !$Embedded
-
 @available(SwiftStdlib 6.2, *)
 extension BigSubstring {
   public struct UTF16View: Sendable {
@@ -203,5 +201,3 @@ extension BigSubstring.UTF16View {
     return _base._utf16Index(roundingUp: i)
   }
 }
-
-#endif // !$Embedded

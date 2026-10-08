@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !$Embedded
-
 @available(SwiftStdlib 6.2, *)
 extension BigString {
   mutating func _insert(
@@ -98,5 +96,3 @@ extension BigString {
     self = builder.finalize()
   }
 }
-
-#endif // !$Embedded

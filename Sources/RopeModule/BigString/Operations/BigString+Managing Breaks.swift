@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !$Embedded
-
 @available(SwiftStdlib 6.2, *)
 extension BigString {
   func _breakState(
@@ -274,5 +272,3 @@ extension BigString._Chunk {
     return
   }
 }
-
-#endif // !$Embedded

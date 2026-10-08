@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !$Embedded
-
 @available(SwiftStdlib 6.2, *)
 extension BigString._Chunk {
   func utf8ScalarLength(_ byte: UInt8) -> Int {
@@ -138,5 +136,3 @@ extension BigString._Chunk {
     }
   }
 }
-
-#endif // !$Embedded

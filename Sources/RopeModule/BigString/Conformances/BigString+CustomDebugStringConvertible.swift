@@ -11,13 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !$Embedded
-
 @available(SwiftStdlib 6.2, *)
 extension BigString: CustomDebugStringConvertible {
   public var debugDescription: String {
     description.debugDescription
   }
 }
-
-#endif // !$Embedded

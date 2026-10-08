@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !$Embedded
-
 @available(SwiftStdlib 6.2, *)
 extension BigString {
   mutating func split(
@@ -40,5 +38,3 @@ extension BigString {
     return _rope.builder(splittingAt: index.utf8Offset, in: _UTF8Metric())
   }
 }
-
-#endif // !$Embedded

@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !$Embedded
-
 @available(SwiftStdlib 6.2, *)
 extension BigString._Chunk {
   struct Index {
@@ -141,5 +139,3 @@ extension BigString._Chunk.Index: CustomStringConvertible {
     return "\(utf8Offset)[utf8]\(alignment)\(utf16Offset)"
   }
 }
-
-#endif // !$Embedded

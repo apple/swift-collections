@@ -11,11 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !$Embedded
-
 @available(SwiftStdlib 6.2, *)
 extension BigString: LosslessStringConvertible {
   // init?(_: String) is implemented by RangeReplaceableCollection.init(_:)
 }
-
-#endif // !$Embedded

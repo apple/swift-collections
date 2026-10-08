@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !$Embedded
-
 @available(SwiftStdlib 6.2, *)
 extension BigString._Chunk {
   @inline(__always)
@@ -77,5 +75,3 @@ extension BigString._Chunk {
     return (prev, state)
   }
 }
-
-#endif // !$Embedded

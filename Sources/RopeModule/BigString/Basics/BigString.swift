@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !$Embedded
-
 /// The core of a B-tree based String implementation.
 @available(SwiftStdlib 6.2, *)
 @safe
@@ -26,5 +24,3 @@ public struct BigString: Sendable {
     self._rope = _rope
   }
 }
-
-#endif // !$Embedded

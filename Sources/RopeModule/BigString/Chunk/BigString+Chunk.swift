@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !$Embedded
-
 @available(SwiftStdlib 6.2, *)
 extension BigString {
   internal struct _Chunk {
@@ -193,5 +191,3 @@ extension BigString._Chunk {
     utf8Count + other.utf8Count <= Self.maxUTF8Count
   }
 }
-
-#endif // !$Embedded

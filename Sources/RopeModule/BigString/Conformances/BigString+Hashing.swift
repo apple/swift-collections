@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !$Embedded
-
 @available(SwiftStdlib 6.2, *)
 extension BigString: Hashable {
   public func hash(into hasher: inout Hasher) {
@@ -53,5 +51,3 @@ extension BigString {
     hasher.combine(0xFF as UInt8)
   }
 }
-
-#endif // !$Embedded
