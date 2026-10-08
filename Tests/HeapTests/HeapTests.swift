@@ -569,6 +569,67 @@ final class HeapTests: CollectionTestCase {
     expectEqual(heap.popMax(), 1)
   }
 
+  func test_initializer_fromSequence_exhaustive() {
+    withEvery("count", in: 0 ... 8) { count in
+      let expected = Array(0 ..< count)
+      withEveryPermutation("input", of: expected) { input in
+        let heap = Heap(input)
+        expectEqual(heap.count, count)
+        expectEqual(heap.min, expected.first)
+        expectEqual(heap.max, expected.last)
+        expectEqualElements(heap.itemsInAscendingOrder(), expected)
+        var descending = heap
+        for value in expected.reversed() {
+          expectEqual(descending.popMax(), value)
+        }
+        expectTrue(descending.isEmpty)
+      }
+    }
+  }
+
+  func test_insert_exhaustive() {
+    withEvery("count", in: 0 ... 8) { count in
+      withEveryPermutation("input", of: 0 ..< count) { input in
+        var heap = Heap<Int>()
+        for value in input {
+          heap.insert(value)
+        }
+        var lower = 0
+        var upper = count
+        while lower < upper {
+          expectEqual(heap.count, upper - lower)
+          expectEqual(heap.min, lower)
+          expectEqual(heap.max, upper - 1)
+          expectEqual(heap.popMin(), lower)
+          lower += 1
+          if lower < upper {
+            upper -= 1
+            expectEqual(heap.popMax(), upper)
+          }
+        }
+        expectTrue(heap.isEmpty)
+        expectNil(heap.min)
+        expectNil(heap.max)
+      }
+    }
+  }
+
+  func test_initializer_fromSequence_random_duplicates() {
+    let expected = (0 ..< 64).map { $0 / 4 }
+    withEvery("seed", in: 0 ..< 100) { seed in
+      var rng = RepeatableRandomNumberGenerator(seed: seed)
+      let input = expected.shuffled(using: &rng)
+      let heap = Heap(input)
+      expectEqual(heap.count, expected.count)
+      expectEqualElements(heap.itemsInAscendingOrder(), expected)
+      var descending = heap
+      for value in expected.reversed() {
+        expectEqual(descending.popMax(), value)
+      }
+      expectTrue(descending.isEmpty)
+    }
+  }
+
   func test_initializer_fromSequence_random() {
     withEvery("c", in: 0 ... 128) { c in
       withEvery(
