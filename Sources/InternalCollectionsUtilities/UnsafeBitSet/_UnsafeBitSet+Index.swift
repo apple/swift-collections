@@ -14,6 +14,7 @@
 extension _UnsafeBitSet {
   @frozen
   @usableFromInline
+  @safe
   package struct Index: Comparable, Hashable {
     @usableFromInline
     internal typealias _Word = _UnsafeBitSet._Word

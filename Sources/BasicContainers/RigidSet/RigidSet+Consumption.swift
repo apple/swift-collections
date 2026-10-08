@@ -24,10 +24,10 @@ extension RigidSet where Element: ~Copyable {
   public mutating func consumeAll(
     consumingWith consumer: (inout InputSpan<Element>) -> Void
   ) {
-    let storage = self._memberBuf
-    _table.consumeAll { buckets in
-      let buffer = storage._extracting(buckets)
-      var span = InputSpan(buffer: buffer, initializedCount: buffer.count)
+    let storage = unsafe self._memberBuf
+    unsafe _table.consumeAll { buckets in
+      let buffer = unsafe storage._extracting(buckets)
+      var span = unsafe InputSpan(buffer: buffer, initializedCount: buffer.count)
       consumer(&span)
       _ = consume span
     }
@@ -38,9 +38,9 @@ extension RigidSet where Element: ~Copyable {
   public mutating func _consumeAll(
     consumingWith consumer: (UnsafeMutableBufferPointer<Element>) -> Void
   ) {
-    let storage = self._memberBuf
-    _table.consumeAll { buckets in
-      consumer(storage._extracting(buckets))
+    let storage = unsafe self._memberBuf
+    unsafe _table.consumeAll { buckets in
+      unsafe consumer(storage._extracting(buckets))
     }
   }
 }

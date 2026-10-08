@@ -21,6 +21,7 @@ extension _HTable {
   /// to a function that expects a word index, or vice versa.
   @usableFromInline
   @frozen
+  @safe
   package struct Bucket {
     @usableFromInline
     internal typealias Word = _HTable.Word
@@ -127,11 +128,11 @@ extension UnsafeMutableBufferPointer where Element: ~Copyable {
   package subscript(bucket: _HTable.Bucket) -> Element {
     @_transparent
     unsafeAddress {
-      return .init(_ptr(at: bucket.offset))
+      return unsafe .init(_ptr(at: bucket.offset))
     }
     @_transparent
     nonmutating unsafeMutableAddress {
-      return _ptr(at: bucket.offset)
+      return unsafe _ptr(at: bucket.offset)
     }
   }
 
@@ -140,7 +141,7 @@ extension UnsafeMutableBufferPointer where Element: ~Copyable {
   package func _ptr(
     at bucket: _HTable.Bucket
   ) -> UnsafeMutablePointer<Element> {
-    _ptr(at: bucket.offset)
+    unsafe _ptr(at: bucket.offset)
   }
 
   @_alwaysEmitIntoClient
@@ -149,13 +150,13 @@ extension UnsafeMutableBufferPointer where Element: ~Copyable {
     at bucket: _HTable.Bucket,
     to value: consuming Element
   ) {
-    initializeElement(at: bucket.offset, to: value)
+    unsafe initializeElement(at: bucket.offset, to: value)
   }
 
   @_alwaysEmitIntoClient
   @_transparent
   package func _extracting(_ buckets: Range<_HTable.Bucket>) -> Self {
-    _extracting(
+    unsafe _extracting(
       uncheckedFrom: buckets.lowerBound.offset,
       to: buckets.upperBound.offset)
   }
@@ -166,7 +167,7 @@ extension Range where Bound == _HTable.Bucket {
   package var _offsets: Range<Int> {
     @_transparent
     get {
-      .init(uncheckedBounds: (lowerBound.offset, upperBound.offset))
+      unsafe .init(uncheckedBounds: (lowerBound.offset, upperBound.offset))
     }
   }
 }

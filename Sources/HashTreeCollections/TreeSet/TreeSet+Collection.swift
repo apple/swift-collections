@@ -19,23 +19,26 @@ extension TreeSet {
   /// is changed; hence, indices are usually invalidated every time the set
   /// gets mutated.
   @frozen
+  @safe
   public struct Index {
     @usableFromInline
+    @unsafe
     internal let _root: _UnmanagedHashNode
 
     @usableFromInline
     internal var _version: UInt
 
     @usableFromInline
+    @unsafe
     internal var _path: _UnsafePath
 
     @inlinable @inline(__always)
     internal init(
       _root: _UnmanagedHashNode, version: UInt, path: _UnsafePath
     ) {
-      self._root = _root
+      unsafe self._root = _root
       self._version = version
-      self._path = path
+      unsafe self._path = path
     }
   }
 }
@@ -53,9 +56,9 @@ extension TreeSet.Index: Equatable {
   @inlinable
   public static func ==(left: Self, right: Self) -> Bool {
     precondition(
-      left._root == right._root && left._version == right._version,
+      unsafe left._root == right._root && left._version == right._version,
       "Indices from different set values aren't comparable")
-    return left._path == right._path
+    return unsafe left._path == right._path
   }
 }
 
@@ -70,9 +73,9 @@ extension TreeSet.Index: Comparable {
   @inlinable
   public static func <(left: Self, right: Self) -> Bool {
     precondition(
-      left._root == right._root && left._version == right._version,
+      unsafe left._root == right._root && left._version == right._version,
       "Indices from different set values aren't comparable")
-    return left._path < right._path
+    return unsafe left._path < right._path
   }
 }
 
@@ -83,7 +86,7 @@ extension TreeSet.Index: Hashable {
   /// - Complexity: O(1)
   @inlinable
   public func hash(into hasher: inout Hasher) {
-    hasher.combine(_path)
+    unsafe hasher.combine(_path)
   }
 }
 
@@ -91,7 +94,7 @@ extension TreeSet.Index: Hashable {
 extension TreeSet.Index: CustomStringConvertible {
   // A textual representation of this instance.
   public var description: String {
-    _path.description
+    unsafe _path.description
   }
 }
 
@@ -125,9 +128,9 @@ extension TreeSet: Collection {
   ///
   /// - Complexity: O(1)
   public var startIndex: Index {
-    var path = _UnsafePath(root: _root.raw)
-    path.descendToLeftMostItem()
-    return Index(_root: _root.unmanaged, version: _version, path: path)
+    var path = unsafe _UnsafePath(root: _root.raw)
+    unsafe path.descendToLeftMostItem()
+    return unsafe Index(_root: _root.unmanaged, version: _version, path: path)
   }
 
   /// The collection's "past the end" position—that is, the position one greater
@@ -136,14 +139,14 @@ extension TreeSet: Collection {
   /// - Complexity: O(1)
   @inlinable
   public var endIndex: Index {
-    var path = _UnsafePath(root: _root.raw)
-    path.selectEnd()
-    return Index(_root: _root.unmanaged, version: _version, path: path)
+    var path = unsafe _UnsafePath(root: _root.raw)
+    unsafe path.selectEnd()
+    return unsafe Index(_root: _root.unmanaged, version: _version, path: path)
   }
 
   @inlinable @inline(__always)
   internal func _isValid(_ i: Index) -> Bool {
-    _root.isIdentical(to: i._root) && i._version == self._version
+    unsafe _root.isIdentical(to: i._root) && i._version == self._version
   }
 
   @inlinable @inline(__always)
@@ -161,9 +164,9 @@ extension TreeSet: Collection {
   @inlinable
   public subscript(position: Index) -> Element {
     precondition(_isValid(position), "Invalid index")
-    precondition(position._path.isOnItem, "Cannot get element at endIndex")
-    return _UnsafeHandle.read(position._path.node) {
-      $0[item: position._path.currentItemSlot].key
+    precondition(unsafe position._path.isOnItem, "Cannot get element at endIndex")
+    return unsafe _UnsafeHandle.read(position._path.node) {
+      unsafe $0[item: position._path.currentItemSlot].key
     }
   }
 
@@ -176,7 +179,7 @@ extension TreeSet: Collection {
   @inlinable
   public func formIndex(after i: inout Index) {
     precondition(_isValid(i), "Invalid index")
-    guard i._path.findSuccessorItem(under: _root.raw) else {
+    guard unsafe i._path.findSuccessorItem(under: _root.raw) else {
       preconditionFailure("The end index has no successor")
     }
   }
@@ -206,7 +209,7 @@ extension TreeSet: Collection {
   @inlinable
   public func distance(from start: Index, to end: Index) -> Int {
     precondition(_isValid(start) && _isValid(end), "Invalid index")
-    return _root.raw.distance(.top, from: start._path, to: end._path)
+    return unsafe _root.raw.distance(.top, from: start._path, to: end._path)
   }
 
   /// Returns an index that is the specified distance from the given index.
@@ -230,7 +233,7 @@ extension TreeSet: Collection {
   public func index(_ i: Index, offsetBy distance: Int) -> Index {
     precondition(_isValid(i), "Invalid index")
     var i = i
-    let r = _root.raw.seek(.top, &i._path, offsetBy: distance)
+    let r = unsafe _root.raw.seek(.top, &i._path, offsetBy: distance)
     precondition(r, "Index offset out of bounds")
     return i
   }
@@ -263,7 +266,7 @@ extension TreeSet: Collection {
     precondition(_isValid(i), "Invalid index")
     precondition(_isValid(limit), "Invalid limit index")
     var i = i
-    let (found, limited) = _root.raw.seek(
+    let (found, limited) = unsafe _root.raw.seek(
       .top, &i._path, offsetBy: distance, limitedBy: limit._path
     )
     if found { return i }
@@ -316,8 +319,8 @@ extension TreeSet: Collection {
   @inlinable
   internal func _index(of element: Element) -> Index? {
     let hash = _Hash(element)
-    guard let path = _root.path(to: element, hash) else { return nil }
-    return Index(_root: _root.unmanaged, version: _version, path: path)
+    guard let path = unsafe _root.path(to: element, hash) else { return nil }
+    return unsafe Index(_root: _root.unmanaged, version: _version, path: path)
   }
 
   public func _failEarlyRangeCheck(

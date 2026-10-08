@@ -30,7 +30,7 @@ extension RigidDeque where Element: ~Copyable {
   @inline(__always)
   public mutating func append(_ item: consuming Element) {
     precondition(!isFull, "RigidDeque capacity overflow")
-    _handle.uncheckedAppend(item)
+    unsafe _handle.uncheckedAppend(item)
   }
 
   /// Adds an element to the end of the deque, if possible.
@@ -107,10 +107,11 @@ extension RigidDeque where Element: ~Copyable {
   ) throws(E) -> Range<Int> {
     precondition(newItemCount >= 0, "Cannot append a negative number of items")
     guard newItemCount > 0 else {
-      return Range(uncheckedBounds: (count, count))
+      return unsafe Range(uncheckedBounds: (count, count))
     }
     precondition(freeCapacity >= newItemCount, "RigidDeque capacity overflow")
-    return try _handle.uncheckedAppend(addingCount: newItemCount, initializingWith: body)
+    return unsafe try _handle.uncheckedAppend(
+      addingCount: newItemCount, initializingWith: body)
   }
 }
 
@@ -133,7 +134,7 @@ extension RigidDeque where Element: ~Copyable {
     moving items: UnsafeMutableBufferPointer<Element>
   ) -> Range<Int> {
     precondition(items.count <= freeCapacity, "RigidDeque capacity overflow")
-    return _handle.uncheckedAppend(moving: items)
+    return unsafe _handle.uncheckedAppend(moving: items)
   }
 
 #if UnstableContainersPreview
@@ -152,8 +153,8 @@ extension RigidDeque where Element: ~Copyable {
   public mutating func append(
     moving items: inout InputSpan<Element>
   ) -> Range<Int> {
-    items.withUnsafeMutableBufferPointer { buffer, count in
-      let source = buffer._extracting(last: count)
+    unsafe items.withUnsafeMutableBufferPointer { buffer, count in
+      let source = unsafe buffer._extracting(last: count)
       count = 0
       return unsafe self.append(moving: source)
     }
@@ -175,8 +176,8 @@ extension RigidDeque where Element: ~Copyable {
   public mutating func append(
     moving items: inout OutputSpan<Element>
   ) -> Range<Int> {
-    items.withUnsafeMutableBufferPointer { buffer, count in
-      let source = buffer._extracting(first: count)
+    unsafe items.withUnsafeMutableBufferPointer { buffer, count in
+      let source = unsafe buffer._extracting(first: count)
       count = 0
       return unsafe self.append(moving: source)
     }
@@ -204,7 +205,7 @@ extension RigidDeque /*where Element: Copyable*/ {
     precondition(
       items.count <= freeCapacity,
       "RigidDeque capacity overflow")
-    return _handle.uncheckedAppend(copying: items)
+    return unsafe _handle.uncheckedAppend(copying: items)
   }
 
   /// Copies the elements of a buffer and append them to the end of this
@@ -296,7 +297,7 @@ extension RigidDeque /*where Element: Copyable*/ {
     }
     if done != nil { return }
 
-    var it = _handle.uncheckedAppend(copyingPrefixOf: newElements)
+    var it = unsafe _handle.uncheckedAppend(copyingPrefixOf: newElements)
     precondition(it.next() == nil, "RigidDeque capacity overflow")
   }
 

@@ -26,15 +26,15 @@ extension RigidDictionary where Value: Hashable & ~Copyable {
   @inlinable
   public func hash(into hasher: inout Hasher) {
     var commutativeHash = 0
-    var it = self._keys._table.makeBucketIterator()
+    var it = unsafe self._keys._table.makeBucketIterator()
     while let next = it.nextOccupiedRegion() {
       var b = next.lowerBound
       while b < next.upperBound {
         // Note that we use a copy of our own hasher here. This makes hash values
         // dependent on its state, eliminating static collision patterns.
         var elementHasher = hasher
-        _keyPtr(at: b).pointee.hash(into: &elementHasher)
-        _valuePtr(at: b).pointee.hash(into: &elementHasher)
+        unsafe _keyPtr(at: b).pointee.hash(into: &elementHasher)
+        unsafe _valuePtr(at: b).pointee.hash(into: &elementHasher)
         commutativeHash ^= elementHasher.finalize()
         b._offset &+= 1
       }

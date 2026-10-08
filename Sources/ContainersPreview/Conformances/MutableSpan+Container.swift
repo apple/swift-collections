@@ -11,7 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !COLLECTIONS_SINGLE_MODULE
+#if COLLECTIONS_SINGLE_MODULE
+import Collections
+#else
 import InternalCollectionsUtilities
 #endif
 
@@ -96,7 +98,7 @@ extension MutableSpan where Element: ~Copyable {
   ) -> MutableSpan<Element> {
     precondition(index >= 0 && index <= count, "Index out of bounds")
     let end = self.count
-    let r = self._consumingExtracting(unchecked: Range(uncheckedBounds: (index, end)))
+    let r = unsafe self._consumingExtracting(unchecked: Range(uncheckedBounds: (index, end)))
     index = end
     return r
   }
@@ -108,7 +110,7 @@ extension MutableSpan where Element: ~Copyable {
   ) -> MutableSpan<Element> {
     precondition(index >= 0 && index <= count, "Index out of bounds")
     let end = self.count
-    let r = self._mutatingExtracting(
+    let r = unsafe self._mutatingExtracting(
       unchecked: Range(uncheckedBounds: (index, end)))
     index = end
     return r
@@ -126,7 +128,7 @@ extension MutableSpan where Element: ~Copyable {
     if limit >= index, limit < end {
       end = limit
     }
-    let r = self._consumingExtracting(
+    let r = unsafe self._consumingExtracting(
       unchecked: Range(uncheckedBounds: (index, end)))
     index = end
     return r
@@ -144,7 +146,7 @@ extension MutableSpan where Element: ~Copyable {
     if limit >= index, limit < end {
       end = limit
     }
-    let r = self._mutatingExtracting(
+    let r = unsafe self._mutatingExtracting(
       unchecked: Range(uncheckedBounds: (index, end)))
     index = end
     return r

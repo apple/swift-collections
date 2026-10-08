@@ -67,13 +67,13 @@ internal func _bufferDescription<P: _Pointer>(
 
 extension UnsafeRawBufferPointer: TestPrintable {
   public var testDescription: String {
-    _bufferDescription(
+    unsafe _bufferDescription(
       "UnsafeRawBufferPointer", start: baseAddress, count: count)
   }
 }
 extension UnsafeMutableRawBufferPointer: TestPrintable {
   public var testDescription: String {
-    _bufferDescription(
+    unsafe _bufferDescription(
       "UnsafeMutableRawBufferPointer", start: baseAddress, count: count)
   }
 }
@@ -81,14 +81,14 @@ extension UnsafeBufferPointer: TestPrintable
 where Element: ~Copyable
 {
   public var testDescription: String {
-    _bufferDescription("UnsafeBufferPointer", start: baseAddress, count: count)
+    unsafe _bufferDescription("UnsafeBufferPointer", start: baseAddress, count: count)
   }
 }
 extension UnsafeMutableBufferPointer: TestPrintable
 where Element: ~Copyable
 {
   public var testDescription: String {
-    _bufferDescription(
+    unsafe _bufferDescription(
       "UnsafeMutableBufferPointer", start: baseAddress, count: count)
   }
 }
@@ -97,7 +97,7 @@ where Element: ~Copyable
 extension Span: TestPrintable where Element: ~Copyable {
   public var testDescription: String {
     self.withUnsafeBufferPointer { buffer in
-      _bufferDescription("Span", start: buffer.baseAddress, count: buffer.count)
+      unsafe _bufferDescription("Span", start: buffer.baseAddress, count: buffer.count)
     }
   }
 }
@@ -105,7 +105,7 @@ extension Span: TestPrintable where Element: ~Copyable {
 extension MutableSpan: TestPrintable where Element: ~Copyable  {
   public var testDescription: String {
     self.withUnsafeBufferPointer { buffer in
-      _bufferDescription("MutableSpan", start: buffer.baseAddress, count: buffer.count)
+      unsafe _bufferDescription("MutableSpan", start: buffer.baseAddress, count: buffer.count)
     }
   }
 }
@@ -116,7 +116,7 @@ extension OutputSpan: TestPrintable where Element: ~Copyable  {
     return self.span.withUnsafeBufferPointer { buffer in
       """
       OutputSpan(\
-      start: \(buffer.baseAddress?._description ?? "nil"), \
+      start: \(unsafe buffer.baseAddress?._description ?? "nil"), \
       capacity: \(capacity), \
       count: \(buffer.count))
       """
@@ -132,7 +132,7 @@ extension InputSpan: TestPrintable where Element: ~Copyable  {
     return self.span.withUnsafeBufferPointer { buffer in
       """
       InputSpan(\
-      start: \(buffer.baseAddress?._description ?? "nil"), \
+      start: \(unsafe buffer.baseAddress?._description ?? "nil"), \
       capacity: \(capacity), \
       count: \(buffer.count))
       """

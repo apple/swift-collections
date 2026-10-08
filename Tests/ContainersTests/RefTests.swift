@@ -18,8 +18,8 @@ import Collections
 #else
 import InternalCollectionsUtilities
 import _CollectionsTestSupport
-import ContainersPreview
 #endif
+import ContainersPreview
 
 @available(SwiftStdlib 6.4, *)
 final class RefTests: CollectionTestCase {
@@ -73,7 +73,7 @@ final class RefTests: CollectionTestCase {
   func test_init_unsafeAddress_borrowing() {
     let x = 123
     withUnsafePointer(to: x) { pointer in
-      let ref = Ref(unsafeAddress: pointer, borrowing: x)
+      let ref = unsafe Ref(unsafeAddress: pointer, borrowing: x)
       expectEqual(ref.value, 123)
     }
   }

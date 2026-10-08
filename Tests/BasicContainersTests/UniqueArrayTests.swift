@@ -19,6 +19,7 @@ import _CollectionsTestSupport
 import InternalCollectionsUtilities
 import BasicContainers
 #endif
+import ContainersPreview
 
 /// Check if `left` and `right` contain equal elements in the same order.
 @available(SwiftStdlib 5.0, *)
@@ -1001,7 +1002,7 @@ class UniqueArrayTests: CollectionTestCase {
 
             var a = tracker.uniqueArray(layout: layout)
             trackedAddition.span.withUnsafeBufferPointer { buffer in
-              _ = a.replaceSubrange(range, copying: buffer)
+              _ = unsafe a.replaceSubrange(range, copying: buffer)
             }
 
             expectUniqueArrayContents(

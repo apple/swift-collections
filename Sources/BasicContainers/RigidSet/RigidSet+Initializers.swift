@@ -24,7 +24,7 @@ extension RigidSet where Element: ~Copyable {
   @inlinable
   public init(capacity: Int) {
     precondition(capacity >= 0, "Capacity must be nonnegative")
-    self.init(_table: _HTable(capacity: capacity))
+    unsafe self.init(_table: _HTable(capacity: capacity))
   }
   
   @inlinable

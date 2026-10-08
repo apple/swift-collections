@@ -186,31 +186,31 @@ extension BitSet {
     includingTail: Bool,
     using function: (_Word, _Word) -> _Word
   ) {
-    let w1 = handles.0._words
-    let w2 = handles.1._words
+    let w1 = unsafe handles.0._words
+    let w2 = unsafe handles.1._words
     let capacity = (
       includingTail
       ? Swift.max(w1.count, w2.count)
       : Swift.min(w1.count, w2.count))
-    _storage = Array(unsafeUninitializedCapacity: capacity) { buffer, count in
+    _storage = unsafe Array(unsafeUninitializedCapacity: capacity) { buffer, count in
       let sharedCount = Swift.min(w1.count, w2.count)
       for w in 0 ..< sharedCount {
-        buffer.initializeElement(at: w, to: function(w1[w], w2[w]))
+        unsafe buffer.initializeElement(at: w, to: function(w1[w], w2[w]))
       }
       if includingTail {
         if w1.count < w2.count {
           for w in w1.count ..< w2.count {
-            buffer.initializeElement(at: w, to: function(_Word.empty, w2[w]))
+            unsafe buffer.initializeElement(at: w, to: function(_Word.empty, w2[w]))
           }
         } else {
           for w in w2.count ..< w1.count {
-            buffer.initializeElement(at: w, to: function(w1[w], _Word.empty))
+            unsafe buffer.initializeElement(at: w, to: function(w1[w], _Word.empty))
           }
         }
       }
       // Adjust the word count based on results.
       count = capacity
-      while count > 0, buffer[count - 1].isEmpty {
+      while count > 0, unsafe buffer[count - 1].isEmpty {
         count -= 1
       }
     }

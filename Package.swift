@@ -1,4 +1,4 @@
-// swift-tools-version:6.2
+// swift-tools-version:6.4
 //===----------------------------------------------------------------------===//
 //
 // This source file is part of the Swift Collections open source project
@@ -108,7 +108,7 @@ let availabilityMacros: KeyValuePairs<String, String> = [
 ]
 
 let extraSettings: [SwiftSetting] = [
-  //  .strictMemorySafety(),
+  .strictMemorySafety(),
   .enableUpcomingFeature("MemberImportVisibility"),
   .enableExperimentalFeature("BuiltinModule"),
   .enableExperimentalFeature("Lifetimes"),
@@ -341,6 +341,7 @@ let targets: [CustomTarget] = [
   .target(
     kind: .exported,
     name: "TrailingElementsModule",
+    dependencies: ["InternalCollectionsUtilities"],
     exclude: ["CMakeLists.txt"]),
   .target(
     kind: .test,

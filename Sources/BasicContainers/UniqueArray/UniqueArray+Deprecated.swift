@@ -184,7 +184,7 @@ extension UniqueArray where Element: ~Copyable {
     removing subrange: Range<Int>,
     moving newElements: UnsafeMutableBufferPointer<Element>,
   ) {
-    replaceSubrange(subrange, moving: newElements)
+    unsafe replaceSubrange(subrange, moving: newElements)
   }
 
 #if UnstableContainersPreview
@@ -258,7 +258,7 @@ extension UniqueArray {
     removing subrange: Range<Int>,
     copying newElements: UnsafeBufferPointer<Element>
   ) {
-    replaceSubrange(subrange, copying: newElements)
+    unsafe replaceSubrange(subrange, copying: newElements)
   }
 
   @available(*, deprecated, renamed: "replace(_:copying:)")
@@ -267,7 +267,7 @@ extension UniqueArray {
     removing subrange: Range<Int>,
     copying newElements: UnsafeMutableBufferPointer<Element>
   ) {
-    self.replaceSubrange(subrange, copying: newElements)
+    unsafe self.replaceSubrange(subrange, copying: newElements)
   }
 
   @available(*, deprecated, renamed: "replace(_:copying:)")

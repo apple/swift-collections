@@ -23,13 +23,14 @@ import InternalCollectionsUtilities
 /// `_UnmanagedHashNode`. Doing so results in undefined behavior.
 @usableFromInline
 @frozen
+@unsafe
 internal struct _UnmanagedHashNode {
   @usableFromInline
   internal var ref: Unmanaged<_RawHashStorage>
 
   @inlinable @inline(__always)
   internal init(_ storage: _RawHashStorage) {
-    self.ref = .passUnretained(storage)
+    unsafe self.ref = .passUnretained(storage)
   }
 }
 
@@ -42,68 +43,69 @@ extension _UnmanagedHashNode: Equatable {
   /// a newly created node.)
   @inlinable
   internal static func ==(left: Self, right: Self) -> Bool {
-    left.ref.toOpaque() == right.ref.toOpaque()
+    unsafe left.ref.toOpaque() == right.ref.toOpaque()
   }
 }
 
 extension _UnmanagedHashNode: CustomStringConvertible {
   @usableFromInline
   internal var description: String {
-    _addressString(for: ref.toOpaque())
+    _addressString(for: unsafe ref.toOpaque())
   }
 }
 
 extension _UnmanagedHashNode {
   @inlinable @inline(__always)
+  @unsafe
   internal func withRaw<R>(_ body: (_RawHashStorage) -> R) -> R {
-    ref._withUnsafeGuaranteedRef(body)
+    unsafe ref._withUnsafeGuaranteedRef(body)
   }
 
   @inline(__always)
   internal func read<R>(_ body: (_RawHashNode.UnsafeHandle) -> R) -> R {
-    ref._withUnsafeGuaranteedRef { storage in
-      storage.withUnsafeMutablePointers { header, elements in
-        body(_RawHashNode.UnsafeHandle(header, UnsafeRawPointer(elements)))
+    unsafe ref._withUnsafeGuaranteedRef { storage in
+      unsafe storage.withUnsafeMutablePointers { header, elements in
+        unsafe body(_RawHashNode.UnsafeHandle(header, UnsafeRawPointer(elements)))
       }
     }
   }
 
   @inlinable
   internal var hasItems: Bool {
-    withRaw { $0.header.hasItems }
+    unsafe withRaw { $0.header.hasItems }
   }
 
   @inlinable
   internal var hasChildren: Bool {
-    withRaw { $0.header.hasChildren }
+    unsafe withRaw { $0.header.hasChildren }
   }
 
   @inlinable
   internal var itemCount: Int {
-    withRaw { $0.header.itemCount }
+    unsafe withRaw { $0.header.itemCount }
   }
 
   @inlinable
   internal var childCount: Int {
-    withRaw { $0.header.childCount }
+    unsafe withRaw { $0.header.childCount }
   }
 
   @inlinable
   internal var itemsEndSlot: _HashSlot {
-    withRaw { _HashSlot($0.header.itemCount) }
+    unsafe withRaw { _HashSlot($0.header.itemCount) }
   }
 
   @inlinable
   internal var childrenEndSlot: _HashSlot {
-    withRaw { _HashSlot($0.header.childCount) }
+    unsafe withRaw { _HashSlot($0.header.childCount) }
   }
 
   @inlinable
   internal func unmanagedChild(at slot: _HashSlot) -> Self {
-    withRaw { raw in
+    unsafe withRaw { raw in
       assert(slot.value < raw.header.childCount)
-      return raw.withUnsafeMutablePointerToElements { p in
-        Self(p[slot.value].storage)
+      return unsafe raw.withUnsafeMutablePointerToElements { p in
+        unsafe Self(p[slot.value].storage)
       }
     }
   }

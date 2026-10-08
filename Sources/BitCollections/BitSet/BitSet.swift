@@ -24,6 +24,7 @@ import InternalCollectionsUtilities
 /// See `BitArray` for an alternative form of the same underlying data
 /// structure, treating it as a mutable random-access collection of `Bool`
 /// values.
+@safe
 public struct BitSet {
   @usableFromInline
   internal var _storage: [_Word]
@@ -43,8 +44,8 @@ extension BitSet {
     _ body: (_UnsafeHandle) throws -> R
   ) rethrows -> R {
     try _storage.withUnsafeBufferPointer { words in
-      let handle = _UnsafeHandle(words: words, mutable: false)
-      return try body(handle)
+      let handle = unsafe _UnsafeHandle(words: words, mutable: false)
+      return unsafe try body(handle)
     }
   }
 
@@ -69,7 +70,7 @@ extension BitSet {
   }
 
   internal mutating func _shrink() {
-    let suffix = _read { $0._emptySuffix() }
+    let suffix = unsafe _read { unsafe $0._emptySuffix() }
     if suffix > 0 { _storage.removeLast(suffix) }
   }
 
@@ -81,8 +82,8 @@ extension BitSet {
       _checkInvariants()
     }
     return try _storage.withUnsafeMutableBufferPointer { words in
-      var handle = _UnsafeHandle(words: words, mutable: true)
-      return try body(&handle)
+      var handle = unsafe _UnsafeHandle(words: words, mutable: true)
+      return unsafe try body(&handle)
     }
   }
 
@@ -96,8 +97,8 @@ extension BitSet {
       _checkInvariants()
     }
     return try _storage.withUnsafeMutableBufferPointer { words in
-      var handle = _UnsafeHandle(words: words, mutable: true)
-      return try body(&handle, &shrink)
+      var handle = unsafe _UnsafeHandle(words: words, mutable: true)
+      return unsafe try body(&handle, &shrink)
     }
   }
 }

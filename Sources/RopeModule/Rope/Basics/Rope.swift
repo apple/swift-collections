@@ -15,6 +15,7 @@
 /// The rope is augmented by the commutative group specified by `Element.Summary`, enabling
 /// quick lookup operations.
 @frozen // Not really! This module isn't ABI stable.
+@safe
 public struct Rope<Element: RopeElement> {
   @usableFromInline
   internal var _root: _Node?
@@ -36,7 +37,7 @@ public struct Rope<Element: RopeElement> {
 
   @inlinable
   internal var root: _Node {
-    @inline(__always) get { _root.unsafelyUnwrapped }
+    @inline(__always) get { unsafe _root.unsafelyUnwrapped }
     @inline(__always) _modify { yield &_root! }
   }
 

@@ -24,8 +24,8 @@ extension _HashNode {
     restPrefix: String = "",
     depth: Int = 0
   ) {
-    read {
-      $0.dump(
+    unsafe read {
+      unsafe $0.dump(
         iterationOrder: iterationOrder,
         limit: limit,
         extra: "count: \(count), ",
@@ -39,7 +39,9 @@ extension _HashNode {
 extension _HashNode.Storage {
   @usableFromInline
   final internal func dump(iterationOrder: Bool = false) {
-    UnsafeHandle.read(self) { $0.dump(iterationOrder: iterationOrder) }
+    unsafe UnsafeHandle.read(self) {
+      unsafe $0.dump(iterationOrder: iterationOrder)
+    }
   }
 }
 
@@ -51,7 +53,7 @@ extension _HashNode {
 }
 extension _HashNode.UnsafeHandle {
   internal func _itemString(at slot: _HashSlot) -> String {
-    let item = self[item: slot]
+    let item = unsafe self[item: slot]
     return _HashNode._itemString(for: item)
   }
 
@@ -74,20 +76,20 @@ extension _HashNode.UnsafeHandle {
       firstPrefix += "  "
     }
     print("""
-      \(firstPrefix)\(isCollisionNode ? "CollisionNode" : "Node")(\
-      at: \(_addressString(for: _header)), \
-      \(isCollisionNode ? "hash: \(collisionHash), " : "")\
+      \(firstPrefix)\(unsafe isCollisionNode ? "CollisionNode" : "Node")(\
+      at: \(_addressString(for: unsafe _header)), \
+      \(unsafe isCollisionNode ? "hash: \(unsafe collisionHash), " : "")\
       \(extra)\
-      byteCapacity: \(byteCapacity), \
-      freeBytes: \(bytesFree))
+      byteCapacity: \(unsafe byteCapacity), \
+      freeBytes: \(unsafe bytesFree))
       """)
     guard limit > 0 else { return }
     if iterationOrder {
-      for slot in stride(from: .zero, to: itemsEndSlot, by: 1) {
-        print("  \(restPrefix)[\(slot)]  \(_itemString(at: slot))")
+      for slot in stride(from: .zero, to: unsafe itemsEndSlot, by: 1) {
+        print("  \(restPrefix)[\(slot)]  \(unsafe _itemString(at: slot))")
       }
-      for slot in stride(from: .zero, to: childrenEndSlot, by: 1) {
-        self[child: slot].dump(
+      for slot in stride(from: .zero, to: unsafe childrenEndSlot, by: 1) {
+        unsafe self[child: slot].dump(
           iterationOrder: true,
           limit: limit - 1,
           firstPrefix: "  \(restPrefix).\(slot)",
@@ -95,9 +97,9 @@ extension _HashNode.UnsafeHandle {
           depth: depth + 1)
       }
     }
-    else if isCollisionNode {
-      for slot in stride(from: .zero, to: itemsEndSlot, by: 1) {
-        print("\(restPrefix)[\(slot)] \(_itemString(at: slot))")
+    else if unsafe isCollisionNode {
+      for slot in stride(from: .zero, to: unsafe itemsEndSlot, by: 1) {
+        print("\(restPrefix)[\(slot)] \(unsafe _itemString(at: slot))")
       }
     } else {
       var itemSlot: _HashSlot = .zero
@@ -105,11 +107,11 @@ extension _HashNode.UnsafeHandle {
       for b in 0 ..< UInt(_Bitmap.capacity) {
         let bucket = _Bucket(b)
         let bucketStr = "#\(String(b, radix: _Bitmap.capacity, uppercase: true))"
-        if itemMap.contains(bucket) {
-          print("\(restPrefix)  \(bucketStr) \(_itemString(at: itemSlot))")
+        if unsafe itemMap.contains(bucket) {
+          print("\(restPrefix)  \(bucketStr) \(unsafe _itemString(at: itemSlot))")
           itemSlot = itemSlot.next()
-        } else if childMap.contains(bucket) {
-          self[child: childSlot].dump(
+        } else if unsafe childMap.contains(bucket) {
+          unsafe self[child: childSlot].dump(
             iterationOrder: false,
             limit: limit - 1,
             firstPrefix: "\(restPrefix)  \(bucketStr) ",

@@ -13,10 +13,10 @@
 
 import XCTest
 #if COLLECTIONS_SINGLE_MODULE
-@_spi(Testing) import Collections
+import Collections
 #else
 import _CollectionsTestSupport
-@_spi(Testing) import BitCollections
+import BitCollections
 #endif
 
 extension BitArray {
@@ -58,7 +58,7 @@ final class BitArrayTests: CollectionTestCase {
     expectEqual(array.endIndex, 0)
     expectEqualElements(array, [])
   }
-  
+
   func test_RandomAccessCollection() {
     var rng = RepeatableRandomNumberGenerator(seed: 0)
     withEvery("count", in: [0, 1, 2, 13, 64, 65, 127, 128, 129]) { count in
@@ -110,7 +110,7 @@ final class BitArrayTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_fill() {
     var rng = RepeatableRandomNumberGenerator(seed: 0)
     withEvery("count", in: [0, 1, 2, 13, 64, 65, 128, 129]) { count in
@@ -123,7 +123,7 @@ final class BitArrayTests: CollectionTestCase {
           expectEqualElements(value, ref)
         }
       }
-      
+
       var value = BitArray(randomBoolArray(count: count, using: &rng))
       value.fill(with: false)
       expectEqualElements(value, repeatElement(false, count: count))
@@ -131,7 +131,7 @@ final class BitArrayTests: CollectionTestCase {
       expectEqualElements(value, repeatElement(true, count: count))
     }
   }
-  
+
   func test_init_bitPattern() {
     expectEqualElements(
       BitArray(bitPattern: 42 as UInt8),
@@ -279,7 +279,7 @@ final class BitArrayTests: CollectionTestCase {
       expectEqualElements(actual, reference)
     }
   }
-  
+
   func test_init_repeating() {
     withEvery("count", in: [0, 1, 2, 13, 63, 64, 65, 127, 128, 129, 1000]) { count in
       withEvery("v", in: [false, true]) { v in
@@ -289,7 +289,7 @@ final class BitArrayTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_ExpressibleByArrayLiteral() {
     let a: BitArray = []
     expectEqualElements(a, [])
@@ -426,7 +426,7 @@ final class BitArrayTests: CollectionTestCase {
     ]
     checkHashable(equivalenceClasses: classes)
   }
-  
+
   func test_Encodable() throws {
     let b1: BitArray = []
     let v1: MinimalEncoder.Value = .array([.uint64(0)])
@@ -520,7 +520,7 @@ final class BitArrayTests: CollectionTestCase {
           var reference = randomBoolArray(count: count)
           let replacement = randomBoolArray(count: length)
           var actual = BitArray(reference)
-          
+
           reference.replaceSubrange(range, with: replacement)
           actual.replaceSubrange(range, with: replacement)
           expectEqualElements(actual, reference)
@@ -538,10 +538,10 @@ final class BitArrayTests: CollectionTestCase {
         ) { length in
           var reference = randomBoolArray(count: count)
           let value = BitArray(reference)
-          
+
           let refReplacement = randomBoolArray(count: length)
           let replacement = BitArray(refReplacement)
-          
+
           reference.replaceSubrange(range, with: refReplacement)
 
           var actual = value
@@ -593,7 +593,7 @@ final class BitArrayTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_append() {
     withEvery("count", in: 0 ..< 129) { count in
       withEvery("v", in: [false, true]) { v in
@@ -605,20 +605,20 @@ final class BitArrayTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_append_Sequence() {
     withSome("count", in: 0 ..< 512, maxSamples: 10) { count in
       print(count)
       withSome("length", in: 0 ..< 256, maxSamples: 50) { length in
         let reference = randomBoolArray(count: count)
         let addition = randomBoolArray(count: length)
-        
+
         let value = BitArray(reference)
-        
+
         func check<S: Sequence>(_ addition: S) where S.Element == Bool {
           var ref = reference
           var actual = value
-          
+
           ref.append(contentsOf: addition)
           actual.append(contentsOf: addition)
           expectEqualElements(actual, ref)
@@ -636,7 +636,7 @@ final class BitArrayTests: CollectionTestCase {
       withSome("length", in: 0 ..< 256, maxSamples: 50) { length in
         var reference = randomBoolArray(count: count)
         let addition = randomBoolArray(count: length)
-        
+
         var actual = BitArray(reference)
 
         reference.append(contentsOf: addition)
@@ -652,7 +652,7 @@ final class BitArrayTests: CollectionTestCase {
       withSomeRanges("range", in: 0 ..< 512, maxSamples: 50) { range in
         var reference = randomBoolArray(count: count)
         let addition = randomBoolArray(count: 512)
-        
+
         var actual = BitArray(reference)
 
         reference.append(contentsOf: addition[range])
@@ -661,7 +661,7 @@ final class BitArrayTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_insert() {
     withEvery("count", in: 0 ..< 129) { count in
       withSome("i", in: 0 ..< count + 1, maxSamples: 20) { i in
@@ -675,7 +675,7 @@ final class BitArrayTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_insert_contentsOf_Sequence() {
     withSome("count", in: 0 ..< 512, maxSamples: 10) { count in
       print(count)
@@ -683,13 +683,13 @@ final class BitArrayTests: CollectionTestCase {
         withSome("i", in: 0 ..< count + 1, maxSamples: 10) { i in
           let reference = randomBoolArray(count: count)
           let addition = randomBoolArray(count: length)
-          
+
           let value = BitArray(reference)
-          
+
           func check<C: Collection>(_ addition: C) where C.Element == Bool {
             var ref = reference
             var actual = value
-            
+
             ref.insert(contentsOf: addition, at: i)
             actual.insert(contentsOf: addition, at: i)
             expectEqualElements(actual, ref)
@@ -709,12 +709,12 @@ final class BitArrayTests: CollectionTestCase {
         withSome("i", in: 0 ..< count + 1, maxSamples: 10) { i in
           let reference = randomBoolArray(count: count)
           let addition = randomBoolArray(count: length)
-          
+
           let value = BitArray(reference)
-          
+
           var ref = reference
           var actual = value
-            
+
           ref.insert(contentsOf: addition, at: i)
           actual.insert(contentsOf: BitArray(addition), at: i)
           expectEqualElements(actual, ref)
@@ -722,13 +722,13 @@ final class BitArrayTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_remove() {
     withSome("count", in: 0 ..< 512, maxSamples: 50) { count in
       withSome("i", in: 0 ..< count, maxSamples: 30) { i in
         var reference = randomBoolArray(count: count)
         var actual = BitArray(reference)
-          
+
         let v1 = reference.remove(at: i)
         let v2 = actual.remove(at: i)
         expectEqual(v2, v1)
@@ -736,7 +736,7 @@ final class BitArrayTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_removeSubrange() {
     withSome("count", in: 0 ..< 512, maxSamples: 50) { count in
       withSomeRanges("range", in: 0 ..< count, maxSamples: 50) { range in
@@ -759,7 +759,7 @@ final class BitArrayTests: CollectionTestCase {
       expectEqualElements(actual, reference)
     }
   }
-  
+
   func test_removeFirst() {
     withEvery("count", in: 1 ..< 512) { count in
       var reference = randomBoolArray(count: count)
@@ -770,13 +770,13 @@ final class BitArrayTests: CollectionTestCase {
       expectEqualElements(actual, reference)
     }
   }
-  
+
   func test_removeFirst_n() {
     withSome("count", in: 0 ..< 512, maxSamples: 50) { count in
       withSome("n", in: 0 ... count, maxSamples: 30) { n in
         var reference = randomBoolArray(count: count)
         var actual = BitArray(reference)
-          
+
         reference.removeFirst(n)
         actual.removeFirst(n)
         expectEqualElements(actual, reference)
@@ -789,14 +789,14 @@ final class BitArrayTests: CollectionTestCase {
       withSome("n", in: 0 ... count, maxSamples: 30) { n in
         var reference = randomBoolArray(count: count)
         var actual = BitArray(reference)
-          
+
         reference.removeLast(n)
         actual.removeLast(n)
         expectEqualElements(actual, reference)
       }
     }
   }
-  
+
   func test_removeAll() {
     withSome("count", in: 0 ..< 512, maxSamples: 50) { count in
       withEvery("keep", in: [false, true]) { keep in
@@ -812,7 +812,7 @@ final class BitArrayTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_reserveCapacity() {
     var bits = BitArray()
     expectEqual(bits._capacity, 0)
@@ -848,13 +848,13 @@ final class BitArrayTests: CollectionTestCase {
       withEvery("i", in: 0 ..< 10) { i in
         let a = randomBoolArray(count: count)
         let b = randomBoolArray(count: count)
-        
+
         let c = BitArray(a)
         let d = BitArray(b)
-        
+
         let expected = zip(a, b).map { $0 || $1 }
         let actual = c | d
-        
+
         expectEqualElements(actual, expected)
       }
     }
@@ -865,13 +865,13 @@ final class BitArrayTests: CollectionTestCase {
       withEvery("i", in: 0 ..< 10) { i in
         let a = randomBoolArray(count: count)
         let b = randomBoolArray(count: count)
-        
+
         let c = BitArray(a)
         let d = BitArray(b)
-        
+
         let expected = zip(a, b).map { $0 && $1 }
         let actual = c & d
-        
+
         expectEqualElements(actual, expected)
       }
     }
@@ -882,13 +882,13 @@ final class BitArrayTests: CollectionTestCase {
       withEvery("i", in: 0 ..< 10) { i in
         let a = randomBoolArray(count: count)
         let b = randomBoolArray(count: count)
-        
+
         let c = BitArray(a)
         let d = BitArray(b)
-        
+
         let expected = zip(a, b).map { $0 != $1 }
         let actual = c ^ d
-        
+
         expectEqualElements(actual, expected)
       }
     }
@@ -898,12 +898,12 @@ final class BitArrayTests: CollectionTestCase {
     withSome("count", in: 0 ..< 512, maxSamples: 100) { count in
       withEvery("i", in: 0 ..< 10) { i in
         let a = randomBoolArray(count: count)
-        
+
         let b = BitArray(a)
 
         let expected = a.map { !$0 }
         let actual = ~b
-        
+
         expectEqualElements(actual, expected)
       }
     }
@@ -949,10 +949,10 @@ final class BitArrayTests: CollectionTestCase {
       withSome("newCount", in: 0 ... 1024, maxSamples: 30) { newCount in
         withEvery("padding", in: [false, true]) { padding in
           let array = randomBoolArray(count: oldCount)
-          
+
           var bits = BitArray(array)
           bits.truncateOrExtend(toCount: newCount, with: padding)
-          
+
           let delta = newCount - oldCount
           if delta >= 0 {
             let expected = array + repeatElement(padding, count: delta)

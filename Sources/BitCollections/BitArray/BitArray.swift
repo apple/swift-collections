@@ -24,6 +24,7 @@ import InternalCollectionsUtilities
 /// See `BitSet` for an alternative form of the same underlying data
 /// structure, treating it as a set of nonnegative integers corresponding to
 /// `true` bits.
+@safe
 public struct BitArray {
   @usableFromInline
   internal typealias _BitPosition = _UnsafeBitSet.Index
@@ -58,9 +59,9 @@ extension BitArray {
     _ body: (_UnsafeHandle) throws -> R
   ) rethrows -> R {
     try _storage.withUnsafeBufferPointer { words in
-      let handle = _UnsafeHandle(
+      let handle = unsafe _UnsafeHandle(
         words: words, count: _count, mutable: false)
-      return try body(handle)
+      return unsafe try body(handle)
     }
   }
 
@@ -72,8 +73,8 @@ extension BitArray {
       _checkInvariants()
     }
     return try _storage.withUnsafeMutableBufferPointer { words in
-      var handle = _UnsafeHandle(words: words, count: _count, mutable: true)
-      return try body(&handle)
+      var handle = unsafe _UnsafeHandle(words: words, count: _count, mutable: true)
+      return unsafe try body(&handle)
     }
   }
   

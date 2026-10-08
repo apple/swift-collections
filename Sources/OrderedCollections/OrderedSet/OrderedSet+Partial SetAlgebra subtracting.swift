@@ -92,12 +92,12 @@ extension OrderedSet {
   @inlinable
   __consuming func _subtracting(_ other: some Sequence<Element>) -> Self {
     guard count > 0 else { return Self() }
-    return _UnsafeBitSet.withTemporaryBitSet(capacity: count) { difference in
-      difference.insertAll(upTo: count)
+    return unsafe _UnsafeBitSet.withTemporaryBitSet(capacity: count) { difference in
+      unsafe difference.insertAll(upTo: count)
       var c = count
       for item in other {
         if let index = self._find(item).index {
-          if difference.remove(index) {
+          if unsafe difference.remove(index) {
             c &-= 1
             if c == 0 {
               return Self()
@@ -106,7 +106,7 @@ extension OrderedSet {
         }
       }
       assert(c > 0)
-      return _extractSubset(using: difference, count: c)
+      return unsafe _extractSubset(using: difference, count: c)
     }
   }
 }

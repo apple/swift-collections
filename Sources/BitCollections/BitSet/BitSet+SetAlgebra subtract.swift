@@ -27,9 +27,9 @@ extension BitSet {
   ///
   /// - Complexity: O(*max*), where *max* is the largest item in either input.
   public mutating func subtract(_ other: BitSet) {
-    _updateThenShrink { target, shrink in
-      other._read { source in
-        target.combineSharedPrefix(
+    unsafe _updateThenShrink { target, shrink in
+      unsafe other._read { source in
+        unsafe target.combineSharedPrefix(
           with: source,
           using: { $0.subtract($1) }
         )
@@ -67,8 +67,8 @@ extension BitSet {
   @usableFromInline
   internal mutating func _subtract(_ other: Range<UInt>) {
     guard !other.isEmpty else { return }
-    _updateThenShrink { handle, shrink in
-      handle.subtract(other)
+    unsafe _updateThenShrink { handle, shrink in
+      unsafe handle.subtract(other)
     }
   }
 
@@ -110,9 +110,9 @@ extension BitSet {
 
   @usableFromInline
   internal mutating func _subtract(_ next: () -> UInt?) {
-    _updateThenShrink { handle, shrink in
+    unsafe _updateThenShrink { handle, shrink in
       while let value = next() {
-        handle.remove(value)
+        unsafe handle.remove(value)
       }
     }
   }

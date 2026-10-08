@@ -22,6 +22,7 @@ extension OrderedSet {
   /// - Complexity: Expected to be O(1) on average if `Element`
   ///    implements high-quality hashing.
   @inlinable
+  @unsafe
   internal mutating func _appendNew(_ item: Element) {
     assert(!contains(item), "Duplicate item")
     _elements.append(item)
@@ -31,10 +32,10 @@ extension OrderedSet {
     }
     guard _table != nil else { return }
     _ensureUnique()
-    _table!.update { hashTable in
-      var it = hashTable.bucketIterator(for: item)
-      it.advanceToNextUnoccupiedBucket()
-      it.currentValue = _elements.count - 1
+    unsafe _table!.update { hashTable in
+      var it = unsafe hashTable.bucketIterator(for: item)
+      unsafe it.advanceToNextUnoccupiedBucket()
+      unsafe it.currentValue = _elements.count - 1
     }
   }
 
@@ -47,6 +48,7 @@ extension OrderedSet {
   ///
   /// - Complexity: Amortized O(1)
   @inlinable
+  @unsafe
   internal mutating func _appendNew(_ item: Element, in bucket: _Bucket) {
     _elements.append(item)
 
@@ -56,9 +58,9 @@ extension OrderedSet {
     }
     guard _table != nil else { return }
     _ensureUnique()
-    _table!.update { hashTable in
-      assert(!hashTable.isOccupied(bucket))
-      hashTable[bucket] = _elements.count - 1
+    unsafe _table!.update { hashTable in
+      assert(unsafe !hashTable.isOccupied(bucket))
+      unsafe hashTable[bucket] = _elements.count - 1
     }
   }
 
@@ -69,7 +71,7 @@ extension OrderedSet {
   ) -> (inserted: Bool, index: Int) {
     let (index, bucket) = _find(item)
     if let index = index { return (false, index) }
-    _appendNew(item, in: bucket)
+    unsafe _appendNew(item, in: bucket)
     return (true, _elements.index(before: _elements.endIndex))
   }
 
@@ -118,6 +120,7 @@ extension OrderedSet {
 
 extension OrderedSet {
   @inlinable
+  @unsafe
   internal mutating func _insertNew(
     _ item: Element,
     at index: Int,
@@ -134,10 +137,10 @@ extension OrderedSet {
     }
 
     _ensureUnique()
-    _table!.update { hashTable in
-      assert(!hashTable.isOccupied(bucket))
-      hashTable.adjustContents(preparingForInsertionOfElementAtOffset: index, in: _elements)
-      hashTable[bucket] = index
+    unsafe _table!.update { hashTable in
+      assert(unsafe !hashTable.isOccupied(bucket))
+      unsafe hashTable.adjustContents(preparingForInsertionOfElementAtOffset: index, in: _elements)
+      unsafe hashTable[bucket] = index
     }
     _elements.insert(item, at: index)
     _checkInvariants()
@@ -169,7 +172,7 @@ extension OrderedSet {
   ) -> (inserted: Bool, index: Int) {
     let (existing, bucket) = _find(item)
     if let existing = existing { return (false, existing) }
-    _insertNew(item, at: index, in: bucket)
+    unsafe _insertNew(item, at: index, in: bucket)
     return (true, index)
   }
 }
@@ -213,10 +216,11 @@ extension OrderedSet {
   /// - Complexity: Amortized O(1)
   @inlinable
   @discardableResult
+  @unsafe
   internal mutating func _replaceNew(
     at index: Int, with item: Element, in bucket: _Bucket
   ) -> Element {
-    _appendNew(item, in: bucket)
+    unsafe _appendNew(item, in: bucket)
     swapAt(index, count - 1)
     return removeLast()
   }
@@ -262,7 +266,7 @@ extension OrderedSet {
     }
 
     precondition(existing == nil, "Duplicate element")
-    return _replaceNew(at: index, with: item, in: bucket)
+    return unsafe _replaceNew(at: index, with: item, in: bucket)
   }
 }
 
@@ -322,7 +326,7 @@ extension OrderedSet {
       _elements[existing] = item
       return (old, existing)
     }
-    _insertNew(item, at: index, in: bucket)
+    unsafe _insertNew(item, at: index, in: bucket)
     return (nil, index)
   }
 }

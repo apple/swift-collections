@@ -32,7 +32,7 @@ extension TreeSet {
   public mutating func remove(at position: Index) -> Element {
     precondition(_isValid(position))
     _invalidateIndices()
-    let r = _root.remove(.top, at: position._path)
+    let r = unsafe _root.remove(.top, at: position._path)
     precondition(r.remainder == nil)
     return r.removed.key
   }
@@ -58,15 +58,15 @@ extension TreeSet {
   public mutating func update(_ member: Element, at index: Index) -> Element {
     defer { _fixLifetime(self) }
     precondition(_isValid(index), "Invalid index")
-    precondition(index._path.isOnItem, "Cannot get element at endIndex")
+    precondition(unsafe index._path.isOnItem, "Cannot get element at endIndex")
     _invalidateIndices()
-    return _UnsafeHandle.update(index._path.node) {
-      let p = $0.itemPtr(at: index._path.currentItemSlot)
+    return unsafe _UnsafeHandle.update(index._path.node) {
+      let p = unsafe $0.itemPtr(at: index._path.currentItemSlot)
       var old = member
       precondition(
-        member == p.pointee.key,
+        unsafe member == p.pointee.key,
         "The replacement item must compare equal to the original")
-      swap(&p.pointee.key, &old)
+      unsafe swap(&p.pointee.key, &old)
       return old
     }
   }

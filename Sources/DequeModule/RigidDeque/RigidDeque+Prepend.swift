@@ -30,7 +30,7 @@ extension RigidDeque where Element: ~Copyable {
   @_transparent
   public mutating func prepend(_ item: consuming Element) {
     precondition(!isFull, "RigidDeque capacity overflow")
-    _handle.uncheckedPrepend(item)
+    unsafe _handle.uncheckedPrepend(item)
   }
 
   /// Adds an element to the front of the deque, if possible.
@@ -111,7 +111,7 @@ extension RigidDeque where Element: ~Copyable {
     precondition(newItemCount >= 0, "Cannot prepend a negative number of items")
     guard newItemCount > 0 else { return 0 ..< 0 }
     precondition(freeCapacity >= newItemCount, "RigidDeque capacity overflow")
-    return try _handle.uncheckedPrepend(
+    return unsafe try _handle.uncheckedPrepend(
       addingCount: newItemCount, initializingWith: body)
   }
 }
@@ -132,11 +132,12 @@ extension RigidDeque where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @inline(__always)
   @discardableResult
+  @unsafe
   public mutating func prepend(
     moving items: UnsafeMutableBufferPointer<Element>
   ) -> Range<Int> {
     precondition(items.count <= freeCapacity, "RigidDeque capacity overflow")
-    return _handle.uncheckedPrepend(moving: items)
+    return unsafe _handle.uncheckedPrepend(moving: items)
   }
 
 #if UnstableContainersPreview
@@ -155,8 +156,8 @@ extension RigidDeque where Element: ~Copyable {
   public mutating func prepend(
     moving items: inout InputSpan<Element>
   ) -> Range<Int> {
-    items.withUnsafeMutableBufferPointer { buffer, count in
-      let source = buffer._extracting(last: count)
+    unsafe items.withUnsafeMutableBufferPointer { buffer, count in
+      let source = unsafe buffer._extracting(last: count)
       count = 0
       return unsafe self.prepend(moving: source)
     }
@@ -178,8 +179,8 @@ extension RigidDeque where Element: ~Copyable {
   public mutating func prepend(
     moving items: inout OutputSpan<Element>
   ) -> Range<Int> {
-    items.withUnsafeMutableBufferPointer { buffer, count in
-      let source = buffer._extracting(first: count)
+    unsafe items.withUnsafeMutableBufferPointer { buffer, count in
+      let source = unsafe buffer._extracting(first: count)
       count = 0
       return unsafe self.prepend(moving: source)
     }
@@ -202,13 +203,14 @@ extension RigidDeque /*where Element: Copyable*/ {
   @inlinable
   @_alwaysEmitIntoClient
   @discardableResult
+  @unsafe
   public mutating func prepend(
     copying items: UnsafeBufferPointer<Element>
   ) -> Range<Int> {
     precondition(
       items.count <= freeCapacity,
       "RigidDeque capacity overflow")
-    return _handle.uncheckedPrepend(copying: items)
+    return unsafe _handle.uncheckedPrepend(copying: items)
   }
 
   /// Copies the elements of a buffer and prepend them to the front of this
@@ -225,6 +227,7 @@ extension RigidDeque /*where Element: Copyable*/ {
   @inlinable
   @_alwaysEmitIntoClient
   @discardableResult
+  @unsafe
   public mutating func prepend(
     copying items: UnsafeMutableBufferPointer<Element>
   ) -> Range<Int> {
@@ -261,13 +264,9 @@ extension RigidDeque /*where Element: Copyable*/ {
     // We don't know the exact count of new elements, so we cannot initialize
     // them in place. Append them to the end of the deque first, then rotate
     // them to their correct location.
-    //
-    // FIXME: If we get a Iterable.estimatedCount with an exact case,
-    // then we should use that when possible to copy items to their final
-    // location in a single pass.
     let oldCount = self.count
     try self._append(copying: items) // Not a typo!
-    _handle.rotate(toStartAtOffset: oldCount)
+    unsafe _handle.rotate(toStartAtOffset: oldCount)
   }
 
   @available(SwiftStdlib 6.4, *)
@@ -343,7 +342,7 @@ extension RigidDeque /*where Element: Copyable*/ {
     guard done == nil else { return }
     let oldCount = self.count
     self.append(copying: items) // Not a typo!
-    _handle.rotate(toStartAtOffset: oldCount)
+    unsafe _handle.rotate(toStartAtOffset: oldCount)
   }
 
   /// Prepend the elements of a collection to the front of this deque by copying
@@ -376,7 +375,7 @@ extension RigidDeque /*where Element: Copyable*/ {
     let c = items.count
     guard c > 0 else { return 0 ..< 0 }
     precondition(c <= freeCapacity, "RigidDeque capacity overflow")
-    return _handle.uncheckedPrepend(copying: items, exactCount: c)
+    return unsafe _handle.uncheckedPrepend(copying: items, exactCount: c)
   }
 
 #if compiler(>=6.4)

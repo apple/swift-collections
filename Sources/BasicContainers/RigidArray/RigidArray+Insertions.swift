@@ -47,7 +47,7 @@ extension RigidArray where Element: ~Copyable {
       assert(last == target.endIndex)
     }
     unsafe _storage.initializeElement(at: index, to: item)
-    _count += 1
+    unsafe _count += 1
     return index
   }
 }
@@ -106,13 +106,13 @@ extension RigidArray where Element: ~Copyable {
     precondition(newItemCount >= 0, "Cannot add a negative number of items")
     precondition(newItemCount <= freeCapacity, "RigidArray capacity overflow")
     let target = unsafe _openGap(at: index, count: newItemCount)
-    _count &+= newItemCount
-    var span = OutputSpan(buffer: target, initializedCount: 0)
+    unsafe _count &+= newItemCount
+    var span = unsafe OutputSpan(buffer: target, initializedCount: 0)
     defer {
-      let c = span.finalize(for: target)
+      let c = unsafe span.finalize(for: target)
       if c < newItemCount {
-        _closeGap(at: index &+ c, count: newItemCount &- c)
-        _count &-= newItemCount &- c
+        unsafe _closeGap(at: index &+ c, count: newItemCount &- c)
+        unsafe _count &-= newItemCount &- c
       }
       span = OutputSpan()
     }
@@ -147,7 +147,7 @@ extension RigidArray where Element: ~Copyable {
     at index: Int
   ) -> Range<Int> {
     insert(addingCount: items.count, at: index) { target in
-      target._append(moving: items)
+      unsafe target._append(moving: items)
     }
   }
 
@@ -175,8 +175,8 @@ extension RigidArray where Element: ~Copyable {
     at index: Int
   ) -> Range<Int> {
     // FIXME: Remove when InputSpan starts conforming to RangeReplaceableContainer
-    items.withUnsafeMutableBufferPointer { buffer, count in
-      let source = buffer._extracting(last: count)
+    unsafe items.withUnsafeMutableBufferPointer { buffer, count in
+      let source = unsafe buffer._extracting(last: count)
       count = 0
       return unsafe self.insert(moving: source, at: index)
     }
@@ -206,8 +206,8 @@ extension RigidArray where Element: ~Copyable {
     at index: Int
   ) -> Range<Int> {
     // FIXME: Remove when OutputSpan starts conforming to RangeReplaceableContainer
-    items.withUnsafeMutableBufferPointer { buffer, count in
-      let source = buffer._extracting(first: count)
+    unsafe items.withUnsafeMutableBufferPointer { buffer, count in
+      let source = unsafe buffer._extracting(first: count)
       count = 0
       return unsafe self.insert(moving: source, at: index)
     }
@@ -279,7 +279,7 @@ extension RigidArray {
       return index ..< index
     }
     return self.insert(addingCount: newElements.count, at: index) { target in
-      target._append(copying: newElements)
+      unsafe target._append(copying: newElements)
     }
   }
 
@@ -358,7 +358,7 @@ extension RigidArray {
     let res: Range<Int>? = items.withContiguousStorageIfAvailable { buffer in
       precondition(buffer.count == newCount, "Broken Collection: mismatching count")
       return self.insert(addingCount: buffer.count, at: index) { target in
-        target._append(copying: buffer)
+        unsafe target._append(copying: buffer)
       }
     }
     if let res { return res }

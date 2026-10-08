@@ -12,6 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 @usableFromInline
+@safe
 internal struct _DequeBufferHeader {
   @usableFromInline
   var capacity: Int

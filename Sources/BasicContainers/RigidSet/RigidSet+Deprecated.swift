@@ -24,43 +24,6 @@ extension RigidSet where Element: ~Copyable {
   ) throws(E) -> Void {
     try self.insert(addingCount: maximumCount, initializingWith: initializer)
   }
-
-  #if UnstableContainersPreview
-  @available(*, deprecated, renamed: "insert(addingCount:from:)")
-  @_alwaysEmitIntoClient
-  public mutating func insert<
-    E: Error,
-    P: Producer<Element, E> & ~Copyable & ~Escapable
-  >(
-    maximumCount: Int?,
-    from producer: inout P
-  ) throws(E)
-  where P.Element: ~Copyable
-  {
-    try self.insert(addingCount: maximumCount, from: &producer)
-  }
-  #endif
-
-#if UnstableContainersPreview
-  @available(*, deprecated, renamed: "insert(addingCount:from:)")
-  @_alwaysEmitIntoClient
-  public mutating func insert<
-    D: Drain<Element> & ~Copyable & ~Escapable
-  >(
-    maximumCount: Int?,
-    from drain: inout D
-  ) {
-    var remainder = drain.count
-    while remainder > 0 {
-      var span = drain.drainNext(maxCount: remainder)
-      guard !span.isEmpty else { break }
-      remainder &-= span.count
-      while let next = span.popFirst() {
-        self.insert(next)
-      }
-    }
-  }
-  #endif
 }
 #endif
 

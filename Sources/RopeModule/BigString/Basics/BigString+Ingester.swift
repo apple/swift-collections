@@ -157,7 +157,7 @@ extension String {
     guard i < limit else { return nil }
     let end = self.utf8.index(i, offsetBy: maxUTF8Count, limitedBy: limit) ?? limit
     let j = self.unicodeScalars._index(roundingDown: end)
-    return Range(uncheckedBounds: (i, j))
+    return unsafe Range(uncheckedBounds: (i, j))
   }
 }
 

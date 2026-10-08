@@ -15,7 +15,7 @@
 extension String.Index {
   @inline(__always)
   var _abi_rawBits: UInt64 {
-    unsafeBitCast(self, to: UInt64.self)
+    unsafe unsafeBitCast(self, to: UInt64.self)
   }
   
   @inline(__always)
@@ -62,12 +62,12 @@ extension String.Index {
   
   var _knownCharacterAligned: String.Index {
     let r = _abi_rawBits | Self._abi_characterAlignmentBit | Self._abi_scalarAlignmentBit
-    return unsafeBitCast(r, to: String.Index.self)
+    return unsafe unsafeBitCast(r, to: String.Index.self)
   }
 
   var _knownScalarAligned: String.Index {
     let r = _abi_rawBits | Self._abi_scalarAlignmentBit
-    return unsafeBitCast(r, to: String.Index.self)
+    return unsafe unsafeBitCast(r, to: String.Index.self)
   }
 }
 
@@ -88,7 +88,7 @@ extension String.Index {
 
   @inline(__always)
   init(_rawBits: UInt64) {
-    self = unsafeBitCast(_rawBits, to: String.Index.self)
+    self = unsafe unsafeBitCast(_rawBits, to: String.Index.self)
   }
 
   @inline(__always)

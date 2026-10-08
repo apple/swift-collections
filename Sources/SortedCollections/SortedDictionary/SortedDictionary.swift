@@ -112,20 +112,20 @@ extension SortedDictionary {
     default defaultValue: @autoclosure () -> Value,
     _ body: (inout Value) throws -> R
   ) rethrows -> R {
-    var (cursor, found) = self._root.takeCursor(forKey: key)
+    var (cursor, found) = unsafe self._root.takeCursor(forKey: key)
     let r: R
     
     if found {
-      r = try cursor.updateCurrentNode { handle, slot in
-        try body(&handle[valueAt: slot])
+      r = unsafe try cursor.updateCurrentNode { handle, slot in
+        unsafe try body(&handle[valueAt: slot])
       }
     } else {
       var value = defaultValue()
       r = try body(&value)
-      cursor.insertElement((key, value), capacity: self._root.internalCapacity)
+      unsafe cursor.insertElement((key, value), capacity: self._root.internalCapacity)
     }
     
-    cursor.apply(to: &self._root)
+    unsafe cursor.apply(to: &self._root)
     
     return r
   }

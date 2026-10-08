@@ -18,8 +18,8 @@ import Collections
 import _CollectionsTestSupport
 import InternalCollectionsUtilities
 import BasicContainers
-import ContainersPreview
 #endif
+import ContainersPreview
 
 #if compiler(>=6.4) && UnstableHashedContainers
 
@@ -256,30 +256,30 @@ class RigidSetTests: CollectionTestCase {
           withEvery("i", in: 0 ..< capacity) { i in
             s.insert(tracker.instance(for: i))
 
-            var it = s._table.makeBucketIterator()
-            var j = s._table.startBucket
+            var it = unsafe s._table.makeBucketIterator()
+            var j = unsafe s._table.startBucket
             while let next = it.nextOccupiedRegion(maxCount: maxCount) {
               expectFalse(next.isEmpty, "Empty chunk; j: \(j), next: \(next)")
               expectLessThanOrEqual(
                 next.upperBound.offset - next.lowerBound.offset,
                 maxCount,
                 "Overlong chunk")
-              if maxCount == Int.max, j > s._table.startBucket {
+              if maxCount == Int.max, unsafe j > s._table.startBucket {
                 expectGreaterThan(
                   next.lowerBound, j,
                   "Unnecessarily split run of occupied buckets")
               }
               while j < next.lowerBound {
                 context.withTrace("j: \(j)") {
-                  expectFalse(s._table.bitmap.isOccupied(j))
+                  expectFalse(unsafe s._table.bitmap.isOccupied(j))
                 }
-                s._table.formBucket(after: &j)
+                unsafe s._table.formBucket(after: &j)
               }
               while j < next.upperBound {
                 context.withTrace("j: \(j)") {
-                  expectTrue(s._table.isOccupied(j))
+                  expectTrue(unsafe s._table.isOccupied(j))
                 }
-                s._table.formBucket(after: &j)
+                unsafe s._table.formBucket(after: &j)
               }
             }
           }

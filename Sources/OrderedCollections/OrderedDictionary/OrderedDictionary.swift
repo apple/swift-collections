@@ -357,10 +357,10 @@ extension OrderedDictionary {
       case let (index?, newValue?): // Assign
         _values[index] = newValue
       case let (index?, nil): // Remove
-        _keys._removeExistingMember(at: index, in: bucket)
+        unsafe _keys._removeExistingMember(at: index, in: bucket)
         _values.remove(at: index)
       case let (nil, newValue?): // Insert
-        _keys._appendNew(key, in: bucket)
+        unsafe _keys._appendNew(key, in: bucket)
         _values.append(newValue)
       case (nil, nil): // Noop
         break
@@ -410,9 +410,9 @@ extension OrderedDictionary {
         let standin = _values.remove(at: index)
         _values.append(standin)
       }
-      _keys._removeExistingMember(at: index, in: bucket)
+      unsafe _keys._removeExistingMember(at: index, in: bucket)
     case let (nil, value?): // Insert
-      _keys._appendNew(key, in: bucket)
+      unsafe _keys._appendNew(key, in: bucket)
       _values.append(value)
     case (nil, nil): // Noop
       break
@@ -492,15 +492,16 @@ extension OrderedDictionary {
     }
     @inline(__always) // https://github.com/apple/swift-collections/issues/164
     _modify {
-      var (index, value) = _prepareForDefaultedModify(key, defaultValue)
+      var (index, value) = unsafe _prepareForDefaultedModify(key, defaultValue)
       defer {
-        _finalizeDefaultedModify(index, &value)
+        unsafe _finalizeDefaultedModify(index, &value)
       }
       yield &value
     }
   }
 
   @inlinable
+  @unsafe
   internal mutating func _prepareForDefaultedModify(
     _ key: Key,
     _ defaultValue: () -> Value
@@ -512,18 +513,19 @@ extension OrderedDictionary {
     }
     let value: Value = _values.withUnsafeMutableBufferPointer { buffer in
       assert(index < buffer.count)
-      return (buffer.baseAddress! + index).move()
+      return unsafe (buffer.baseAddress! + index).move()
     }
     return (index, value)
   }
 
   @inlinable
+  @unsafe
   internal mutating func _finalizeDefaultedModify(
     _ index: Int, _ value: inout Value
   ) {
     _values.withUnsafeMutableBufferPointer { buffer in
       assert(index < buffer.count)
-      (buffer.baseAddress! + index).initialize(to: value)
+      unsafe (buffer.baseAddress! + index).initialize(to: value)
     }
   }
 }
@@ -578,7 +580,7 @@ extension OrderedDictionary {
       _values[index] = value
       return old
     }
-    _keys._appendNew(key, in: bucket)
+    unsafe _keys._appendNew(key, in: bucket)
     _values.append(value)
     return nil
   }
@@ -691,7 +693,7 @@ extension OrderedDictionary {
     if let index = index {
       return try body(&_values[index])
     }
-    _keys._appendNew(key, in: bucket)
+    unsafe _keys._appendNew(key, in: bucket)
     _values.append(defaultValue())
     let i = _values.index(before: _values.endIndex)
     return try body(&_values[i])
@@ -740,7 +742,7 @@ extension OrderedDictionary {
     if let existingIndex = existingIndex {
       return try body(&_values[existingIndex])
     }
-    _keys._insertNew(key, at: index, in: bucket)
+    unsafe _keys._insertNew(key, at: index, in: bucket)
     _values.insert(defaultValue(), at: index)
     return try body(&_values[index])
   }
@@ -781,7 +783,7 @@ extension OrderedDictionary {
   public mutating func removeValue(forKey key: Key) -> Value? {
     let (idx, bucket) = _keys._find(key)
     guard let index = idx else { return nil }
-    _keys._removeExistingMember(at: index, in: bucket)
+    unsafe _keys._removeExistingMember(at: index, in: bucket)
     return _values.remove(at: index)
   }
 }
@@ -832,7 +834,7 @@ extension OrderedDictionary {
       if let index = index {
         try { $0 = try combine($0, value) }(&_values[index])
       } else {
-        _keys._appendNew(key, in: bucket)
+        unsafe _keys._appendNew(key, in: bucket)
         _values.append(value)
       }
     }
@@ -992,7 +994,7 @@ extension OrderedDictionary {
   ) rethrows -> Self {
     var result: OrderedDictionary = [:]
     for element in self where try isIncluded(element) {
-      result._keys._appendNew(element.key)
+      unsafe result._keys._appendNew(element.key)
       result._values.append(element.value)
     }
     return result
@@ -1052,7 +1054,7 @@ extension OrderedDictionary {
     var result: OrderedDictionary<Key, T> = [:]
     for (key, value) in self {
       if let value = try transform(value) {
-        result._keys._appendNew(key)
+        unsafe result._keys._appendNew(key)
         result._values.append(value)
       }
     }

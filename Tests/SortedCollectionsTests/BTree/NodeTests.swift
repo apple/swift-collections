@@ -13,9 +13,12 @@
 
 #if UnstableSortedCollections
 
-#if DEBUG
+#if COLLECTIONS_SINGLE_MODULE
+import Collections
+#else
 import _CollectionsTestSupport
-@_spi(Testing) @testable import SortedCollections
+import SortedCollections
+#endif
 
 func nodeFromKeys(_ keys: [Int], capacity: Int) -> _Node<Int, Int> {
   let kvPairs = keys.map { (key: $0, value: $0 * 2) }
@@ -70,14 +73,14 @@ func withEveryNode(
   let possibleShifts = keys - duplicates + 1
   try withEvery("shift", in: 0..<possibleShifts) { shift in
     let repeatedKey = shift
-    
+
     var values = Array(0..<shift)
     values.append(contentsOf: repeatElement(repeatedKey, count: duplicates))
     values.append(contentsOf: (repeatedKey + 1)..<(repeatedKey + 1 + keys - values.count))
-    
-    
+
+
     let node = nodeFromKeys(values, capacity: capacity)
-    
+
     try body(node, values, repeatedKey)
   }
 }
@@ -87,39 +90,39 @@ final class NodeTests: CollectionTestCase {
     withEvery("capacity", in: 2..<10) { capacity in
       withEvery("count", in: 0..<capacity) { count in
         withEvery("position", in: 0...count) { position in
-          
+
           let keys = (0..<count).map({ ($0 + 1) * 2 })
-          
+
           var node = nodeFromKeys(keys, capacity: capacity)
           var array = Array(keys)
-          
+
           let newKey = position * 2 + 1
-          
-          let splinter: _Node<Int, Int>.Splinter? = node.update { handle in
-            let index = handle.endSlot(forKey: newKey)
-            return handle.insertElement((newKey, newKey * 2), withRightChild: nil, atSlot: index)
+
+          let splinter: _Node<Int, Int>.Splinter? = unsafe node.update { handle in
+            let index = unsafe handle.endSlot(forKey: newKey)
+            return unsafe handle.insertElement((newKey, newKey * 2), withRightChild: nil, atSlot: index)
           }
           insertSortedValue(newKey, into: &array)
-          
+
           expectNil(splinter)
-          node.read { handle in
-            let keys = UnsafeBufferPointer(start: handle.keys, count: handle.elementCount)
-            expectEqualElements(keys, array)
-            expectEqual(handle.subtreeCount, count + 1)
+          unsafe node.read { handle in
+            let keys = unsafe UnsafeBufferPointer(start: handle.keys, count: handle.elementCount)
+            unsafe expectEqualElements(keys, array)
+            unsafe expectEqual(handle.subtreeCount, count + 1)
           }
         }
       }
     }
   }
-  
+
   func test_firstIndexOfDuplicates() {
     withEvery("capacity", in: 2..<10) { capacity in
       withEvery("keys", in: 0...capacity) { keys in
         withEvery("duplicates", in: 0...keys) { duplicates in
           withEveryNode(ofCapacity: capacity, keys: keys, duplicates: duplicates) { node, array, duplicatedKey  in
-            node.read { handle in
+            unsafe node.read { handle in
               expectEqual(
-                handle.startSlot(forKey: duplicatedKey),
+                unsafe handle.startSlot(forKey: duplicatedKey),
                 findFirstIndexOf(duplicatedKey, in: array)
               )
             }
@@ -128,14 +131,14 @@ final class NodeTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_lastIndexOfDuplicates() {
     withEvery("capacity", in: 2..<10) { capacity in
       withEvery("keys", in: 0...capacity) { keys in
         withEvery("duplicates", in: 0...keys) { duplicates in
           withEveryNode(ofCapacity: capacity, keys: keys, duplicates: duplicates) { node, array, duplicatedKey  in
-            node.read { handle in
-              expectEqual(
+            unsafe node.read { handle in
+              unsafe expectEqual(
                 handle.endSlot(forKey: duplicatedKey),
                 findLastIndexOf(duplicatedKey, in: array)
               )
@@ -146,6 +149,4 @@ final class NodeTests: CollectionTestCase {
     }
   }
 }
-#endif
-
 #endif

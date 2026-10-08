@@ -14,8 +14,12 @@
 #if UnstableSortedCollections
 
 import XCTest
-@_spi(Testing) import SortedCollections
+#if COLLECTIONS_SINGLE_MODULE
+import Collections
+#else
+import SortedCollections
 import _CollectionsTestSupport
+#endif
 
 class SortedSetTests: CollectionTestCase {
   func test_init_sortedElements() {
@@ -92,7 +96,7 @@ class SortedSetTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_indexOf() {
     withEvery("count", in: 0 ..< 40) { count in
       let set = SortedSet(0 ..< count)
@@ -173,10 +177,10 @@ class SortedSetTests: CollectionTestCase {
       withEvery("index", in: 0..<count) { index in
         var sorted = SortedSet(0 ..< count)
         let removed = sorted.remove(at: sorted.index(sorted.startIndex, offsetBy: index))
-        
+
         var comparisonKeys = Array(0 ..< count)
         comparisonKeys.remove(at: index)
-        
+
         expectEqual(removed, index)
         expectEqual(sorted.count, count - 1)
         expectEqualElements(sorted, comparisonKeys)
@@ -331,7 +335,7 @@ class SortedSetTests: CollectionTestCase {
           return
         }
         expectEqual(context.debugDescription,
-                    "Decoded elements out of order.")
+                    "Decoded elements out of order")
       }
     }
   }

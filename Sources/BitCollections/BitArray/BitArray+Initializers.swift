@@ -75,13 +75,13 @@ extension BitArray {
     isSigned: Bool,
     body: (Int, UInt) -> Bool
   ) -> Bool {
-    self._read {
-      guard $0._words.count > 0 else { return false }
+    unsafe self._read {
+      guard unsafe $0._words.count > 0 else { return false }
 
       var isNegative = false
       let end = $0.end.endSplit
       assert(end.bit > 0)
-      let last = $0._words[end.word]
+      let last = unsafe $0._words[end.word]
       if isSigned, last.contains(end.bit - 1) {
         // Sign extend last word
         isNegative = true
@@ -92,7 +92,7 @@ extension BitArray {
         return isNegative
       }
       for i in stride(from: end.word - 1, through: 0, by: -1) {
-        if !body(i, $0._words[i].value) { return isNegative }
+        if unsafe !body(i, $0._words[i].value) { return isNegative }
       }
       return isNegative
     }

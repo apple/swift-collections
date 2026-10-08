@@ -28,3 +28,5 @@
 package protocol _SortedCollection {}
 
 extension Slice: _SortedCollection where Base: _SortedCollection {}
+extension Range: _SortedCollection where Bound: Strideable {}
+extension ClosedRange: _SortedCollection where Bound: Strideable {}

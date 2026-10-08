@@ -19,9 +19,9 @@ extension _HashNode {
     level: _HashLevel, at path: _UnsafePath
   ) -> (leaf: _UnmanagedHashNode, slot: _HashSlot) {
     ensureUnique(isUnique: isUnique())
-    guard level < path.level else { return (unmanaged, path.currentItemSlot) }
-    return update {
-      $0[child: path.childSlot(at: level)]
+    guard level < path.level else { return unsafe (unmanaged, path.currentItemSlot) }
+    return unsafe update {
+      unsafe $0[child: path.childSlot(at: level)]
         .ensureUnique(level: level.descend(), at: path)
     }
   }
@@ -30,20 +30,25 @@ extension _HashNode {
 extension _HashNode {
   @usableFromInline
   @frozen
+  @unsafe
   internal struct ValueUpdateState {
     @usableFromInline
+    @safe
     internal var key: Key
 
     @usableFromInline
+    @safe
     internal var value: Value?
 
     @usableFromInline
+    @safe
     internal let hash: _Hash
 
     @usableFromInline
     internal var path: _UnsafePath
 
     @usableFromInline
+    @safe
     internal var found: Bool
 
     @inlinable
@@ -55,22 +60,24 @@ extension _HashNode {
       self.key = key
       self.value = nil
       self.hash = hash
-      self.path = path
+      unsafe self.path = path
       self.found = false
     }
   }
 
   @inlinable
+  @unsafe
   internal mutating func prepareValueUpdate(
     _ key: Key,
     _ hash: _Hash
   ) -> ValueUpdateState {
-    var state = ValueUpdateState(key, hash, _UnsafePath(root: raw))
-    _prepareValueUpdate(&state)
-    return state
+    var state = unsafe ValueUpdateState(key, hash, _UnsafePath(root: raw))
+    unsafe _prepareValueUpdate(&state)
+    return unsafe state
   }
 
   @inlinable
+  @unsafe
   internal mutating func _prepareValueUpdate(
     _ state: inout ValueUpdateState
   ) {
@@ -81,59 +88,60 @@ extension _HashNode {
     // If the key already exists, we ensure uniqueness for its node and extract
     // its item but otherwise leave the tree as it was.
     let isUnique = self.isUnique()
-    let r = findForInsertion(state.path.level, state.key, state.hash)
+    let r = unsafe findForInsertion(state.path.level, state.key, state.hash)
     switch r {
     case .found(_, let slot):
       ensureUnique(isUnique: isUnique)
-      state.path.node = unmanaged
-      state.path.selectItem(at: slot)
+      unsafe state.path.node = unmanaged
+      unsafe state.path.selectItem(at: slot)
       state.found = true
-      (state.key, state.value) = update { $0.itemPtr(at: slot).move() }
+      (state.key, state.value) = unsafe update { unsafe $0.itemPtr(at: slot).move() }
 
 
     case .insert(_, let slot):
-      state.path.selectItem(at: slot)
+      unsafe state.path.selectItem(at: slot)
 
     case .appendCollision:
-      state.path.selectItem(at: _HashSlot(self.count))
+      unsafe state.path.selectItem(at: _HashSlot(self.count))
 
     case .spawnChild(_, let slot):
-      state.path.selectItem(at: slot)
+      unsafe state.path.selectItem(at: slot)
 
     case .expansion:
-      state.path.selectEnd()
+      unsafe state.path.selectEnd()
 
     case .descend(_, let slot):
       ensureUnique(isUnique: isUnique)
-      update {
-        let p = $0.childPtr(at: slot)
-        state.path.descendToChild(p.pointee.unmanaged, at: slot)
-        p.pointee._prepareValueUpdate(&state)
+      unsafe update {
+        let p = unsafe $0.childPtr(at: slot)
+        unsafe state.path.descendToChild(p.pointee.unmanaged, at: slot)
+        unsafe p.pointee._prepareValueUpdate(&state)
       }
     }
   }
 
   @inlinable
+  @unsafe
   internal mutating func finalizeValueUpdate(
     _ state: __owned ValueUpdateState
   ) {
     switch (state.found, state.value != nil) {
     case (true, true):
       // Fast path: updating an existing value.
-      UnsafeHandle.update(state.path.node) {
-        $0.itemPtr(at: state.path.currentItemSlot)
+      unsafe UnsafeHandle.update(state.path.node) {
+        unsafe $0.itemPtr(at: state.path.currentItemSlot)
           .initialize(to: (state.key, state.value.unsafelyUnwrapped))
       }
     case (true, false):
       // Removal
-      let remainder = _finalizeRemoval(.top, state.hash, at: state.path)
+      let remainder = unsafe _finalizeRemoval(.top, state.hash, at: state.path)
       assert(remainder == nil)
     case (false, true):
       // Insertion
-      let r = updateValue(.top, forKey: state.key, state.hash) {
-        $0.initialize(to: (state.key, state.value.unsafelyUnwrapped))
+      let r = unsafe updateValue(.top, forKey: state.key, state.hash) {
+        unsafe $0.initialize(to: (state.key, state.value.unsafelyUnwrapped))
       }
-      assert(r.inserted)
+      assert(unsafe r.inserted)
     case (false, false):
       // Noop
       break
@@ -141,20 +149,21 @@ extension _HashNode {
   }
 
   @inlinable
+  @unsafe
   internal mutating func _finalizeRemoval(
     _ level: _HashLevel, _ hash: _Hash, at path: _UnsafePath
   ) -> Element? {
     assert(isUnique())
     if level == path.level {
-      return _removeItemFromUniqueLeafNode(
+      return unsafe _removeItemFromUniqueLeafNode(
         level, at: hash[level], path.currentItemSlot, by: { _ in }
       ).remainder
     }
-    let slot = path.childSlot(at: level)
-    let remainder = update {
-      $0[child: slot]._finalizeRemoval(level.descend(), hash, at: path)
+    let slot = unsafe path.childSlot(at: level)
+    let remainder = unsafe update {
+      unsafe $0[child: slot]._finalizeRemoval(level.descend(), hash, at: path)
     }
-    return _fixupUniqueAncestorAfterItemRemoval(
+    return unsafe _fixupUniqueAncestorAfterItemRemoval(
       level, at: { _ in hash[level] }, slot, remainder: remainder)
   }
 }
@@ -162,17 +171,21 @@ extension _HashNode {
 extension _HashNode {
   @usableFromInline
   @frozen
+  @unsafe
   internal struct DefaultedValueUpdateState {
     @usableFromInline
+    @safe
     internal var item: Element
 
     @usableFromInline
     internal var node: _UnmanagedHashNode
 
     @usableFromInline
+    @safe
     internal var slot: _HashSlot
 
     @usableFromInline
+    @safe
     internal var inserted: Bool
 
     @inlinable
@@ -183,7 +196,7 @@ extension _HashNode {
       inserted: Bool
     ) {
       self.item = item
-      self.node = node
+      unsafe self.node = node
       self.slot = slot
       self.inserted = inserted
     }
@@ -201,51 +214,51 @@ extension _HashNode {
     switch r {
     case .found(_, let slot):
       ensureUnique(isUnique: isUnique)
-      return DefaultedValueUpdateState(
-        update { $0.itemPtr(at: slot).move() },
+      return unsafe DefaultedValueUpdateState(
+        update { unsafe $0.itemPtr(at: slot).move() },
         in: unmanaged,
         at: slot,
         inserted: false)
 
     case .insert(let bucket, let slot):
-      ensureUniqueAndInsertItem(
+      unsafe ensureUniqueAndInsertItem(
         isUnique: isUnique, at: bucket, itemSlot: slot
       ) { _ in }
-      return DefaultedValueUpdateState(
+      return unsafe DefaultedValueUpdateState(
         (key, defaultValue()),
         in: unmanaged,
         at: slot,
         inserted: true)
 
     case .appendCollision:
-      let slot = ensureUniqueAndAppendCollision(isUnique: isUnique) { _ in }
-      return DefaultedValueUpdateState(
+      let slot = unsafe ensureUniqueAndAppendCollision(isUnique: isUnique) { _ in }
+      return unsafe DefaultedValueUpdateState(
         (key, defaultValue()),
         in: unmanaged,
         at: slot,
         inserted: true)
 
     case .spawnChild(let bucket, let slot):
-      let r = ensureUniqueAndSpawnChild(
+      let r = unsafe ensureUniqueAndSpawnChild(
         isUnique: isUnique,
         level: level,
         replacing: bucket,
         itemSlot: slot,
         newHash: hash) { _ in }
-      return DefaultedValueUpdateState(
+      return unsafe DefaultedValueUpdateState(
         (key, defaultValue()),
         in: r.leaf,
         at: r.slot,
         inserted: true)
 
     case .expansion:
-      let r = _HashNode.build(
+      let r = unsafe _HashNode.build(
         level: level,
         item1: { _ in }, hash,
         child2: self, self.collisionHash
       )
-      self = r.top
-      return DefaultedValueUpdateState(
+      self = unsafe r.top
+      return unsafe DefaultedValueUpdateState(
         (key, defaultValue()),
         in: r.leaf,
         at: r.slot1,
@@ -253,12 +266,12 @@ extension _HashNode {
 
     case .descend(_, let slot):
       ensureUnique(isUnique: isUnique)
-      let res = update {
-        $0[child: slot].prepareDefaultedValueUpdate(
+      let res = unsafe update {
+        unsafe $0[child: slot].prepareDefaultedValueUpdate(
           level.descend(), key, defaultValue, hash)
       }
       if res.inserted { count &+= 1 }
-      return res
+      return unsafe res
     }
   }
 
@@ -266,8 +279,8 @@ extension _HashNode {
   internal mutating func finalizeDefaultedValueUpdate(
     _ state: __owned DefaultedValueUpdateState
   ) {
-    UnsafeHandle.update(state.node) {
-      $0.itemPtr(at: state.slot).initialize(to: state.item)
+    unsafe UnsafeHandle.update(state.node) {
+      unsafe $0.itemPtr(at: state.slot).initialize(to: state.item)
     }
   }
 }

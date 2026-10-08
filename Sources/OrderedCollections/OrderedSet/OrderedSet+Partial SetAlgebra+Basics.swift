@@ -72,7 +72,7 @@ extension OrderedSet {
   public mutating func remove(_ member: Element) -> Element? {
     let (idx, bucket) = _find(member)
     guard let index = idx else { return nil }
-    return _removeExistingMember(at: index, in: bucket)
+    return unsafe _removeExistingMember(at: index, in: bucket)
   }
 }
 

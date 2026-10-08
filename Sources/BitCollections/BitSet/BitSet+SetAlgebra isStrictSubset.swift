@@ -37,19 +37,19 @@ extension BitSet {
   ///
   /// - Complexity: O(*max*), where *max* is the largest item in `self`.
   public func isStrictSubset(of other: BitSet) -> Bool {
-    self._read { first in
-      other._read { second in
-        let w1 = first._words
-        let w2 = second._words
+    unsafe self._read { first in
+      unsafe other._read { second in
+        let w1 = unsafe first._words
+        let w2 = unsafe second._words
         if w1.count > w2.count {
           return false
         }
         var strict = w1.count < w2.count
         for i in 0 ..< w1.count {
-          if !w1[i].subtracting(w2[i]).isEmpty {
+          if unsafe !w1[i].subtracting(w2[i]).isEmpty {
             return false
           }
-          strict = strict || w1[i] != w2[i]
+          strict = unsafe strict || w1[i] != w2[i]
         }
         return strict
       }
@@ -133,7 +133,7 @@ extension BitSet {
     }
 
     let selfCount = self.count
-    return _UnsafeHandle.withTemporaryBitSet(
+    return unsafe _UnsafeHandle.withTemporaryBitSet(
       wordCount: _storage.count
     ) { seen in
       var strict = false
@@ -144,7 +144,7 @@ extension BitSet {
           strict = true
           continue
         }
-        if seen.insert(UInt(i)) {
+        if unsafe seen.insert(UInt(i)) {
           c &+= 1
           if c == selfCount {
             while !strict, let i = it.next() {

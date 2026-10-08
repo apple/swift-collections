@@ -18,7 +18,7 @@ import InternalCollectionsUtilities
 extension _HashNode {
   @inlinable @inline(__always)
   internal static func _emptyNode() -> _HashNode {
-    _HashNode(storage: _emptySingleton, count: 0)
+    unsafe _HashNode(storage: _emptySingleton, count: 0)
   }
 
   @inlinable
@@ -27,9 +27,9 @@ extension _HashNode {
     _ item1: __owned Element,
     _ item2: __owned Element
   ) -> _HashNode {
-    let node = _HashNode.allocateCollision(count: 2, hash) { items in
-      items.initializeElement(at: 1, to: item1)
-      items.initializeElement(at: 0, to: item2)
+    let node = unsafe _HashNode.allocateCollision(count: 2, hash) { items in
+      unsafe items.initializeElement(at: 1, to: item1)
+      unsafe items.initializeElement(at: 0, to: item2)
     }.node
     node._invariantCheck()
     return node
@@ -41,9 +41,9 @@ extension _HashNode {
     _ item1: __owned Element,
     _ inserter2: (UnsafeMutablePointer<Element>) -> Void
   ) -> _HashNode {
-    let node = _HashNode.allocateCollision(count: 2, hash) { items in
-      items.initializeElement(at: 1, to: item1)
-      inserter2(items.baseAddress.unsafelyUnwrapped)
+    let node = unsafe _HashNode.allocateCollision(count: 2, hash) { items in
+      unsafe items.initializeElement(at: 1, to: item1)
+      unsafe inserter2(items.baseAddress.unsafelyUnwrapped)
     }.node
     node._invariantCheck()
     return node
@@ -54,13 +54,13 @@ extension _HashNode {
     _ item: __owned Element,
     _ bucket: _Bucket
   ) -> _HashNode {
-    let r = _HashNode.allocate(
+    let r = unsafe _HashNode.allocate(
       itemMap: _Bitmap(bucket),
       childMap: .empty,
       count: 1
     ) { children, items in
       assert(items.count == 1 && children.count == 0)
-      items.initializeElement(at: 0, to: item)
+      unsafe items.initializeElement(at: 0, to: item)
     }
     r.node._invariantCheck()
     return r.node
@@ -73,9 +73,9 @@ extension _HashNode {
     _ item2: __owned Element,
     _ bucket2: _Bucket
   ) -> _HashNode {
-    _regularNode(
+    unsafe _regularNode(
       item1, bucket1,
-      { $0.initialize(to: item2) }, bucket2).node
+      { unsafe $0.initialize(to: item2) }, bucket2).node
   }
 
   @inlinable
@@ -86,7 +86,7 @@ extension _HashNode {
     _ bucket2: _Bucket
   ) -> (node: _HashNode, slot1: _HashSlot, slot2: _HashSlot) {
     assert(bucket1 != bucket2)
-    let r = _HashNode.allocate(
+    let r = unsafe _HashNode.allocate(
       itemMap: _Bitmap(bucket1, bucket2),
       childMap: .empty,
       count: 2
@@ -94,8 +94,8 @@ extension _HashNode {
       assert(items.count == 2 && children.count == 0)
       let i1 = bucket1 < bucket2 ? 1 : 0
       let i2 = 1 &- i1
-      items.initializeElement(at: i1, to: item1)
-      inserter2(items.baseAddress.unsafelyUnwrapped + i2)
+      unsafe items.initializeElement(at: i1, to: item1)
+      unsafe inserter2(items.baseAddress.unsafelyUnwrapped + i2)
       return (_HashSlot(i2), _HashSlot(i1)) // Note: swapped
     }
     r.node._invariantCheck()
@@ -107,13 +107,13 @@ extension _HashNode {
     _ child: __owned _HashNode,
     _ bucket: _Bucket
   ) -> _HashNode {
-    let r = _HashNode.allocate(
+    let r = unsafe _HashNode.allocate(
       itemMap: .empty,
       childMap: _Bitmap(bucket),
       count: child.count
     ) { children, items in
       assert(items.count == 0 && children.count == 1)
-      children.initializeElement(at: 0, to: child)
+      unsafe children.initializeElement(at: 0, to: child)
     }
     r.node._invariantCheck()
     return r.node
@@ -126,8 +126,8 @@ extension _HashNode {
     _ child: __owned _HashNode,
     _ childBucket: _Bucket
   ) -> _HashNode {
-    _regularNode(
-      { $0.initialize(to: item) }, itemBucket,
+    unsafe _regularNode(
+      { unsafe $0.initialize(to: item) }, itemBucket,
       child, childBucket)
   }
 
@@ -139,14 +139,14 @@ extension _HashNode {
     _ childBucket: _Bucket
   ) -> _HashNode {
     assert(itemBucket != childBucket)
-    let r = _HashNode.allocate(
+    let r = unsafe _HashNode.allocate(
       itemMap: _Bitmap(itemBucket),
       childMap: _Bitmap(childBucket),
       count: child.count &+ 1
     ) { children, items in
       assert(items.count == 1 && children.count == 1)
-      inserter(items.baseAddress.unsafelyUnwrapped)
-      children.initializeElement(at: 0, to: child)
+      unsafe inserter(items.baseAddress.unsafelyUnwrapped)
+      unsafe children.initializeElement(at: 0, to: child)
     }
     r.node._invariantCheck()
     return r.node
@@ -160,7 +160,7 @@ extension _HashNode {
     _ child2Bucket: _Bucket
   ) -> _HashNode {
     assert(child1Bucket != child2Bucket)
-    let r = _HashNode.allocate(
+    let r = unsafe _HashNode.allocate(
       itemMap: .empty,
       childMap: _Bitmap(child1Bucket, child2Bucket),
       count: child1.count &+ child2.count
@@ -168,8 +168,8 @@ extension _HashNode {
       assert(items.count == 0 && children.count == 2)
       let i1 = child1Bucket < child2Bucket ? 0 : 1
       let i2 = 1 &- i1
-      children.initializeElement(at: i1, to: child1)
-      children.initializeElement(at: i2, to: child2)
+      unsafe children.initializeElement(at: i1, to: child1)
+      unsafe children.initializeElement(at: i2, to: child2)
     }
     r.node._invariantCheck()
     return r.node
@@ -178,6 +178,7 @@ extension _HashNode {
 
 extension _HashNode {
   @inlinable
+  @unsafe
   internal static func build(
     level: _HashLevel,
     item1: __owned Element,
@@ -187,15 +188,16 @@ extension _HashNode {
   ) -> (top: _HashNode, leaf: _UnmanagedHashNode, slot1: _HashSlot, slot2: _HashSlot) {
     assert(hash1.isEqual(to: hash2, upTo: level.ascend()))
     if hash1 == hash2 {
-      let top = _collisionNode(hash1, item1, inserter2)
-      return (top, top.unmanaged, _HashSlot(0), _HashSlot(1))
+      let top = unsafe _collisionNode(hash1, item1, inserter2)
+      return unsafe (top, top.unmanaged, _HashSlot(0), _HashSlot(1))
     }
-    let r = _build(
+    let r = unsafe _build(
       level: level, item1: item1, hash1, item2: inserter2, hash2)
-    return (r.top, r.leaf, r.slot1, r.slot2)
+    return unsafe (r.top, r.leaf, r.slot1, r.slot2)
   }
 
   @inlinable
+  @unsafe
   internal static func _build(
     level: _HashLevel,
     item1: __owned Element,
@@ -207,14 +209,14 @@ extension _HashNode {
     let b1 = hash1[level]
     let b2 = hash2[level]
     guard b1 == b2 else {
-      let r = _regularNode(item1, b1, inserter2, b2)
-      return (r.node, r.node.unmanaged, r.slot1, r.slot2)
+      let r = unsafe _regularNode(item1, b1, inserter2, b2)
+      return unsafe (r.node, r.node.unmanaged, r.slot1, r.slot2)
     }
-    let r = _build(
+    let r = unsafe _build(
       level: level.descend(),
       item1: item1, hash1,
       item2: inserter2, hash2)
-    return (_regularNode(r.top, b1), r.leaf, r.slot1, r.slot2)
+    return unsafe (_regularNode(r.top, b1), r.leaf, r.slot1, r.slot2)
   }
 
   @inlinable
@@ -230,14 +232,14 @@ extension _HashNode {
     let b1 = hash1[level]
     let b2 = hash2[level]
     if b1 == b2 {
-      let node = build(
+      let node = unsafe build(
         level: level.descend(),
         item1: inserter1, hash1,
         child2: child2, hash2)
-      return (_regularNode(node.top, b1), node.leaf, node.slot1, node.slot2)
+      return unsafe (_regularNode(node.top, b1), node.leaf, node.slot1, node.slot2)
     }
-    let node = _regularNode(inserter1, hash1[level], child2, hash2[level])
-    return (node, node.unmanaged, .zero, .zero)
+    let node = unsafe _regularNode(inserter1, hash1[level], child2, hash2[level])
+    return unsafe (node, node.unmanaged, .zero, .zero)
   }
 
   @inlinable

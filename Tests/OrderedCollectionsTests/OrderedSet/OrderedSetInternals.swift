@@ -12,10 +12,10 @@
 //===----------------------------------------------------------------------===//
 
 #if COLLECTIONS_SINGLE_MODULE
-@_spi(Testing) import Collections
+import Collections
 #else
 import _CollectionsTestSupport
-@_spi(Testing) import OrderedCollections
+import OrderedCollections
 #endif
 
 struct OrderedSetLayout: Hashable, CustomStringConvertible {

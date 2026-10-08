@@ -38,7 +38,7 @@ extension BigString._Chunk {
     // 'i' is in terms of the entire utf8 buffer of the chunk, but we've
     // potentially created a span where the start is not equal to the start of
     // the chunk. Offset this by subtracting the bias from our chunk offset.
-    iter.reset(toUnchecked: i.utf8Offset - bias)
+    unsafe iter.reset(toUnchecked: i.utf8Offset - bias)
 
     _ = iter.skipBack()
 
@@ -68,7 +68,7 @@ extension BigString._Chunk {
 
     // The span we create might not be in terms of the entire chunk, so apply
     // the bias here to prevent out of bounds access.
-    si.reset(toUnchecked: i.utf8Offset - bias)
+    unsafe si.reset(toUnchecked: i.utf8Offset - bias)
     _ = si.skipForward()
 
     return Index(utf8Offset: si.currentCodeUnitOffset + bias).characterAligned
@@ -83,7 +83,7 @@ extension BigString._Chunk {
 
     // The span we create might not be in terms of the entire chunk, so apply
     // the bias here to prevent out of bounds access.
-    si.reset(toUnchecked: i.utf8Offset - bias)
+    unsafe si.reset(toUnchecked: i.utf8Offset - bias)
     _ = si.skipBack()
 
     return Index(utf8Offset: si.currentCodeUnitOffset + bias).characterAligned
@@ -204,8 +204,8 @@ extension BigString._Chunk {
     let i = characterIndex(roundingDown: i)
 
     var iter = utf8Span.makeCharacterIterator()
-    iter.reset(toUnchecked: i.utf8Offset)
-    return iter.next().unsafelyUnwrapped
+    unsafe iter.reset(toUnchecked: i.utf8Offset)
+    return unsafe iter.next().unsafelyUnwrapped
   }
 }
 

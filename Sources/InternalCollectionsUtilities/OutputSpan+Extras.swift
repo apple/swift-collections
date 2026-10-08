@@ -21,7 +21,7 @@ package func withTemporaryOutputSpan<Element: ~Copyable, E: Error, R: ~Copyable>
   try _withUnsafeTemporaryAllocation(
     of: Element.self, capacity: capacity
   ) { buffer throws(E) in
-    var span = OutputSpan(buffer: buffer, initializedCount: 0)
+    var span = unsafe OutputSpan(buffer: buffer, initializedCount: 0)
     return try body(&span)
   }
 }
@@ -37,10 +37,10 @@ extension OutputSpan where Element: ~Copyable {
   @inlinable
   package mutating func _popLast() -> Element? {
     // FIXME: This needs to be in the stdlib.
-    withUnsafeMutableBufferPointer { buffer, count in
+    unsafe withUnsafeMutableBufferPointer { buffer, count in
       guard count > 0 else { return nil }
       count &-= 1
-      return buffer.moveElement(from: count)
+      return unsafe buffer.moveElement(from: count)
     }
   }
 }
@@ -50,15 +50,16 @@ extension OutputSpan where Element: ~Copyable {
   @inlinable
   @inline(__always)
   @_lifetime(self: copy self)
+  @unsafe
   package mutating func _append(
     moving source: UnsafeMutableBufferPointer<Element>
   ) {
     // FIXME: This needs to be in the stdlib.
     guard source.count > 0 else { return }
-    self.withUnsafeMutableBufferPointer { dst, dstCount in
+    unsafe self.withUnsafeMutableBufferPointer { dst, dstCount in
       let dstEnd = dstCount + source.count
       precondition(dstEnd <= dst.count, "OutputSpan capacity overflow")
-      dst
+      unsafe dst
         ._extracting(uncheckedFrom: dstCount, to: dstEnd)
         .moveInitializeAll(fromContentsOf: source)
       dstCount &+= source.count
@@ -71,9 +72,9 @@ extension OutputSpan where Element: ~Copyable {
   @_lifetime(self: copy self)
   package mutating func _append(moving source: inout OutputSpan<Element>) {
     // FIXME: This needs to be in the stdlib.
-    source.withUnsafeMutableBufferPointer { src, srcCount in
-      let items = src._extracting(uncheckedFrom: 0, to: srcCount)
-      self._append(moving: items)
+    unsafe source.withUnsafeMutableBufferPointer { src, srcCount in
+      let items = unsafe src._extracting(uncheckedFrom: 0, to: srcCount)
+      unsafe self._append(moving: items)
       srcCount = 0
     }
   }
@@ -83,12 +84,13 @@ extension OutputSpan where Element: ~Copyable {
 extension OutputSpan /*where Element: Copyable*/ {
   @inlinable
   @_lifetime(self: copy self)
+  @unsafe
   package mutating func _append(copying source: UnsafeBufferPointer<Element>) {
     // FIXME: This needs to be in the stdlib.
-    self.withUnsafeMutableBufferPointer { dst, dstCount in
+    unsafe self.withUnsafeMutableBufferPointer { dst, dstCount in
       let dstEnd = dstCount + source.count
       precondition(dstEnd <= dst.count, "OutputSpan capacity overflow")
-      dst
+      unsafe dst
         ._extracting(uncheckedFrom: dstCount, to: dstEnd)
         .initializeAll(fromContentsOf: source)
       dstCount &+= source.count
@@ -100,7 +102,7 @@ extension OutputSpan /*where Element: Copyable*/ {
   package mutating func _append(copying source: Span<Element>) {
     // FIXME: This needs to be in the stdlib.
     source.withUnsafeBufferPointer { buffer in
-      self._append(copying: buffer)
+      unsafe self._append(copying: buffer)
     }
   }
 }
@@ -115,17 +117,17 @@ extension OutputSpan where Element: ~Copyable {
   ) {
     // FIXME: This needs to be in the stdlib.
     precondition(index >= 0 && index <= count, "Index out of bounds")
-    self.withUnsafeMutableBufferPointer { buffer, count in
+    unsafe self.withUnsafeMutableBufferPointer { buffer, count in
       var i = index
       var j = i
       // Invariant: i ..< j is uninitialized
       while j < count {
-        if shouldBeRemoved(buffer[j]) {
-          buffer.deinitializeElement(at: j)
+        if shouldBeRemoved(unsafe buffer[j]) {
+          unsafe buffer.deinitializeElement(at: j)
           j &+= 1
         } else {
           if i != j {
-            buffer.initializeElement(at: i, to: buffer.moveElement(from: j))
+            unsafe buffer.initializeElement(at: i, to: buffer.moveElement(from: j))
           }
           i &+= 1
           j &+= 1
@@ -153,13 +155,13 @@ extension OutputSpan where Element: ~Copyable {
     // the closure is quite important for usability. We can't name them both
     // `append(addingCount:initializingWith:)` though!
     precondition(newItemCount >= 0, "Cannot add a negative number of items")
-    return try withUnsafeMutableBufferPointer { buf, c throws(E) in
+    return unsafe try withUnsafeMutableBufferPointer { buf, c throws(E) in
       precondition(newItemCount <= buf.count - c, "OutputSpan capacity overflow")
-      let dst = buf._extracting(unchecked: Range(
+      let dst = unsafe buf._extracting(unchecked: Range(
         uncheckedBounds: (c, c &+ newItemCount)))
-      var span = OutputSpan(buffer: dst, initializedCount: 0)
+      var span = unsafe OutputSpan(buffer: dst, initializedCount: 0)
       defer {
-        c &+= span.finalize(for: dst)
+        c &+= unsafe span.finalize(for: dst)
         span = OutputSpan()
       }
       return try initializer(&span)

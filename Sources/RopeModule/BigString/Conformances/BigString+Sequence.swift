@@ -208,7 +208,7 @@ extension BigString.Iterator {
     var chunk = _base._rope[_ropeIndex]
     if _next < chunk.endIndex {
       end += _next.utf8Offset
-      return Range(uncheckedBounds: (start, end))
+      return unsafe Range(uncheckedBounds: (start, end))
     }
     end += chunk.utf8Count
     var i = _base._rope.index(after: _ropeIndex)
@@ -222,7 +222,7 @@ extension BigString.Iterator {
       end += chunk.utf8Count
       _base._rope.formIndex(after: &i)
     }
-    return Range(uncheckedBounds: (start, end))
+    return unsafe Range(uncheckedBounds: (start, end))
   }
 
   func isAbove(_ index: BigString.Index) -> Bool {

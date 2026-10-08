@@ -50,9 +50,9 @@ extension RigidDeque where Element: ~Copyable {
   @_lifetime(borrow self)
   public func nextSpan(after index: inout Int) -> Span<Element> {
     _checkValidIndex(index)
-    let segment = self._handle.nextSegment(after: index)
+    let segment = unsafe self._handle.nextSegment(after: index)
     index &+= segment.count
-    return _overrideLifetime(Span(_unsafeElements: segment), borrowing: self)
+    return unsafe _overrideLifetime(Span(_unsafeElements: segment), borrowing: self)
   }
 
   @_alwaysEmitIntoClient
@@ -63,9 +63,9 @@ extension RigidDeque where Element: ~Copyable {
     _checkValidIndex(index)
     _checkValidIndex(limit)
     precondition(maxCount > 0, "maxCount must be positive")
-    let segment = self._handle.nextSegment(
+    let segment = unsafe self._handle.nextSegment(
       after: &index, maxCount: maxCount, limitedBy: limit)
-    return _overrideLifetime(Span(_unsafeElements: segment), borrowing: self)
+    return unsafe _overrideLifetime(Span(_unsafeElements: segment), borrowing: self)
   }
 
   @_lifetime(&self)
@@ -73,9 +73,9 @@ extension RigidDeque where Element: ~Copyable {
     after index: inout Int
   ) -> MutableSpan<Element> {
     _checkValidIndex(index)
-    let segment = self._handle.nextSegment(after: index)
+    let segment = unsafe self._handle.nextSegment(after: index)
     index &+= segment.count
-    return _overrideLifetime(
+    return unsafe _overrideLifetime(
       MutableSpan(_unsafeElements: .init(mutating: segment)),
       mutating: &self)
   }
@@ -87,9 +87,9 @@ extension RigidDeque where Element: ~Copyable {
     _checkValidIndex(index)
     _checkValidIndex(limit)
     precondition(maxCount > 0, "maxCount must be positive")
-    let segment = self._handle.nextSegment(
+    let segment = unsafe self._handle.nextSegment(
       after: &index, maxCount: maxCount, limitedBy: limit)
-    return _overrideLifetime(
+    return unsafe _overrideLifetime(
       MutableSpan(_unsafeElements: .init(mutating: segment)),
       mutating: &self)
   }
@@ -97,7 +97,7 @@ extension RigidDeque where Element: ~Copyable {
   @_alwaysEmitIntoClient
   public func spanBoundary(before index: Index) -> (index: Index, distance: Int) {
     precondition(index >= 0 && index <= count, "Index out of bounds")
-    let r = self._handle.spanBoundary(before: index)
+    let r = unsafe self._handle.spanBoundary(before: index)
     return (r.offset, r.distance)
   }
 
@@ -108,7 +108,7 @@ extension RigidDeque where Element: ~Copyable {
     precondition(index >= 0 && index <= count, "Index out of bounds")
     precondition(limit >= 0 && limit <= count, "Index out of bounds")
     precondition(maxDistance > 0, "maxDistance must be positive")
-    let r = self._handle.spanBoundary(before: index, maxDistance: maxDistance, limitedBy: limit)
+    let r = unsafe self._handle.spanBoundary(before: index, maxDistance: maxDistance, limitedBy: limit)
     return (r.offset, r.distance)
   }
 
@@ -118,10 +118,10 @@ extension RigidDeque where Element: ~Copyable {
     // FIXME: Remove this in favor of the BidirectionalContainer algorithm.
     _checkValidIndex(index)
     precondition(maxCount > 0, "maxCount must be positive")
-    let segment = self._handle
+    let segment = unsafe self._handle
       .previousSegment(before: index)
       ._extracting(last: maxCount)
     index &-= segment.count
-    return _overrideLifetime(Span(_unsafeElements: segment), borrowing: self)
+    return unsafe _overrideLifetime(Span(_unsafeElements: segment), borrowing: self)
   }
 }

@@ -27,13 +27,13 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
       inout InputSpan<Value>
     ) -> Void
   ) {
-    let keys = self._keys._memberBuf
-    let values = self._valueBuf
-    _keys._table.consumeAll { buckets in
-      let keyBuffer = keys._extracting(buckets)
-      let valueBuffer = values._extracting(buckets)
-      var keySpan = InputSpan(buffer: keyBuffer, initializedCount: keyBuffer.count)
-      var valueSpan = InputSpan(buffer: valueBuffer, initializedCount: valueBuffer.count)
+    let keys = unsafe self._keys._memberBuf
+    let values = unsafe self._valueBuf
+    unsafe _keys._table.consumeAll { buckets in
+      let keyBuffer = unsafe keys._extracting(buckets)
+      let valueBuffer = unsafe values._extracting(buckets)
+      var keySpan = unsafe InputSpan(buffer: keyBuffer, initializedCount: keyBuffer.count)
+      var valueSpan = unsafe InputSpan(buffer: valueBuffer, initializedCount: valueBuffer.count)
       consumer(&keySpan, &valueSpan)
       _ = consume keySpan
       _ = consume valueSpan
@@ -42,16 +42,17 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
 #endif
   
   @inlinable
+  @unsafe
   public mutating func _consumeAll(
     consumingWith consumer: (
       UnsafeMutableBufferPointer<Key>,
       UnsafeMutableBufferPointer<Value>
     ) -> Void
   ) {
-    let keys = self._keys._memberBuf
-    let values = self._valueBuf
-    _keys._table.consumeAll { buckets in
-      consumer(keys._extracting(buckets), values._extracting(buckets))
+    let keys = unsafe self._keys._memberBuf
+    let values = unsafe self._valueBuf
+    unsafe _keys._table.consumeAll { buckets in
+      unsafe consumer(keys._extracting(buckets), values._extracting(buckets))
     }
   }
 }

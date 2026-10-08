@@ -13,14 +13,14 @@
 
 import XCTest
 #if COLLECTIONS_SINGLE_MODULE
-@_spi(Testing) import Collections
+import Collections
 #else
 import _CollectionsTestSupport
 import SpanPreview
 import DequeModule
 import BasicContainers
-import ContainersPreview
 #endif
+import ContainersPreview
 
 /// Check if `left` and `right` contain equal elements in the same order.
 @available(SwiftStdlib 5.0, *)
@@ -270,7 +270,7 @@ final class RigidDequeTests: CollectionTestCase {
       expectEqual(deque.count, 0)
       expectEqual(deque.freeCapacity, capacity)
       if capacity == 0 {
-        expectNil(deque._handle._buffer.baseAddress) // No allocations
+        unsafe expectNil(deque._handle._buffer.baseAddress) // No allocations
       }
     }
   }
@@ -280,7 +280,7 @@ final class RigidDequeTests: CollectionTestCase {
     expectEqual(deque.capacity, 0)
     expectEqual(deque.count, 0)
     expectEqual(deque.freeCapacity, 0)
-    expectNil(deque._handle._buffer.baseAddress) // No allocations
+    unsafe expectNil(deque._handle._buffer.baseAddress) // No allocations
   }
 
   func test_initWithClosure_Full() {
@@ -356,13 +356,13 @@ final class RigidDequeTests: CollectionTestCase {
       let ud = UniqueDeque(copying: tracker.instances(for: 0 ..< 10))
       expectEqual(ud.count, 10)
       expectEqual(tracker.instances, 10)
-      let buffer = ud._storage._handle._buffer
-      expectNotNil(buffer.baseAddress)
+      let buffer = unsafe ud._storage._handle._buffer
+      unsafe expectNotNil(buffer.baseAddress)
 
       let rd = RigidDeque(consuming: ud)
       expectEqual(rd.count, 10)
       expectEqual(tracker.instances, 10)
-      expectEqual(rd._handle._buffer.baseAddress, buffer.baseAddress)
+      unsafe expectEqual(rd._handle._buffer.baseAddress, buffer.baseAddress)
 
       _ = consume rd
       expectEqual(tracker.instances, 0)
@@ -1058,7 +1058,7 @@ final class RigidDequeTests: CollectionTestCase {
         let extra: [NSObject] = (0 ..< c)
           .map { _ in NSObject() }
           .withUnsafeBufferPointer { buffer in
-            NSArray(objects: buffer.baseAddress, count: buffer.count) as! [NSObject]
+            unsafe NSArray(objects: buffer.baseAddress, count: buffer.count) as! [NSObject]
           }
         contents.insert(contentsOf: extra, at: 0)
         deque.prepend(copying: extra)
@@ -1081,7 +1081,7 @@ final class RigidDequeTests: CollectionTestCase {
         let extra: [NSObject] = (0 ..< c)
           .map { _ in NSObject() }
           .withUnsafeBufferPointer { buffer in
-            NSArray(objects: buffer.baseAddress, count: buffer.count) as! [NSObject]
+            unsafe NSArray(objects: buffer.baseAddress, count: buffer.count) as! [NSObject]
           }
         contents.append(contentsOf: extra)
         deque.append(copying: extra)

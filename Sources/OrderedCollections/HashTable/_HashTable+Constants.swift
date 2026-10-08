@@ -15,7 +15,7 @@ extension _HashTable {
   /// The minimum hash table scale.
   @usableFromInline
   @inline(__always)
-  internal static var minimumScale: Int {
+  package static var minimumScale: Int {
     @_effects(readnone)
     get {
       5
@@ -25,7 +25,7 @@ extension _HashTable {
   /// The maximum hash table scale.
   @usableFromInline
   @inline(__always)
-  internal static var maximumScale: Int {
+  package static var maximumScale: Int {
     @_effects(readnone)
     get {
       Swift.min(Int.bitWidth, 56)
@@ -35,7 +35,7 @@ extension _HashTable {
   /// The maximum number of items for which we do not create a hash table.
   @usableFromInline
   @inline(__always)
-  internal static var maximumUnhashedCount: Int {
+  package static var maximumUnhashedCount: Int {
     @_effects(readnone)
     get {
       (1 &<< (minimumScale - 1)) - 1
@@ -45,17 +45,17 @@ extension _HashTable {
   /// The maximum hash table load factor. This is a rational number
   /// represented by a (numerator, denominator) tuple.
   @_transparent
-  internal static var maximumLoadFactor: (Int, Int) { (3, 4) }
+  package static var maximumLoadFactor: (Int, Int) { (3, 4) }
 
   /// The minimum hash table load factor. This is a rational number
   /// represented by a (numerator, denominator) tuple.
   @_transparent
-  internal static var minimumLoadFactor: (Int, Int) { (1, 4) }
+  package static var minimumLoadFactor: (Int, Int) { (1, 4) }
 
   /// The minimum number of items that can be held in a hash table of the given scale.
   @usableFromInline
   @_effects(readnone)
-  internal static func minimumCapacity(forScale scale: Int) -> Int {
+  package static func minimumCapacity(forScale scale: Int) -> Int {
     guard scale >= minimumScale else { return 0 }
     let bucketCount = 1 &<< scale
     return (bucketCount * minimumLoadFactor.0) / minimumLoadFactor.1
@@ -64,7 +64,7 @@ extension _HashTable {
   /// The maximum number of items that can be held in a hash table of the given scale.
   @usableFromInline
   @_effects(readnone)
-  internal static func maximumCapacity(forScale scale: Int) -> Int {
+  package static func maximumCapacity(forScale scale: Int) -> Int {
     guard scale >= minimumScale else { return maximumUnhashedCount }
     let bucketCount = 1 &<< scale
     return (bucketCount * maximumLoadFactor.0) / maximumLoadFactor.1
@@ -73,7 +73,7 @@ extension _HashTable {
   /// The minimum hash table scale that can hold the specified number of elements.
   @usableFromInline
   @_effects(readnone)
-  internal static func scale(forCapacity capacity: Int) -> Int {
+  package static func scale(forCapacity capacity: Int) -> Int {
     guard capacity > maximumUnhashedCount else { return 0 }
     let capacity = Swift.max(capacity, 1)
     // Calculate the minimum number of entries we need to allocate to satisfy
@@ -94,7 +94,7 @@ extension _HashTable {
 
   /// The count of 64-bit words that a hash table of the specified scale
   /// will need to have in its storage.
-  internal static func wordCount(forScale scale: Int) -> Int {
+  package static func wordCount(forScale scale: Int) -> Int {
     ((scale &<< scale) + 63) / 64
   }
 }

@@ -24,7 +24,7 @@ extension UniqueSet where Element: ~Copyable {
   public init(minimumCapacity: Int) {
     precondition(minimumCapacity >= 0, "Capacity must be nonnegative")
     let table = _HTable(minimumCapacity: minimumCapacity)
-    self.init(_storage: RigidSet(_table: table))
+    unsafe self.init(_storage: RigidSet(_table: table))
   }
   
   @inlinable

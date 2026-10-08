@@ -23,7 +23,7 @@ extension RigidArray where Element: ~Copyable {
   @inlinable
   public mutating func removeAll() {
     unsafe _items.deinitialize()
-    _count = 0
+    unsafe _count = 0
   }
 
   /// Removes and returns the element at the specified position.
@@ -60,8 +60,8 @@ extension RigidArray where Element: ~Copyable {
   public mutating func remove(at index: Int) -> Element {
     _checkItemIndex(index)
     let old = unsafe _storage.moveElement(from: index)
-    _closeGap(at: index, count: 1)
-    _count -= 1
+    unsafe _closeGap(at: index, count: 1)
+    unsafe _count -= 1
     return old
   }
 
@@ -76,8 +76,8 @@ extension RigidArray where Element: ~Copyable {
   @discardableResult
   public mutating func removeLast() -> Element {
     precondition(!isEmpty, "Cannot remove last element from an empty array")
-    let old = unsafe _storage.moveElement(from: _count - 1)
-    _count -= 1
+    let old = unsafe _storage.moveElement(from: self.count - 1)
+    unsafe _count -= 1
     return old
   }
 
@@ -96,12 +96,12 @@ extension RigidArray where Element: ~Copyable {
   public mutating func removeLast(_ k: Int) {
     if k == 0 { return }
     precondition(
-      k >= 0 && k <= _count,
+      k >= 0 && k <= self.count,
       "Count of elements to remove is out of bounds")
     unsafe _storage.extracting(
-      Range(uncheckedBounds: (_count - k, _count))
+      Range(uncheckedBounds: (self.count - k, self.count))
     ).deinitialize()
-    _count &-= k
+    unsafe _count &-= k
   }
 
   /// Removes the specified subrange of elements from the array.
@@ -120,8 +120,8 @@ extension RigidArray where Element: ~Copyable {
     _checkValidBounds(bounds)
     guard !bounds.isEmpty else { return bounds.lowerBound }
     unsafe _storage.extracting(bounds).deinitialize()
-    _closeGap(at: bounds.lowerBound, count: bounds.count)
-    _count -= bounds.count
+    unsafe _closeGap(at: bounds.lowerBound, count: bounds.count)
+    unsafe _count -= bounds.count
     return bounds.lowerBound
   }
 

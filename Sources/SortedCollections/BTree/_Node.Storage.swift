@@ -15,26 +15,8 @@
 
 extension _Node {
   @usableFromInline
-  internal struct Header {
-    @inlinable
-    internal init(
-      capacity: Int,
-      count: Int,
-      subtreeCount: Int,
-      depth: Int,
-      values: UnsafeMutablePointer<Value>?,
-      children: UnsafeMutablePointer<_Node<Key, Value>>?
-    ) {
-      self._internalCounts = 0
-      self.values = values
-      self.children = children
-      self.subtreeCount = subtreeCount
-      
-      self.capacity = capacity
-      self.count = count
-      self.depth = depth
-    }
-    
+  @unsafe
+  package struct Header {
     /// Packed integer to store all node counts.
     ///
     /// This is represented as:
@@ -46,16 +28,52 @@ extension _Node {
     ///       count         depth
     ///
     @usableFromInline
+    @safe
     internal var _internalCounts: UInt64
+
+    /// The total amount of elements contained underneath this node
+    @usableFromInline
+    @safe
+    package var subtreeCount: Int
+
+    /// Pointer to the buffer containing the corresponding values.
+    @usableFromInline
+    @unsafe
+    package var values: UnsafeMutablePointer<Value>?
+
+    /// Pointer to the buffer containing the elements.
+    @usableFromInline
+    @unsafe
+    package var children: UnsafeMutablePointer<_Node<Key, Value>>?
+
+    @inlinable
+    internal init(
+      capacity: Int,
+      count: Int,
+      subtreeCount: Int,
+      depth: Int,
+      values: UnsafeMutablePointer<Value>?,
+      children: UnsafeMutablePointer<_Node<Key, Value>>?
+    ) {
+      self._internalCounts = 0
+      unsafe self.values = values
+      unsafe self.children = children
+      self.subtreeCount = subtreeCount
+      
+      self.capacity = capacity
+      self.count = count
+      self.depth = depth
+    }
     
     /// Refers to the amount of keys in the node.
     @inlinable
     @inline(__always)
-    internal var count: Int {
+    @safe
+    package var count: Int {
       get { Int((_internalCounts & 0xFFFFFFF000000000) >> 40) }
       set {
-        assert(0 <= newValue && newValue <= 0xFFFFFFF, "Invalid count.")
-        assert(newValue <= capacity, "Count cannot exceed capacity.")
+        assert(0 <= newValue && newValue <= 0xFFFFFFF, "Invalid count")
+        assert(newValue <= capacity, "Count cannot exceed capacity")
         _internalCounts &= ~0xFFFFFFF000000000
         _internalCounts |= UInt64(newValue) << 40
       }
@@ -64,11 +82,12 @@ extension _Node {
     /// The total amount of keys possible to store within the node.
     @inlinable
     @inline(__always)
-    internal var capacity: Int {
+    @safe
+    package var capacity: Int {
       get { Int((_internalCounts & 0x0000000FFFFFFF00) >> 8) }
       set {
-        assert(0 <= newValue && newValue <= 0xFFFFFFF, "Invalid capacity.")
-        assert(newValue >= count, "Capacity cannot be below count.")
+        assert(0 <= newValue && newValue <= 0xFFFFFFF, "Invalid capacity")
+        assert(newValue >= count, "Capacity cannot be below count")
         _internalCounts &= ~0x0000000FFFFFFF00
         _internalCounts |= UInt64(newValue) << 8
       }
@@ -77,26 +96,15 @@ extension _Node {
     /// The depth of the node represented as the number of nodes below the current one.
     @inlinable
     @inline(__always)
-    internal var depth: Int {
+    @safe
+    package var depth: Int {
       get { Int(_internalCounts & 0x00000000000000FF) }
       set {
-        assert(0 <= newValue && newValue <= 0xFF, "Invalid depth.")
+        assert(0 <= newValue && newValue <= 0xFF, "Invalid depth")
         _internalCounts &= ~0x00000000000000FF
         _internalCounts |= UInt64(newValue)
       }
     }
-    
-    /// The total amount of elements contained underneath this node
-    @usableFromInline
-    internal var subtreeCount: Int
-    
-    /// Pointer to the buffer containing the corresponding values.
-    @usableFromInline
-    internal var values: UnsafeMutablePointer<Value>?
-    
-    /// Pointer to the buffer containing the elements.
-    @usableFromInline
-    internal var children: UnsafeMutablePointer<_Node<Key, Value>>?
   }
   
   /// Represents the underlying data for a node.
@@ -118,6 +126,7 @@ extension _Node {
   /// that can be passed to APIs.
   @usableFromInline
   @_fixed_layout // Not really! This module isn't ABI stable.
+  @safe // FIXME: Really?
   internal class Storage: ManagedBuffer<_Node.Header, Key> {
     /// Allows **read-only** access to the underlying data behind the node.
     ///
@@ -125,16 +134,17 @@ extension _Node {
     /// - Returns: The value the closure body returns, if any.
     @inlinable
     @inline(__always)
+    @unsafe
     internal func read<R>(_ body: (UnsafeHandle) throws -> R) rethrows -> R {
-      return try self.withUnsafeMutablePointers { header, keys in
-        let handle = UnsafeHandle(
+      return unsafe try self.withUnsafeMutablePointers { header, keys in
+        let handle = unsafe UnsafeHandle(
           keys: keys,
           values: header.pointee.values,
           children: header.pointee.children,
           header: header,
           isMutable: false
         )
-        return try body(handle)
+        return unsafe try body(handle)
       }
     }
     
@@ -151,10 +161,11 @@ extension _Node {
     /// - Warning: The underlying storage **must** be unique.
     @inlinable
     @inline(__always)
+    @unsafe
     internal func updateGuaranteedUnique<R>(
       _ body: (UnsafeHandle) throws -> R
     ) rethrows -> R {
-      try self.read { try body(UnsafeHandle(mutating: $0)) }
+      unsafe try self.read { unsafe try body(UnsafeHandle(mutating: $0)) }
     }
     
     /// Creates a new storage object.
@@ -167,8 +178,8 @@ extension _Node {
       withCapacity capacity: Int,
       isLeaf: Bool
     ) -> Storage {
-      let storage = Storage.create(minimumCapacity: capacity) { _ in
-        Header(
+      let storage = unsafe Storage.create(minimumCapacity: capacity) { _ in
+        unsafe Header(
           capacity: capacity,
           count: 0,
           subtreeCount: 0,
@@ -181,7 +192,7 @@ extension _Node {
         )
       }
       
-      return unsafeDowncast(storage, to: Storage.self)
+      return unsafe unsafeDowncast(storage, to: Storage.self)
     }
     
     /// Copies an existing storage to a new storage.
@@ -190,33 +201,33 @@ extension _Node {
     @inlinable
     @inline(__always)
     internal func copy() -> Storage {
-      let capacity = self.header.capacity
-      let count = self.header.count
-      let subtreeCount = self.header.subtreeCount
-      let depth = self.header.depth
-      let isLeaf = self.header.children == nil
-      
+      let capacity = unsafe self.header.capacity
+      let count = unsafe self.header.count
+      let subtreeCount = unsafe self.header.subtreeCount
+      let depth = unsafe self.header.depth
+      let isLeaf = unsafe self.header.children == nil
+
       let newStorage = Storage.create(withCapacity: capacity, isLeaf: isLeaf)
       
-      newStorage.header.count = count
-      newStorage.header.subtreeCount = subtreeCount
-      newStorage.header.depth = depth
-      
-      self.withUnsafeMutablePointerToElements { oldKeys in
-        newStorage.withUnsafeMutablePointerToElements { newKeys in
-          newKeys.initialize(from: oldKeys, count: count)
+      unsafe newStorage.header.count = count
+      unsafe newStorage.header.subtreeCount = subtreeCount
+      unsafe newStorage.header.depth = depth
+
+      unsafe self.withUnsafeMutablePointerToElements { oldKeys in
+        unsafe newStorage.withUnsafeMutablePointerToElements { newKeys in
+          unsafe newKeys.initialize(from: oldKeys, count: count)
         }
       }
       
       if _Node.hasValues {
-        newStorage.header.values.unsafelyUnwrapped
+        unsafe newStorage.header.values.unsafelyUnwrapped
           .initialize(
             from: self.header.values.unsafelyUnwrapped,
             count: count
           )
       }
       
-      newStorage.header.children?
+      unsafe newStorage.header.children?
         .initialize(
           from: self.header.children.unsafelyUnwrapped,
           count: count + 1
@@ -227,22 +238,22 @@ extension _Node {
     
     @inlinable
     deinit {
-      self.withUnsafeMutablePointers { header, elements in
-        let count = header.pointee.count
-        
+      unsafe self.withUnsafeMutablePointers { header, elements in
+        let count = unsafe header.pointee.count
+
         if _Node.hasValues {
-          let values = header.pointee.values.unsafelyUnwrapped
-          values.deinitialize(count: count)
-          values.deallocate()
+          let values = unsafe header.pointee.values.unsafelyUnwrapped
+          unsafe values.deinitialize(count: count)
+          unsafe values.deallocate()
         }
         
         
-        if let children = header.pointee.children {
-          children.deinitialize(count: count + 1)
-          children.deallocate()
+        if let children = unsafe header.pointee.children {
+          unsafe children.deinitialize(count: count + 1)
+          unsafe children.deallocate()
         }
         
-        elements.deinitialize(count: header.pointee.count)
+        unsafe elements.deinitialize(count: header.pointee.count)
       }
     }
   }

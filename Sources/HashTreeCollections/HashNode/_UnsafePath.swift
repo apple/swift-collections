@@ -37,27 +37,32 @@
 /// would considerably embiggen the size of the path construct.)
 @usableFromInline
 @frozen
+@unsafe
 internal struct _UnsafePath {
   @usableFromInline
+  @safe
   internal var ancestors: _AncestorHashSlots
 
   @usableFromInline
   internal var node: _UnmanagedHashNode
 
   @usableFromInline
+  @safe
   internal var nodeSlot: _HashSlot
 
   @usableFromInline
+  @safe
   internal var level: _HashLevel
 
   @usableFromInline
+  @safe
   internal var _isItem: Bool
 
   @inlinable
   internal init(root: __shared _RawHashNode) {
     self.level = .top
     self.ancestors = .empty
-    self.node = root.unmanaged
+    unsafe self.node = root.unmanaged
     self.nodeSlot = .zero
     self._isItem = root.storage.header.hasItems
   }
@@ -70,10 +75,10 @@ extension _UnsafePath {
     _ node: _UnmanagedHashNode,
     childSlot: _HashSlot
   ) {
-    assert(childSlot < node.childrenEndSlot)
+    assert(unsafe childSlot < node.childrenEndSlot)
     self.level = level
     self.ancestors = ancestors
-    self.node = node
+    unsafe self.node = node
     self.nodeSlot = childSlot
     self._isItem = false
   }
@@ -85,10 +90,10 @@ extension _UnsafePath {
     _ node: _UnmanagedHashNode,
     itemSlot: _HashSlot
   ) {
-    assert(itemSlot < node.itemsEndSlot)
+    assert(unsafe itemSlot < node.itemsEndSlot)
     self.level = level
     self.ancestors = ancestors
-    self.node = node
+    unsafe self.node = node
     self.nodeSlot = itemSlot
     self._isItem = true
   }
@@ -163,13 +168,13 @@ extension _UnsafePath: CustomStringConvertible {
       d += ".\(self.ancestors[l])"
       l = l.descend()
     }
-    if isPlaceholder {
+    if unsafe isPlaceholder {
       d += ".end[\(self.nodeSlot)]"
     } else if isOnItem {
       d += "[\(self.nodeSlot)]"
-    } else if isOnChild {
+    } else if unsafe isOnChild {
       d += ".\(self.nodeSlot)"
-    } else if isOnNodeEnd {
+    } else if unsafe isOnNodeEnd {
       d += ".end(\(self.nodeSlot))"
     }
     return d
@@ -183,6 +188,7 @@ extension _UnsafePath {
   /// - Note: It is undefined behavior to call this on a path that is no longer
   ///    valid.
   @inlinable @inline(__always)
+  @safe
   internal var isOnItem: Bool {
     // Note: this may be true even if nodeSlot == itemCount (insertion paths).
     _isItem
@@ -197,7 +203,7 @@ extension _UnsafePath {
   ///    valid.
   @inlinable
   internal var isPlaceholder: Bool {
-    _isItem && nodeSlot.value == node.itemCount
+    unsafe _isItem && nodeSlot.value == node.itemCount
   }
 
   /// Returns true if this path addresses a node in the tree; otherwise returns
@@ -207,7 +213,7 @@ extension _UnsafePath {
   ///    valid.
   @inlinable
   internal var isOnChild: Bool {
-    !_isItem && nodeSlot.value < node.childCount
+    unsafe !_isItem && nodeSlot.value < node.childCount
   }
 
   /// Returns true if this path addresses an empty slot within a node in a tree;
@@ -217,7 +223,7 @@ extension _UnsafePath {
   ///    valid.
   @inlinable
   internal var isOnNodeEnd: Bool {
-    !_isItem && nodeSlot.value == node.childCount
+    unsafe !_isItem && nodeSlot.value == node.childCount
   }
 }
 
@@ -229,8 +235,8 @@ extension _UnsafePath {
   ///    valid.
   @inlinable
   internal var currentChild: _UnmanagedHashNode {
-    assert(isOnChild)
-    return node.unmanagedChild(at: nodeSlot)
+    assert(unsafe isOnChild)
+    return unsafe node.unmanagedChild(at: nodeSlot)
   }
 
   /// Returns the chid slot in this path corresponding to the specified level.
@@ -264,7 +270,7 @@ extension _UnsafePath {
     // As a special exception, this allows slot to equal the item count.
     // This can happen for paths that address the position a new item might be
     // inserted later.
-    assert(slot <= node.itemsEndSlot)
+    assert(unsafe slot <= node.itemsEndSlot)
     nodeSlot = slot
     _isItem = true
   }
@@ -278,7 +284,7 @@ extension _UnsafePath {
   internal mutating func selectChild(at slot: _HashSlot) {
     // As a special exception, this allows slot to equal the child count.
     // This is equivalent to a call to `selectEnd()`.
-    assert(slot <= node.childrenEndSlot)
+    assert(unsafe slot <= node.childrenEndSlot)
     nodeSlot = slot
     _isItem = false
   }
@@ -290,7 +296,7 @@ extension _UnsafePath {
   @usableFromInline
   @_effects(releasenone)
   internal mutating func selectEnd() {
-    nodeSlot = node.childrenEndSlot
+    nodeSlot = unsafe node.childrenEndSlot
     _isItem = false
   }
 
@@ -303,10 +309,10 @@ extension _UnsafePath {
   ///    valid.
   @inlinable
   internal mutating func descend() {
-    self.node = currentChild
+    unsafe self.node = currentChild
     self.ancestors[level] = nodeSlot
     self.nodeSlot = .zero
-    self._isItem = node.hasItems
+    self._isItem = unsafe node.hasItems
     self.level = level.descend()
   }
 
@@ -321,12 +327,12 @@ extension _UnsafePath {
   internal mutating func descendToChild(
     _ child: _UnmanagedHashNode, at slot: _HashSlot
   ) {
-    assert(slot < node.childrenEndSlot)
-    assert(child == node.unmanagedChild(at: slot))
-    self.node = child
+    assert(unsafe slot < node.childrenEndSlot)
+    assert(unsafe child == node.unmanagedChild(at: slot))
+    unsafe self.node = child
     self.ancestors[level] = slot
     self.nodeSlot = .zero
-    self._isItem = node.hasItems
+    self._isItem = unsafe node.hasItems
     self.level = level.descend()
   }
 
@@ -336,7 +342,7 @@ extension _UnsafePath {
     guard level != self.level else { return }
     assert(level < self.level)
     self.level = level
-    self.node = ancestor
+    unsafe self.node = ancestor
     self.nodeSlot = ancestors[level]
     self.ancestors.clear(atOrBelow: level)
     self._isItem = false
@@ -356,19 +362,19 @@ extension _UnsafePath {
   ) -> Bool {
     if self.level.isAtRoot { return false }
     var best: _UnsafePath? = nil
-    var n = root.unmanaged
+    var n = unsafe root.unmanaged
     var l: _HashLevel = .top
     while l < self.level {
       let slot = self.ancestors[l]
-      if test(n, slot) {
-        best = _UnsafePath(
+      if unsafe test(n, slot) {
+        unsafe best = _UnsafePath(
           l, self.ancestors.truncating(to: l), n, childSlot: slot)
       }
-      n = n.unmanagedChild(at: slot)
+      unsafe n = n.unmanagedChild(at: slot)
       l = l.descend()
     }
-    guard let best = best else { return false }
-    self = best
+    guard let best = unsafe best else { return false }
+    unsafe self = best
     return true
   }
 }
@@ -384,7 +390,7 @@ extension _UnsafePath {
   mutating func selectNextItem() -> Bool {
     assert(isOnItem)
     nodeSlot = nodeSlot.next()
-    if nodeSlot < node.itemsEndSlot { return true }
+    if unsafe nodeSlot < node.itemsEndSlot { return true }
     nodeSlot = .zero
     _isItem = false
     return false
@@ -398,7 +404,7 @@ extension _UnsafePath {
   ///    valid.
   mutating func selectNextChild() -> Bool {
     assert(!isOnItem)
-    let childrenEndSlot = node.childrenEndSlot
+    let childrenEndSlot = unsafe node.childrenEndSlot
     guard nodeSlot < childrenEndSlot else { return false }
     nodeSlot = nodeSlot.next()
     return nodeSlot < childrenEndSlot
@@ -416,8 +422,8 @@ extension _UnsafePath {
   @usableFromInline
   @_effects(releasenone)
   internal mutating func descendToLeftMostItem() {
-    while isOnChild {
-      descend()
+    while unsafe isOnChild {
+      unsafe descend()
     }
   }
 
@@ -429,16 +435,16 @@ extension _UnsafePath {
   /// - Note: It is undefined behavior to call this on a path that is no longer
   ///    valid.
   internal mutating func descendToRightMostItem() {
-    assert(isOnChild)
+    assert(unsafe isOnChild)
     while true {
-      descend()
-      let childrenEndSlot = node.childrenEndSlot
+      unsafe descend()
+      let childrenEndSlot = unsafe node.childrenEndSlot
       guard childrenEndSlot > .zero else { break }
-      selectChild(at: childrenEndSlot.previous())
+      unsafe selectChild(at: childrenEndSlot.previous())
     }
-    let itemsEndSlot = node.itemsEndSlot
+    let itemsEndSlot = unsafe node.itemsEndSlot
     assert(itemsEndSlot > .zero)
-    selectItem(at: itemsEndSlot.previous())
+    unsafe selectItem(at: itemsEndSlot.previous())
   }
 
   /// Find the next item in a preorder walk in the tree following the currently
@@ -448,23 +454,23 @@ extension _UnsafePath {
   @_effects(releasenone)
   internal mutating func findSuccessorItem(under root: _RawHashNode) -> Bool {
     guard isOnItem else { return false }
-    if selectNextItem() { return true }
-    if node.hasChildren {
-      descendToLeftMostItem()
+    if unsafe selectNextItem() { return true }
+    if unsafe node.hasChildren {
+      unsafe descendToLeftMostItem()
       assert(isOnItem)
       return true
     }
-    if ascendToNearestAncestor(
-      under: root, where: { $1.next() < $0.childrenEndSlot }
+    if unsafe ascendToNearestAncestor(
+      under: root, where: { unsafe $1.next() < $0.childrenEndSlot }
     ) {
-      let r = selectNextChild()
+      let r = unsafe selectNextChild()
       assert(r)
-      descendToLeftMostItem()
+      unsafe descendToLeftMostItem()
       assert(isOnItem)
       return true
     }
-    self = _UnsafePath(root: root)
-    self.selectEnd()
+    unsafe self = _UnsafePath(root: root)
+    unsafe self.selectEnd()
     return true
   }
 
@@ -476,33 +482,33 @@ extension _UnsafePath {
   internal mutating func findPredecessorItem(under root: _RawHashNode) -> Bool {
     switch (isOnItem, nodeSlot > .zero) {
     case (true, true):
-      selectItem(at: nodeSlot.previous())
+      unsafe selectItem(at: nodeSlot.previous())
       return true
     case (false, true):
-      selectChild(at: nodeSlot.previous())
-      descendToRightMostItem()
+      unsafe selectChild(at: nodeSlot.previous())
+      unsafe descendToRightMostItem()
       return true
     case (false, false):
-      if node.hasItems {
-        selectItem(at: node.itemsEndSlot.previous())
+      if unsafe node.hasItems {
+        unsafe selectItem(at: node.itemsEndSlot.previous())
         return true
       }
     case (true, false):
       break
     }
     guard
-      ascendToNearestAncestor(
+      unsafe ascendToNearestAncestor(
         under: root,
-        where: { $0.hasItems || $1 > .zero })
+        where: { unsafe $0.hasItems || $1 > .zero })
     else { return false }
 
     if nodeSlot > .zero {
-      selectChild(at: nodeSlot.previous())
-      descendToRightMostItem()
+      unsafe selectChild(at: nodeSlot.previous())
+      unsafe descendToRightMostItem()
       return true
     }
-    if node.hasItems {
-      selectItem(at: node.itemsEndSlot.previous())
+    if unsafe node.hasItems {
+      unsafe selectItem(at: node.itemsEndSlot.previous())
       return true
     }
     return false
@@ -518,14 +524,14 @@ extension _RawHashNode {
   internal func preorderPosition(
     _ level: _HashLevel, of path: _UnsafePath
   ) -> Int {
-    if path.isOnNodeEnd { return count }
+    if unsafe path.isOnNodeEnd { return count }
     assert(path.isOnItem)
     if level < path.level {
-      let childSlot = path.childSlot(at: level)
-      return read {
-        let prefix = $0.children[..<childSlot.value]
+      let childSlot = unsafe path.childSlot(at: level)
+      return unsafe read {
+        let prefix = unsafe $0.children[..<childSlot.value]
           .reduce($0.itemCount) { $0 + $1.count }
-        let positionWithinChild = $0[child: childSlot]
+        let positionWithinChild = unsafe $0[child: childSlot]
           .preorderPosition(level.descend(), of: path)
         return prefix + positionWithinChild
       }
@@ -548,23 +554,23 @@ extension _UnsafePath {
     _ position: Int
   ) -> (found: Bool, remaining: Int) {
     assert(position >= 0)
-    let top = node
+    let top = unsafe node
     let topLevel = level
     var stop = false
     var remaining = position
     while !stop {
-      let itemCount = node.itemCount
+      let itemCount = unsafe node.itemCount
       if remaining < itemCount {
-        selectItem(at: _HashSlot(remaining))
+        unsafe selectItem(at: _HashSlot(remaining))
         return (true, 0)
       }
       remaining -= itemCount
-      node.read {
-        let children = $0.children
+      unsafe node.read {
+        let children = unsafe $0.children
         for i in children.indices {
-          let c = children[i].count
+          let c = unsafe children[i].count
           if remaining < c {
-            descendToChild(children[i].unmanaged, at: _HashSlot(i))
+            unsafe descendToChild(children[i].unmanaged, at: _HashSlot(i))
             return
           }
           remaining &-= c
@@ -572,8 +578,8 @@ extension _UnsafePath {
         stop = true
       }
     }
-    ascend(to: top, at: topLevel)
-    selectEnd()
+    unsafe ascend(to: top, at: topLevel)
+    unsafe selectEnd()
     return (false, remaining)
   }
 }
@@ -589,65 +595,65 @@ extension _RawHashNode {
     _ level: _HashLevel, from start: _UnsafePath, to end: _UnsafePath
   ) -> Int {
     assert(level.isAtRoot)
-    if start.isOnNodeEnd {
+    if unsafe start.isOnNodeEnd {
       // Shortcut: distance from end.
-      return preorderPosition(level, of: end) - count
+      return unsafe preorderPosition(level, of: end) - count
     }
-    if end.isOnNodeEnd {
+    if unsafe end.isOnNodeEnd {
       // Shortcut: distance to end.
-      return count - preorderPosition(level, of: start)
+      return unsafe count - preorderPosition(level, of: start)
     }
     assert(start.isOnItem)
     assert(end.isOnItem)
     if start.level == end.level, start.ancestors == end.ancestors {
       // Shortcut: the paths are under the same node.
-      precondition(start.node == end.node, "Internal index validation error")
-      return start.currentItemSlot.distance(to: end.currentItemSlot)
+      precondition(unsafe start.node == end.node, "Internal index validation error")
+      return unsafe start.currentItemSlot.distance(to: end.currentItemSlot)
     }
     if
       start.level < end.level,
       start.ancestors.isEqual(to: end.ancestors, upTo: start.level)
     {
       // Shortcut: start's node is an ancestor of end's position.
-      return start.node._distance(
+      return unsafe start.node._distance(
         start.level, fromItemAt: start.currentItemSlot, to: end)
     }
     if start.ancestors.isEqual(to: end.ancestors, upTo: end.level) {
       // Shortcut: end's node is an ancestor of start's position.
-      return -end.node._distance(
+      return unsafe -end.node._distance(
         end.level, fromItemAt: end.currentItemSlot, to: start)
     }
     // No shortcuts -- the two paths are in different subtrees.
     // Start descending from the root to look for the closest common
     // ancestor.
-    if start < end {
-      return _distance(level, from: start, to: end)
+    if unsafe start < end {
+      return unsafe _distance(level, from: start, to: end)
     }
-    return -_distance(level, from: end, to: start)
+    return unsafe -_distance(level, from: end, to: start)
   }
 
   internal func _distance(
     _ level: _HashLevel, from start: _UnsafePath, to end: _UnsafePath
   ) -> Int {
-    assert(start < end)
+    assert(unsafe start < end)
     assert(level < start.level)
     assert(level < end.level)
-    let slot1 = start.childSlot(at: level)
-    let slot2 = end.childSlot(at: level)
+    let slot1 = unsafe start.childSlot(at: level)
+    let slot2 = unsafe end.childSlot(at: level)
     if slot1 == slot2 {
-      return read {
-        $0[child: slot1]._distance(level.descend(), from: start, to: end)
+      return unsafe read {
+        unsafe $0[child: slot1]._distance(level.descend(), from: start, to: end)
       }
     }
-    return read {
-      let children = $0.children
-      let d1 = children[slot1.value]
+    return unsafe read {
+      let children = unsafe $0.children
+      let d1 = unsafe children[slot1.value]
         .preorderPosition(level.descend(), of: start)
-      let d2 = children[slot1.value &+ 1 ..< slot2.value]
+      let d2 = unsafe children[slot1.value &+ 1 ..< slot2.value]
         .reduce(0) { $0 + $1.count }
-      let d3 = children[slot2.value]
+      let d3 = unsafe children[slot2.value]
         .preorderPosition(level.descend(), of: end)
-      return (children[slot1.value].count - d1) + d2 + d3
+      return unsafe (children[slot1.value].count - d1) + d2 + d3
     }
   }
 }
@@ -656,14 +662,14 @@ extension _UnmanagedHashNode {
   internal func _distance(
     _ level: _HashLevel, fromItemAt start: _HashSlot, to end: _UnsafePath
   ) -> Int {
-    read {
-      assert(start < $0.itemsEndSlot)
+    unsafe read {
+      assert(unsafe start < $0.itemsEndSlot)
       assert(level < end.level)
-      let childSlot = end.childSlot(at: level)
-      let children = $0.children
-      let prefix = children[..<childSlot.value]
+      let childSlot = unsafe end.childSlot(at: level)
+      let children = unsafe $0.children
+      let prefix = unsafe children[..<childSlot.value]
         .reduce($0.itemCount - start.value) { $0 + $1.count }
-      let positionWithinChild = children[childSlot.value]
+      let positionWithinChild = unsafe children[childSlot.value]
         .preorderPosition(level.descend(), of: end)
       return prefix + positionWithinChild
     }
@@ -677,16 +683,16 @@ extension _HashNode {
   internal func path(
     to key: Key, _ hash: _Hash
   ) -> _UnsafePath? {
-    var node = unmanaged
+    var node = unsafe unmanaged
     var level: _HashLevel = .top
     var ancestors: _AncestorHashSlots = .empty
     while true {
-      let r = UnsafeHandle.read(node) { $0.find(level, key, hash) }
+      let r = unsafe UnsafeHandle.read(node) { unsafe $0.find(level, key, hash) }
       guard let r = r else { break }
       guard r.descend else {
-        return _UnsafePath(level, ancestors, node, itemSlot: r.slot)
+        return unsafe _UnsafePath(level, ancestors, node, itemSlot: r.slot)
       }
-      node = node.unmanagedChild(at: r.slot)
+      unsafe node = node.unmanagedChild(at: r.slot)
       ancestors[level] = r.slot
       level = level.descend()
     }
@@ -704,15 +710,15 @@ extension _RawHashNode {
     limitedBy limit: _UnsafePath
   ) -> (found: Bool, limited: Bool) {
     assert(level.isAtRoot)
-    if (distance > 0 && limit < path) || (distance < 0 && limit > path) {
-      return (seek(level, &path, offsetBy: distance), false)
+    if unsafe (distance > 0 && limit < path) || (distance < 0 && limit > path) {
+      return unsafe (seek(level, &path, offsetBy: distance), false)
     }
     var d = distance
-    guard self._seek(level, &path, offsetBy: &d) else {
-      path = limit
-      return (distance >= 0 && d == 0 && limit.isOnNodeEnd, true)
+    guard unsafe self._seek(level, &path, offsetBy: &d) else {
+      unsafe path = limit
+      return unsafe (distance >= 0 && d == 0 && limit.isOnNodeEnd, true)
     }
-    let found = (
+    let found = unsafe (
       distance == 0
       || (distance > 0 && path <= limit)
       || (distance < 0 && path >= limit))
@@ -727,7 +733,7 @@ extension _RawHashNode {
     offsetBy distance: Int
   ) -> Bool {
     var d = distance
-    if self._seek(level, &path, offsetBy: &d) {
+    if unsafe self._seek(level, &path, offsetBy: &d) {
       return true
     }
     if distance > 0, d == 0 { // endIndex
@@ -747,13 +753,13 @@ extension _RawHashNode {
     // subtree. So we first figure out the subtree situation, and only start the
     // recursion if the target is outside of it.
     assert(level.isAtRoot)
-    assert(path.isOnItem || path.isOnNodeEnd)
+    assert(unsafe path.isOnItem || path.isOnNodeEnd)
     guard distance != 0 else { return true }
     if distance > 0 {
       if !path.isOnItem { return false }
       // Try a local search within the subtree starting at the current node.
-      let slot = path.currentItemSlot
-      let r = path.findItemAtPreorderPosition(distance &+ slot.value)
+      let slot = unsafe path.currentItemSlot
+      let r = unsafe path.findItemAtPreorderPosition(distance &+ slot.value)
       if r.found {
         assert(r.remaining == 0)
         return true
@@ -762,17 +768,17 @@ extension _RawHashNode {
       distance = r.remaining
 
       // Fall back to recursively descending from the root.
-      return _seekForward(level, by: &distance, fromSubtree: &path)
+      return unsafe _seekForward(level, by: &distance, fromSubtree: &path)
     }
     // distance < 0
-    if !path.isOnNodeEnd {
+    if unsafe !path.isOnNodeEnd {
       // Shortcut: see if the destination item is within the same node.
       // (Doing this here allows us to avoid having to descend from the root
       // down only to figure this out.)
       let slot = path.nodeSlot
       distance &+= slot.value
       if distance >= 0 {
-        path.selectItem(at: _HashSlot(distance))
+        unsafe path.selectItem(at: _HashSlot(distance))
         distance = 0
         return true
       }
@@ -780,7 +786,7 @@ extension _RawHashNode {
     // Otherwise we need to visit ancestor nodes to find the item at the right
     // position. We also do this when we start from the end index -- there
     // will be no recursion in that case anyway.
-    return _seekBackward(level, by: &distance, fromSubtree: &path)
+    return unsafe _seekBackward(level, by: &distance, fromSubtree: &path)
   }
 
   /// Find the item at the given positive distance from the last item within the
@@ -793,25 +799,25 @@ extension _RawHashNode {
     assert(distance >= 0)
     assert(level <= path.level)
     guard level < path.level else {
-      path.selectEnd()
+      unsafe path.selectEnd()
       return false
     }
-    return read {
-      let children = $0.children
-      var i = path.childSlot(at: level).value
-      if children[i]._seekForward(
+    return unsafe read {
+      let children = unsafe $0.children
+      var i = unsafe path.childSlot(at: level).value
+      if unsafe children[i]._seekForward(
         level.descend(), by: &distance, fromSubtree: &path
       ) {
         assert(distance == 0)
         return true
       }
-      path.ascend(to: unmanaged, at: level)
+      unsafe path.ascend(to: unmanaged, at: level)
       i &+= 1
       while i < children.endIndex {
-        let c = children[i].count
+        let c = unsafe children[i].count
         if distance < c {
-          path.descendToChild(children[i].unmanaged, at: _HashSlot(i))
-          let r = path.findItemAtPreorderPosition(distance)
+          unsafe path.descendToChild(children[i].unmanaged, at: _HashSlot(i))
+          let r = unsafe path.findItemAtPreorderPosition(distance)
           precondition(r.found, "Internal inconsistency: invalid node counts")
           assert(r.remaining == 0)
           distance = 0
@@ -820,7 +826,7 @@ extension _RawHashNode {
         distance &-= c
         i &+= 1
       }
-      path.selectEnd()
+      unsafe path.selectEnd()
       return false
     }
   }
@@ -835,14 +841,14 @@ extension _RawHashNode {
     assert(distance < 0)
     assert(level <= path.level)
 
-    return read {
-      let children = $0.children
+    return unsafe read {
+      let children = unsafe $0.children
       var slot: _HashSlot
       if level < path.level {
         // We need to descend to the end of the path before we can start the
         // search for real.
-        slot = path.childSlot(at: level)
-        if children[slot.value]._seekBackward(
+        slot = unsafe path.childSlot(at: level)
+        if unsafe children[slot.value]._seekBackward(
           level.descend(), by: &distance, fromSubtree: &path
         ) {
           // A deeper level has found the target item.
@@ -850,12 +856,12 @@ extension _RawHashNode {
           return true
         }
         // No luck yet -- ascend to this node and look through preceding data.
-        path.ascend(to: unmanaged, at: level)
-      } else if path.isOnNodeEnd {
+        unsafe path.ascend(to: unmanaged, at: level)
+      } else if unsafe path.isOnNodeEnd {
         // When we start from the root's end (the end index), we don't need
         // to descend before starting to look at previous children.
-        assert(level.isAtRoot && path.node == self.unmanaged)
-        slot = path.node.childrenEndSlot
+        assert(unsafe level.isAtRoot && path.node == self.unmanaged)
+        slot = unsafe path.node.childrenEndSlot
       } else { // level == path.level
         // The outermost caller has already gone as far back as possible
         // within the original subtree. Return a level higher to actually
@@ -866,10 +872,10 @@ extension _RawHashNode {
       // Look through all preceding children for the target item.
       while slot > .zero {
         slot = slot.previous()
-        let c = children[slot.value].count
+        let c = unsafe children[slot.value].count
         if c + distance >= 0 {
-          path.descendToChild(children[slot.value].unmanaged, at: slot)
-          let r = path.findItemAtPreorderPosition(c + distance)
+          unsafe path.descendToChild(children[slot.value].unmanaged, at: slot)
+          let r = unsafe path.findItemAtPreorderPosition(c + distance)
           precondition(r.found, "Internal inconsistency: invalid node counts")
           distance = 0
           return true
@@ -877,9 +883,9 @@ extension _RawHashNode {
         distance += c
       }
       // See if the target is hiding somewhere in our immediate items.
-      distance &+= $0.itemCount
+      distance &+= unsafe $0.itemCount
       if distance >= 0 {
-        path.selectItem(at: _HashSlot(distance))
+        unsafe path.selectItem(at: _HashSlot(distance))
         distance = 0
         return true
       }

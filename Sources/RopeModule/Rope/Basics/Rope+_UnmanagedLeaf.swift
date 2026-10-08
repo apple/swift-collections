@@ -14,6 +14,7 @@
 extension Rope {
   @frozen // Not really! This module isn't ABI stable.
   @usableFromInline
+  @unsafe
   internal struct _UnmanagedLeaf {
     @usableFromInline internal typealias _Item = Rope._Item
     @usableFromInline internal typealias _Leaf = _Storage<_Item>
@@ -23,15 +24,16 @@ extension Rope {
 
     @inlinable
     internal init(_ leaf: __shared _Leaf) {
-      _ref = .passUnretained(leaf)
+      unsafe _ref = .passUnretained(leaf)
     }
   }
 }
 
 extension Rope._UnmanagedLeaf: Equatable {
   @inlinable
+  @safe
   internal static func ==(left: Self, right: Self) -> Bool {
-    left._ref.toOpaque() == right._ref.toOpaque()
+    unsafe left._ref.toOpaque() == right._ref.toOpaque()
   }
 }
 
@@ -40,10 +42,10 @@ extension Rope._UnmanagedLeaf {
   internal func read<R>(
     body: (_UnsafeHandle<_Item>) -> R
   ) -> R {
-    _ref._withUnsafeGuaranteedRef { leaf in
-      leaf.withUnsafeMutablePointers { h, p in
-        let handle = _UnsafeHandle(isMutable: false, header: h, start: p)
-        return body(handle)
+    unsafe _ref._withUnsafeGuaranteedRef { leaf in
+      unsafe leaf.withUnsafeMutablePointers { h, p in
+        let handle = unsafe _UnsafeHandle(isMutable: false, header: h, start: p)
+        return unsafe body(handle)
       }
     }
   }

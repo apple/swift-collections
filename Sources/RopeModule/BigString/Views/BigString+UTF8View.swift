@@ -100,7 +100,7 @@ extension BigString.UTF8View.Iterator: IteratorProtocol {
     with body: (UnsafeBufferPointer<UInt8>) -> (consumed: Int, result: R)
   ) -> R {
     guard _index < _base.endIndex else {
-      let r = body(UnsafeBufferPointer(start: nil, count: 0))
+      let r = unsafe body(UnsafeBufferPointer(start: nil, count: 0))
       precondition(r.consumed == 0)
       return r.result
     }
@@ -109,13 +109,13 @@ extension BigString.UTF8View.Iterator: IteratorProtocol {
     var utf8Offset = _index.utf8Offset
 
     let chunk = _base._rope[ri]
-    let slice = chunk._bytes[ci...].prefix(maximumCount)
-    assert(!slice.isEmpty)
-    let (consumed, result) = body(UnsafeBufferPointer(rebasing: slice))
-    precondition(consumed >= 0 && consumed <= slice.count)
+    let slice = unsafe chunk._bytes[ci...].prefix(maximumCount)
+    assert(unsafe !slice.isEmpty)
+    let (consumed, result) = unsafe body(UnsafeBufferPointer(rebasing: slice))
+    precondition(unsafe consumed >= 0 && consumed <= slice.count)
     utf8Offset += consumed
     ci += consumed
-    let haveMore = ci < chunk._bytes.count
+    let haveMore = unsafe ci < chunk._bytes.count
 
     if haveMore {
       _index = BigString.Index(_utf8Offset: utf8Offset, _rope: ri, chunkOffset: ci)

@@ -21,7 +21,7 @@ import InternalCollectionsUtilities
 extension RigidSet where Element: ~Copyable {
   @inlinable
   public func isTriviallyIdentical(to other: borrowing Self) -> Bool {
-    self._members == other._members
+    unsafe self._members == other._members
     && self._table.isTriviallyIdentical(to: other._table)
   }
 }

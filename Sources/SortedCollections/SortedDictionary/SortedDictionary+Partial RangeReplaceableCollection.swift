@@ -160,7 +160,8 @@ extension SortedDictionary {
     bounds.upperBound._index.ensureValid(forTree: self._root)
     bounds.lowerBound._index.ensureValid(forTree: self._root)
     
-    return self._root.removeSubrange(Range(uncheckedBounds: (bounds.lowerBound._index, bounds.upperBound._index)))
+    return self._root.removeSubrange(
+      unsafe Range(uncheckedBounds: (bounds.lowerBound._index, bounds.upperBound._index)))
   }
   
   /// Removes all key-value pairs from the dictionary.

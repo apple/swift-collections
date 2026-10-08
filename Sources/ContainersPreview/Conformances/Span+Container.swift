@@ -11,7 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !COLLECTIONS_SINGLE_MODULE
+#if COLLECTIONS_SINGLE_MODULE
+import Collections
+#else
 import InternalCollectionsUtilities
 import SpanPreview
 #endif
@@ -34,12 +36,12 @@ extension Span: RandomAccessContainer where Element: ~Copyable {
     return iterator._start
     #else
     return self.withUnsafeBufferPointer { ourBuffer in
-      iterator._withShamIterator { sham in
+      unsafe iterator._withShamIterator { sham in
         precondition(
-          sham._basePointer == UnsafeRawPointer(ourBuffer.baseAddress)
+          unsafe sham._basePointer == UnsafeRawPointer(ourBuffer.baseAddress)
           && sham._baseCount <= ourBuffer.count,
           "Iterator does not belong to this container")
-        return sham._start
+        return unsafe sham._start
       }
     }
     #endif

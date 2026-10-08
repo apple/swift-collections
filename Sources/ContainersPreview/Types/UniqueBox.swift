@@ -84,13 +84,13 @@ extension UniqueBox where Value: ~Copyable {
     @_transparent
     @_unsafeSelfDependentResult
     borrow {
-      _pointer.pointee
+      unsafe _pointer.pointee
     }
 
     @_transparent
     @_unsafeSelfDependentResult
     mutate {
-      &_pointer.pointee
+      unsafe &_pointer.pointee
     }
   }
 #else
@@ -98,12 +98,12 @@ extension UniqueBox where Value: ~Copyable {
   public var value: Value {
     @_transparent
     unsafeAddress {
-      UnsafePointer(_pointer)
+      unsafe UnsafePointer(_pointer)
     }
 
     @_transparent
     unsafeMutableAddress {
-      _pointer
+      unsafe _pointer
     }
   }
 #endif
@@ -187,7 +187,7 @@ extension UniqueBox where Value: ~Copyable {
   @_lifetime(immortal)
   @_unsafeNonescapableResult // FIXME: This should not be necessary
   public consuming func leak() -> MutableRef<Value> {
-    let p = _pointer
+    let p = unsafe _pointer
     discard self
     // FIXME: _unsafeImmortalize does not work here, and MutableRef has no immortal initializer
     return unsafe MutableRef<Value>(&p.pointee)

@@ -35,15 +35,15 @@ extension BitSet {
   ///
   /// - Complexity: O(*max*), where *max* is the largest item in `self`.
   public func isSubset(of other: BitSet) -> Bool {
-    self._read { first in
-      other._read { second in
-        let w1 = first._words
-        let w2 = second._words
+    unsafe self._read { first in
+      unsafe other._read { second in
+        let w1 = unsafe first._words
+        let w2 = unsafe second._words
         if w1.count > w2.count {
           return false
         }
         for i in 0 ..< w1.count {
-          if !w1[i].subtracting(w2[i]).isEmpty {
+          if unsafe !w1[i].subtracting(w2[i]).isEmpty {
             return false
           }
         }
@@ -84,7 +84,7 @@ extension BitSet {
   ///
   /// - Complexity: O(*max*), where *max* is the largest item in `self`.
   public func isSubset(of other: Range<Int>) -> Bool {
-    _read { $0.isSubset(of: other._clampedToUInt()) }
+    unsafe _read { unsafe $0.isSubset(of: other._clampedToUInt()) }
   }
 
   /// Returns a Boolean value that indicates whether this set is a subset of

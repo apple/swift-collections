@@ -49,15 +49,15 @@ extension BigString._Chunk {
   }
 
   mutating func _append(_ str: consuming Substring, _ other: Counts) {
-    _append(other) {
-      _ = $0.initialize(from: str.utf8)
+    unsafe _append(other) {
+      _ = unsafe $0.initialize(from: str.utf8)
     }
   }
 
   mutating func _append(_ span: UTF8Span, _ other: Counts) {
-    _append(other) { buffer in
+    unsafe _append(other) { buffer in
       span.span.withUnsafeBufferPointer {
-        _ = buffer.initialize(fromContentsOf: $0)
+        _ = unsafe buffer.initialize(fromContentsOf: $0)
       }
     }
   }
@@ -71,13 +71,11 @@ extension BigString._Chunk {
     let utf8Before = Int(counts.utf8)
     counts.append(newCounts)
 
-    storage.withUnsafeMutablePointerToElements {
-      let buffer = UnsafeMutableBufferPointer(
+    unsafe storage.withUnsafeMutablePointerToElements {
+      let buffer = unsafe UnsafeMutableBufferPointer(
         start: $0,
-        count: Self.maxUTF8Count
-      )
-
-      body(buffer.extracting(utf8Before...))
+        count: Self.maxUTF8Count)
+      unsafe body(buffer.extracting(utf8Before...))
     }
 
     invariantCheck()
@@ -89,17 +87,17 @@ extension BigString._Chunk {
     precondition(to.utf8Offset + originalRange.count <= Self.maxUTF8Count)
 
     // Only grab the slice pointing at initialized code units.
-    let originalBuffer = _mutableBytes.extracting(originalRange)
+    let originalBuffer = unsafe _mutableBytes.extracting(originalRange)
 
     // Grab the buffer starting from the shifted utf8 offset till the
     // length of the already initialized buffer.
     let newOriginalRange = to.utf8Offset ..< originalRange.count + to.utf8Offset
-    let newOriginalBuffer = _mutableBytes.extracting(newOriginalRange)
+    let newOriginalBuffer = unsafe _mutableBytes.extracting(newOriginalRange)
 
     // Initialize the contents of the new buffer from the original.
     //
     // Note: This most likely overlaps
-    _ = newOriginalBuffer.moveInitialize(fromContentsOf: originalBuffer)
+    _ = unsafe newOriginalBuffer.moveInitialize(fromContentsOf: originalBuffer)
   }
 
   mutating func _prepend(_ span: UTF8Span, _ other: Counts) {
@@ -113,11 +111,11 @@ extension BigString._Chunk {
 
     // Grab the prepended text's buffer.
     let prependRange = 0..<Int(other.utf8)
-    let prependBuffer = _mutableBytes.extracting(prependRange)
+    let prependBuffer = unsafe _mutableBytes.extracting(prependRange)
 
     // Initialize the beginning of the chunk with the prepended text.
     span.span.withUnsafeBufferPointer {
-      _ = prependBuffer.initialize(fromContentsOf: $0)
+      _ = unsafe prependBuffer.initialize(fromContentsOf: $0)
     }
 
     let c = counts
@@ -146,7 +144,7 @@ extension BigString._Chunk {
     _shift(index..<endIndex, to: Index(utf8Offset: to))
 
     // Initialize the gap with the contents of the insertion string.
-    _ = _mutableBytes.extracting(from..<to).initialize(from: slice.string.utf8)
+    _ = unsafe _mutableBytes.extracting(from..<to).initialize(from: slice.string.utf8)
 
     self.counts = parts.left
     self.counts.append(Counts(slice))

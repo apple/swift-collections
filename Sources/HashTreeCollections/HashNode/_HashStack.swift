@@ -86,16 +86,16 @@ internal struct _HashStack<Element> {
       assert(level < _count)
       return withUnsafeBytes(of: &_contents) { buffer in
         // Homogeneous tuples are layout compatible with their element type
-        let start = buffer.baseAddress!.assumingMemoryBound(to: Element.self)
-        return start[Int(truncatingIfNeeded: level)]
+        let start = unsafe buffer.baseAddress!.assumingMemoryBound(to: Element.self)
+        return unsafe start[Int(truncatingIfNeeded: level)]
       }
     }
     set {
       assert(level < capacity)
       withUnsafeMutableBytes(of: &_contents) { buffer in
         // Homogeneous tuples are layout compatible with their element type
-        let start = buffer.baseAddress!.assumingMemoryBound(to: Element.self)
-        start[Int(truncatingIfNeeded: level)] = newValue
+        let start = unsafe buffer.baseAddress!.assumingMemoryBound(to: Element.self)
+        unsafe start[Int(truncatingIfNeeded: level)] = newValue
       }
     }
   }

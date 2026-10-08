@@ -24,7 +24,7 @@ extension UniqueSet where Element: ~Copyable {
       return .init(bucket: bucket, remnant: item)
     }
     var hashValue = r.hashValue
-    if _ensureFreeCapacity(1), !_storage._table.isSmall {
+    if _ensureFreeCapacity(1), !_isSmall {
       hashValue = _storage._hashValue(for: item)
     }
     let bucket = _storage._insertNew(item, hashValue: hashValue)
@@ -44,7 +44,7 @@ extension UniqueSet where Element: ~Copyable {
   ) -> Element? {
     var r = self._insert(item)
     guard let remnant = r.remnant.take() else { return nil }
-    return exchange(
+    return unsafe exchange(
       &_storage._memberPtr(at: r.bucket).pointee,
       with: remnant)
   }

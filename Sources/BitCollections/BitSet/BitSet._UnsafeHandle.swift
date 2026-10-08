@@ -23,14 +23,14 @@ extension BitSet {
 extension _UnsafeBitSet {
   @inline(__always)
   internal func _isReachable(_ index: Index) -> Bool {
-    index == endIndex || contains(index.value)
+    unsafe index == endIndex || contains(index.value)
   }
 }
 
 extension _UnsafeBitSet {
   internal func _emptySuffix() -> Int {
     var i = wordCount - 1
-    while i >= 0, _words[i].isEmpty {
+    while i >= 0, unsafe _words[i].isEmpty {
       i -= 1
     }
     return wordCount - 1 - i
@@ -46,7 +46,7 @@ extension _UnsafeBitSet {
     ensureMutable()
     let c = Swift.min(self.wordCount, other.wordCount)
     for w in 0 ..< c {
-      function(&self._mutableWords[w], other._words[w])
+      unsafe function(&self._mutableWords[w], other._words[w])
     }
   }
 }
@@ -62,15 +62,15 @@ extension _UnsafeBitSet {
     if l.word == u.word {
       guard l.word < wordCount else { return }
       let w = _Word(from: l.bit, to: u.bit)
-      _mutableWords[l.word].formUnion(w)
+      unsafe _mutableWords[l.word].formUnion(w)
       return
     }
-    _mutableWords[l.word].formUnion(_Word(upTo: l.bit).complement())
+    unsafe _mutableWords[l.word].formUnion(_Word(upTo: l.bit).complement())
     for w in l.word + 1 ..< u.word {
-      _mutableWords[w] = .allBits
+      unsafe _mutableWords[w] = .allBits
     }
     if u.word < wordCount {
-      _mutableWords[u.word].formUnion(_Word(upTo: u.bit))
+      unsafe _mutableWords[u.word].formUnion(_Word(upTo: u.bit))
     }
   }
 
@@ -81,21 +81,21 @@ extension _UnsafeBitSet {
     let u = Index(Swift.min(range.upperBound, capacity))
 
     for w in 0 ..< l.word {
-      _mutableWords[w] = .empty
+      unsafe _mutableWords[w] = .empty
     }
 
     if l.word == u.word {
       guard l.word < wordCount else { return }
 
       let w = _Word(from: l.bit, to: u.bit)
-      _mutableWords[l.word].formIntersection(w)
+      unsafe _mutableWords[l.word].formIntersection(w)
       return
     }
 
-    _mutableWords[l.word].formIntersection(_Word(upTo: l.bit).complement())
+    unsafe _mutableWords[l.word].formIntersection(_Word(upTo: l.bit).complement())
     if u.word < wordCount {
-      _mutableWords[u.word].formIntersection(_Word(upTo: u.bit))
-      _mutableWords[(u.word + 1)...].update(repeating: .empty)
+      unsafe _mutableWords[u.word].formIntersection(_Word(upTo: u.bit))
+      unsafe _mutableWords[(u.word + 1)...].update(repeating: .empty)
     }
   }
 
@@ -109,16 +109,16 @@ extension _UnsafeBitSet {
     if l.word == u.word {
       guard l.word < wordCount else { return }
       let w = _Word(from: l.bit, to: u.bit)
-      _mutableWords[l.word].formSymmetricDifference(w)
+      unsafe _mutableWords[l.word].formSymmetricDifference(w)
       return
     }
-    _mutableWords[l.word]
+    unsafe _mutableWords[l.word]
       .formSymmetricDifference(_Word(upTo: l.bit).complement())
     for w in l.word + 1 ..< u.word {
-      _mutableWords[w].formComplement()
+      unsafe _mutableWords[w].formComplement()
     }
     if u.word < wordCount {
-      _mutableWords[u.word].formSymmetricDifference(_Word(upTo: u.bit))
+      unsafe _mutableWords[u.word].formSymmetricDifference(_Word(upTo: u.bit))
     }
   }
 
@@ -131,20 +131,20 @@ extension _UnsafeBitSet {
     if l.word == u.word {
       guard l.word < wordCount else { return }
       let w = _Word(from: l.bit, to: u.bit)
-      _mutableWords[l.word].subtract(w)
+      unsafe _mutableWords[l.word].subtract(w)
       return
     }
 
-    _mutableWords[l.word].subtract(_Word(upTo: l.bit).complement())
-    _mutableWords[(l.word + 1) ..< u.word].update(repeating: .empty)
+    unsafe _mutableWords[l.word].subtract(_Word(upTo: l.bit).complement())
+    unsafe _mutableWords[(l.word + 1) ..< u.word].update(repeating: .empty)
     if u.word < wordCount {
-      _mutableWords[u.word].subtract(_Word(upTo: u.bit))
+      unsafe _mutableWords[u.word].subtract(_Word(upTo: u.bit))
     }
   }
 
   @_effects(releasenone)
   internal func isDisjoint(with range: Range<UInt>) -> Bool {
-    if self.isEmpty { return true }
+    if unsafe self.isEmpty { return true }
     let lower = Index(Swift.min(range.lowerBound, capacity))
     let upper = Index(Swift.min(range.upperBound, capacity))
     if lower == upper { return true }
@@ -152,47 +152,47 @@ extension _UnsafeBitSet {
     if lower.word == upper.word {
       guard lower.word < wordCount else { return true }
       let w = _Word(from: lower.bit, to: upper.bit)
-      return _words[lower.word].intersection(w).isEmpty
+      return unsafe _words[lower.word].intersection(w).isEmpty
     }
 
     let lw = _Word(upTo: lower.bit).complement()
-    guard _words[lower.word].intersection(lw).isEmpty else { return false }
+    guard unsafe _words[lower.word].intersection(lw).isEmpty else { return false }
 
     for i in lower.word + 1 ..< upper.word {
-      guard _words[i].isEmpty else { return false }
+      guard unsafe _words[i].isEmpty else { return false }
     }
     if upper.word < wordCount {
       let uw = _Word(upTo: upper.bit)
-      guard _words[upper.word].intersection(uw).isEmpty else { return false }
+      guard unsafe _words[upper.word].intersection(uw).isEmpty else { return false }
     }
     return true
   }
 
   @_effects(releasenone)
   internal func isSubset(of range: Range<UInt>) -> Bool {
-    guard !range.isEmpty else { return isEmpty }
-    guard !_words.isEmpty else { return true }
+    guard !range.isEmpty else { return unsafe isEmpty }
+    guard unsafe !_words.isEmpty else { return true }
     let r = range.clamped(to: 0 ..< UInt(capacity))
 
     let lower = Index(r.lowerBound)
     let upper = Index(r.upperBound)
 
     for w in 0 ..< lower.word {
-      guard _words[w].isEmpty else { return false }
+      guard unsafe _words[w].isEmpty else { return false }
     }
 
     guard lower.word < wordCount else { return true }
 
     let lw = _Word(upTo: lower.bit)
-    guard _words[lower.word].intersection(lw).isEmpty else { return false }
+    guard unsafe _words[lower.word].intersection(lw).isEmpty else { return false }
 
     guard upper.word < wordCount else { return true }
 
     let hw = _Word(upTo: upper.bit).complement()
-    guard _words[upper.word].intersection(hw).isEmpty else { return false }
+    guard unsafe _words[upper.word].intersection(hw).isEmpty else { return false }
 
     for w in upper.word + 1 ..< wordCount {
-      guard _words[w].isEmpty else { return false }
+      guard unsafe _words[w].isEmpty else { return false }
     }
     return true
   }
@@ -208,23 +208,23 @@ extension _UnsafeBitSet {
 
     if lower.word == upper.word {
       let w = _Word(from: lower.bit, to: upper.bit)
-      return _words[lower.word].intersection(w) == w
+      return unsafe _words[lower.word].intersection(w) == w
     }
     let lw = _Word(upTo: lower.bit).complement()
-    guard _words[lower.word].intersection(lw) == lw else { return false }
+    guard unsafe _words[lower.word].intersection(lw) == lw else { return false }
 
     for w in lower.word + 1 ..< upper.word {
-      guard _words[w].isFull else { return false }
+      guard unsafe _words[w].isFull else { return false }
     }
 
     guard upper.word < wordCount else { return true }
     let uw = _Word(upTo: upper.bit)
-    return _words[upper.word].intersection(uw) == uw
+    return unsafe _words[upper.word].intersection(uw) == uw
   }
 
   @_effects(releasenone)
   internal func isEqualSet(to range: Range<UInt>) -> Bool {
-    if range.isEmpty { return self.isEmpty }
+    if range.isEmpty { return unsafe self.isEmpty }
     let r = range.clamped(to: 0 ..< UInt(capacity))
     guard r == range else { return false }
 
@@ -234,22 +234,22 @@ extension _UnsafeBitSet {
     guard upper.word == wordCount &- 1 else { return false }
 
     for w in 0 ..< lower.word {
-      guard _words[w].isEmpty else { return false }
+      guard unsafe _words[w].isEmpty else { return false }
     }
 
     if lower.word == upper.word {
       let w = _Word(from: lower.bit, to: upper.bit)
-      return _words[lower.word] == w
+      return unsafe _words[lower.word] == w
     }
     let lw = _Word(upTo: lower.bit).complement()
-    guard _words[lower.word] == lw else { return false }
+    guard unsafe _words[lower.word] == lw else { return false }
 
     for w in lower.word + 1 ..< upper.word {
-      guard _words[w].isFull else { return false }
+      guard unsafe _words[w].isFull else { return false }
     }
 
     let uw = _Word(upTo: upper.bit)
-    return _words[upper.word] == uw
+    return unsafe _words[upper.word] == uw
   }
 }
 

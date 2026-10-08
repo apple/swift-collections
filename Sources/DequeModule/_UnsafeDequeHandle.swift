@@ -18,6 +18,7 @@ import SpanPreview
 
 @frozen
 @usableFromInline
+@unsafe // FIXME: This doesn't own its storage; should we dissolve it into RigidDeque?
 package struct _UnsafeDequeHandle<Element: ~Copyable>: ~Copyable {
   @usableFromInline
   package typealias Slot = _DequeSlot
@@ -26,10 +27,12 @@ package struct _UnsafeDequeHandle<Element: ~Copyable>: ~Copyable {
   package var _buffer: UnsafeMutableBufferPointer<Element>
 
   @usableFromInline
-  package var count: Int
+  @unsafe // Setter
+  package var _count: Int
 
   @usableFromInline
-  package var startSlot: Slot
+  @unsafe // Setter
+  package var _startSlot: Slot
 
   @_alwaysEmitIntoClient
   @_transparent
@@ -38,16 +41,16 @@ package struct _UnsafeDequeHandle<Element: ~Copyable>: ~Copyable {
     count: Int,
     startSlot: _DequeSlot
   ) {
-    self._buffer = buffer
-    self.count = count
-    self.startSlot = startSlot
+    unsafe self._buffer = buffer
+    unsafe self._count = count
+    unsafe self._startSlot = startSlot
   }
 
   @inlinable
   internal consuming func dispose() {
-    _checkInvariants()
-    self.mutableSegments().deinitialize()
-    _buffer.deallocate()
+    unsafe _checkInvariants()
+    unsafe self.mutableSegments().deinitialize()
+    unsafe _buffer.deallocate()
   }
 }
 
@@ -55,7 +58,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
   internal static var empty: Self {
-    Self(buffer: ._empty, count: 0, startSlot: .zero)
+    unsafe Self(buffer: ._empty, count: 0, startSlot: .zero)
   }
 
   @_alwaysEmitIntoClient
@@ -63,7 +66,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   internal static func allocate(
     capacity: Int
   ) -> Self {
-    Self(
+    unsafe Self(
       buffer: capacity > 0 ? .allocate(capacity: capacity) : ._empty,
       count: 0,
       startSlot: .zero)
@@ -74,9 +77,9 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
 #if COLLECTIONS_INTERNAL_CHECKS
   @usableFromInline @inline(never) @_effects(releasenone)
   internal func _checkInvariants() {
-    precondition(capacity >= 0)
-    precondition(count >= 0 && count <= capacity)
-    precondition(startSlot.position >= 0 && startSlot.position <= capacity)
+    precondition(unsafe capacity >= 0)
+    precondition(unsafe count >= 0 && count <= capacity)
+    precondition(unsafe startSlot.position >= 0 && startSlot.position <= capacity)
   }
 #else
   @inlinable @inline(__always)
@@ -86,6 +89,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
 
 extension _UnsafeDequeHandle where Element: ~Copyable {
   @usableFromInline
+  @safe
   internal var description: String {
     "(capacity: \(capacity), count: \(count), start: \(startSlot))"
   }
@@ -95,21 +99,37 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
   internal var _baseAddress: UnsafeMutablePointer<Element> {
-    _buffer.baseAddress.unsafelyUnwrapped
+    unsafe _buffer.baseAddress.unsafelyUnwrapped
   }
 
   @_alwaysEmitIntoClient
   @_transparent
+  @safe
+  internal var count: Int {
+    unsafe _assumeNonNegative(_count)
+  }
+
+  @_alwaysEmitIntoClient
+  @_transparent
+  @safe
   internal var capacity: Int {
-    _buffer.count
+    unsafe _assumeNonNegative(_buffer.count)
+  }
+
+  @_alwaysEmitIntoClient
+  @_transparent
+  @safe
+  internal var startSlot: Slot {
+    unsafe _startSlot
   }
 }
 
 extension _UnsafeDequeHandle where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
+  @safe
   internal func isIdentical(to other: borrowing Self) -> Bool {
-    self._buffer._isIdentical(to: other._buffer)
+    unsafe self._buffer._isIdentical(to: other._buffer)
     && self.count == other.count
     && self.startSlot == other.startSlot
   }
@@ -130,22 +150,22 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
       (startSlot.position < capacity || (capacity == 0 && startSlot.position == 0)))
     precondition(count <= capacity)
 
-    var h = Self.allocate(capacity: capacity)
-    h.count = count
-    h.startSlot = startSlot
+    var h = unsafe Self.allocate(capacity: capacity)
+    unsafe h._count = count
+    unsafe h._startSlot = startSlot
     if h.count > 0 {
-      let segments = h.mutableSegments()
-      let c = segments.first.count
+      let segments = unsafe h.mutableSegments()
+      let c = unsafe segments.first.count
       for i in 0 ..< c {
-        segments.first.initializeElement(at: i, to: generator(i))
+        unsafe segments.first.initializeElement(at: i, to: generator(i))
       }
-      if let second = segments.second {
+      if let second = unsafe segments.second {
         for i in c ..< h.count {
-          second.initializeElement(at: i - c, to: generator(i))
+          unsafe second.initializeElement(at: i - c, to: generator(i))
         }
       }
     }
-    return h
+    return unsafe h
   }
 }
 
@@ -157,12 +177,14 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   /// entirely.)
   @_alwaysEmitIntoClient
   @_transparent
+  @safe
   internal var limSlot: Slot {
     Slot(at: capacity)
   }
 
   @_alwaysEmitIntoClient
   @_transparent
+  @safe
   internal func slot(after slot: Slot) -> Slot {
     assert(slot.position < capacity)
     let position = slot.position + 1
@@ -174,6 +196,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
 
   @_alwaysEmitIntoClient
   @_transparent
+  @safe
   internal func slot(before slot: Slot) -> Slot {
     assert(slot.position < capacity)
     if slot.position == 0 { return Slot(at: capacity - 1) }
@@ -182,6 +205,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
 
   @_alwaysEmitIntoClient
   @_transparent
+  @safe
   internal func slot(_ slot: Slot, offsetBy delta: Int) -> Slot {
     assert(slot.position <= capacity)
     let position = slot.position + delta
@@ -195,6 +219,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
 
   @_alwaysEmitIntoClient
   @_transparent
+  @safe
   internal var endSlot: Slot {
     slot(startSlot, offsetBy: count)
   }
@@ -203,6 +228,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   /// or may not address an existing element.
   @_alwaysEmitIntoClient
   @_transparent
+  @safe
   internal func slot(forOffset offset: Int) -> Slot {
     assert(offset >= 0)
     assert(offset <= capacity) // Not `count`!
@@ -218,6 +244,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
 
   @_alwaysEmitIntoClient
   @_transparent
+  @safe
   internal func distance(from start: Slot, to end: Slot) -> Int {
     assert(start.position >= 0 && start.position <= capacity)
     assert(end.position >= 0 && end.position <= capacity)
@@ -238,7 +265,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   @_transparent
   internal func ptr(at slot: Slot) -> UnsafePointer<Element> {
     assert(slot.position >= 0 && slot.position <= capacity)
-    return UnsafePointer(_baseAddress + slot.position)
+    return unsafe UnsafePointer(_baseAddress + slot.position)
   }
 
   @_alwaysEmitIntoClient
@@ -247,25 +274,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
     at slot: Slot
   ) -> UnsafeMutablePointer<Element> {
     assert(slot.position >= 0 && slot.position <= capacity)
-    return _baseAddress + slot.position
-  }
-}
-
-extension _UnsafeDequeHandle where Element: ~Copyable {
-  @inlinable
-  internal subscript(offset offset: Int) -> Element {
-    @inline(__always)
-    _read {
-      precondition(offset >= 0 && offset < count, "Index out of bounds")
-      let slot = slot(forOffset: offset)
-      yield ptr(at: slot).pointee
-    }
-    @inline(__always)
-    _modify {
-      precondition(offset >= 0 && offset < count, "Index out of bounds")
-      let slot = slot(forOffset: offset)
-      yield &mutablePtr(at: slot).pointee
-    }
+    return unsafe _baseAddress + slot.position
   }
 }
 
@@ -276,7 +285,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   @_transparent
   internal var mutableBuffer: UnsafeMutableBufferPointer<Element> {
     mutating get {
-      _buffer
+      unsafe _buffer
     }
   }
 
@@ -284,7 +293,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   @_transparent
   internal func buffer(for range: Range<Slot>) -> UnsafeBufferPointer<Element> {
     assert(range.upperBound.position <= capacity)
-    return .init(_buffer._extracting(unchecked: range._offsets))
+    return unsafe .init(_buffer._extracting(unchecked: range._offsets))
   }
 
   @_alwaysEmitIntoClient
@@ -293,7 +302,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
     for range: Range<Slot>
   ) -> UnsafeMutableBufferPointer<Element> {
     assert(range.upperBound.position <= capacity)
-    return _buffer._extracting(unchecked: range._offsets)
+    return unsafe _buffer._extracting(unchecked: range._offsets)
   }
 }
 
@@ -306,7 +315,7 @@ extension _UnsafeDequeHandle {
   ) -> Slot {
     assert(start.position + source.count <= capacity)
     guard source.count > 0 else { return start }
-    mutablePtr(at: start).initialize(from: source.baseAddress!, count: source.count)
+    unsafe mutablePtr(at: start).initialize(from: source.baseAddress!, count: source.count)
     return Slot(at: start.position + source.count)
   }
 }
@@ -320,7 +329,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   ) -> Slot {
     assert(start.position + source.count <= capacity)
     guard source.count > 0 else { return start }
-    mutablePtr(at: start)
+    unsafe mutablePtr(at: start)
       .moveInitialize(from: source.baseAddress!, count: source.count)
     return Slot(at: start.position + source.count)
   }
@@ -334,17 +343,17 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
     after offset: Int
   ) -> UnsafeBufferPointer<Element> {
     assert(offset >= 0 && offset <= count)
-    guard _buffer.baseAddress != nil else {
+    guard unsafe _buffer.baseAddress != nil else {
       return .init(._empty)
     }
     let position = startSlot.position &+ offset
     if position < capacity {
-      return UnsafeBufferPointer(
+      return unsafe UnsafeBufferPointer(
         start: ptr(at: Slot(at: position)),
         count: Swift.min(count &- offset, capacity &- position))
     }
     // We're after the wrap
-    return UnsafeBufferPointer(
+    return unsafe UnsafeBufferPointer(
       start: ptr(at: Slot(at: position &- capacity)),
       count: startSlot.position &+ count &- position)
   }
@@ -357,13 +366,13 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   ) -> UnsafeBufferPointer<Element> {
     assert(limit >= 0 && limit <= count)
     assert(maxCount > 0)
-    var segment = self.nextSegment(after: offset)
+    var segment = unsafe self.nextSegment(after: offset)
       ._extracting(first: maxCount)
     if limit >= offset, segment.count > limit &- offset {
-      segment = segment._extracting(first: limit &- offset)
+      unsafe segment = segment._extracting(first: limit &- offset)
     }
     offset &+= segment.count
-    return segment
+    return unsafe segment
   }
 
   @_alwaysEmitIntoClient
@@ -371,17 +380,17 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
     before offset: Int
   ) -> UnsafeBufferPointer<Element> {
     assert(offset >= 0 && offset <= count)
-    guard _buffer.baseAddress != nil else {
+    guard unsafe _buffer.baseAddress != nil else {
       return .init(._empty)
     }
     let slot = startSlot.position &+ offset
     if slot <= capacity {
-      return UnsafeBufferPointer(
+      return unsafe UnsafeBufferPointer(
         start: ptr(at: startSlot),
         count: offset)
     }
     // We're after the wrap
-    return UnsafeBufferPointer(
+    return unsafe UnsafeBufferPointer(
       start: ptr(at: Slot(at: 0)),
       count: slot - capacity)
   }
@@ -414,15 +423,16 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
 
   @_alwaysEmitIntoClient
   internal func segments() -> _UnsafeDequeSegments<Element> {
-    guard _buffer.baseAddress != nil else {
-      return .init(._empty)
+    guard unsafe _buffer.baseAddress != nil else {
+      return unsafe .init(._empty)
     }
     let wrap = capacity &- startSlot.position
     if count <= wrap {
-      return .init(start: ptr(at: startSlot), count: count)
+      return unsafe .init(start: ptr(at: startSlot), count: count)
     }
-    return .init(first: ptr(at: startSlot), count: wrap,
-                 second: ptr(at: .zero), count: count &- wrap)
+    return unsafe .init(
+      first: ptr(at: startSlot), count: wrap,
+      second: ptr(at: .zero), count: count &- wrap)
   }
 
   @_alwaysEmitIntoClient
@@ -432,15 +442,15 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
     // Note: no asserts for bounds checks, as this is used to implement
     // appends/prepends
     assert(offsets.count <= capacity)
-    guard _buffer.baseAddress != nil else {
-      return .init(._empty)
+    guard unsafe _buffer.baseAddress != nil else {
+      return unsafe .init(._empty)
     }
     let start = slot(forOffset: offsets.lowerBound)
     let wrap = capacity &- start.position
     if offsets.count <= wrap {
-      return .init(start: ptr(at: start), count: offsets.count)
+      return unsafe .init(start: ptr(at: start), count: offsets.count)
     }
-    return .init(
+    return unsafe .init(
       first: ptr(at: start), count: capacity &- start.position,
       second: ptr(at: .zero), count: offsets.count &- wrap)
   }
@@ -448,7 +458,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
   internal mutating func mutableSegments() -> _UnsafeMutableDequeSegments<Element> {
-    .init(mutating: segments())
+    unsafe .init(mutating: segments())
   }
 
   @_alwaysEmitIntoClient
@@ -456,7 +466,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   internal mutating func mutableSegments(
     forOffsets range: Range<Int>
   ) -> _UnsafeMutableDequeSegments<Element> {
-    .init(mutating: segments(forOffsets: range))
+    unsafe .init(mutating: segments(forOffsets: range))
   }
 
   @_alwaysEmitIntoClient
@@ -467,11 +477,11 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
     assert(start.position <= capacity)
     assert(end.position <= capacity)
     if start < end {
-      return .init(
+      return unsafe .init(
         start: mutablePtr(at: start),
         count: end.position - start.position)
     }
-    return .init(
+    return unsafe .init(
       first: mutablePtr(at: start), count: capacity - start.position,
       second: mutablePtr(at: .zero), count: end.position)
   }
@@ -480,14 +490,19 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
 extension _UnsafeDequeHandle where Element: ~Copyable {
   @_alwaysEmitIntoClient
   internal mutating func availableSegments() -> _UnsafeMutableDequeSegments<Element> {
-    guard _buffer.baseAddress != nil else {
-      return .init(._empty)
+    guard unsafe _buffer.baseAddress != nil else {
+      return unsafe .init(._empty)
     }
     let endSlot = self.endSlot
-    guard count < capacity else { return .init(start: mutablePtr(at: endSlot), count: 0) }
-    if endSlot < startSlot { return .init(mutableBuffer(for: endSlot ..< startSlot)) }
-    return .init(mutableBuffer(for: endSlot ..< limSlot),
-                 mutableBuffer(for: .zero ..< startSlot))
+    guard count < capacity else {
+      return unsafe .init(start: mutablePtr(at: endSlot), count: 0)
+    }
+    if endSlot < startSlot {
+      return unsafe .init(mutableBuffer(for: endSlot ..< startSlot))
+    }
+    return unsafe .init(
+      mutableBuffer(for: endSlot ..< limSlot),
+      mutableBuffer(for: .zero ..< startSlot))
   }
 }
 
@@ -498,15 +513,15 @@ extension _UnsafeDequeHandle {
   /// capacity or layout.
   @_alwaysEmitIntoClient
   internal borrowing func allocateCopy() -> Self {
-    var result: _UnsafeDequeHandle<Element> = .allocate(capacity: self.capacity)
-    result.count = self.count
-    result.startSlot = self.startSlot
-    let src = self.segments()
-    result.initialize(at: self.startSlot, from: src.first)
-    if let second = src.second {
-      result.initialize(at: .zero, from: second)
+    var result: _UnsafeDequeHandle<Element> = unsafe .allocate(capacity: self.capacity)
+    unsafe result._count = self.count
+    unsafe result._startSlot = self.startSlot
+    let src = unsafe self.segments()
+    unsafe result.initialize(at: self.startSlot, from: src.first)
+    if let second = unsafe src.second {
+      unsafe result.initialize(at: .zero, from: second)
     }
-    return result
+    return unsafe result
   }
 
   /// Copy elements in `handle` into a newly allocated handle with the specified
@@ -514,14 +529,14 @@ extension _UnsafeDequeHandle {
   @_alwaysEmitIntoClient
   internal func allocateCopy(capacity: Int) -> Self {
     precondition(capacity >= self.count)
-    var result: _UnsafeDequeHandle<Element> = .allocate(capacity: capacity)
-    result.count = self.count
-    let src = self.segments()
-    let next = result.initialize(at: .zero, from: src.first)
-    if let second = src.second {
-      result.initialize(at: next, from: second)
+    var result: _UnsafeDequeHandle<Element> = unsafe .allocate(capacity: capacity)
+    unsafe result._count = self.count
+    let src = unsafe self.segments()
+    let next = unsafe result.initialize(at: .zero, from: src.first)
+    if let second = unsafe src.second {
+      unsafe result.initialize(at: next, from: second)
     }
-    return result
+    return unsafe result
   }
 }
 
@@ -531,15 +546,15 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
     let newCapacity = Swift.max(newCapacity, count)
     guard newCapacity != capacity else { return }
 
-    var new = _UnsafeDequeHandle<Element>.allocate(capacity: newCapacity)
-    let source = self.mutableSegments()
-    let next = new.moveInitialize(at: .zero, from: source.first)
-    if let second = source.second {
-      new.moveInitialize(at: next, from: second)
+    var new = unsafe _UnsafeDequeHandle<Element>.allocate(capacity: newCapacity)
+    let source = unsafe self.mutableSegments()
+    let next = unsafe new.moveInitialize(at: .zero, from: source.first)
+    if let second = unsafe source.second {
+      unsafe new.moveInitialize(at: next, from: second)
     }
-    _buffer.deallocate()
-    _buffer = new._buffer
-    startSlot = .zero
+    unsafe _buffer.deallocate()
+    unsafe _buffer = new._buffer
+    unsafe _startSlot = .zero
   }
 }
 
@@ -549,39 +564,39 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   @_alwaysEmitIntoClient
   internal func slotRange(following offset: inout Int) -> Range<Slot> {
     precondition(offset >= 0 && offset <= count, "Index out of bounds")
-    guard _buffer.baseAddress != nil else {
-      return Range(uncheckedBounds: (Slot.zero, Slot.zero))
+    guard unsafe _buffer.baseAddress != nil else {
+      return unsafe Range(uncheckedBounds: (Slot.zero, Slot.zero))
     }
     let wrapOffset = Swift.min(capacity - startSlot.position, count)
 
     if offset < wrapOffset {
       defer { offset += wrapOffset - offset }
-      return Range(
+      return unsafe Range(
         uncheckedBounds: (startSlot.advanced(by: offset), startSlot.advanced(by: wrapOffset)))
     }
     let lowerSlot = Slot.zero.advanced(by: offset - wrapOffset)
     let upperSlot = lowerSlot.advanced(by: count - wrapOffset)
     defer { offset += count - offset }
-    return Range(uncheckedBounds: (lower: lowerSlot, upper: upperSlot))
+    return unsafe Range(uncheckedBounds: (lower: lowerSlot, upper: upperSlot))
   }
 
   @_alwaysEmitIntoClient
   internal func slotRange(preceding offset: inout Int) -> Range<Slot> {
     precondition(offset >= 0 && offset <= count, "Index out of bounds")
-    guard _buffer.baseAddress != nil else {
-      return Range(uncheckedBounds: (Slot.zero, Slot.zero))
+    guard unsafe _buffer.baseAddress != nil else {
+      return unsafe Range(uncheckedBounds: (Slot.zero, Slot.zero))
     }
     let wrapOffset = Swift.min(capacity - startSlot.position, count)
 
     if offset <= wrapOffset {
       defer { offset = 0 }
-      return Range(
+      return unsafe Range(
         uncheckedBounds: (startSlot, startSlot.advanced(by: offset)))
     }
     let lowerSlot = Slot.zero
     let upperSlot = lowerSlot.advanced(by: offset - wrapOffset)
     defer { offset = wrapOffset }
-    return Range(uncheckedBounds: (lower: lowerSlot, upper: upperSlot))
+    return unsafe Range(uncheckedBounds: (lower: lowerSlot, upper: upperSlot))
   }
 }
 
@@ -593,7 +608,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   internal mutating func uncheckedSwapAt(_ i: Int, _ j: Int) {
     let slot1 = self.slot(forOffset: i)
     let slot2 = self.slot(forOffset: j)
-    self.mutableBuffer.swapAt(slot1.position, slot2.position)
+    unsafe self.mutableBuffer.swapAt(slot1.position, slot2.position)
   }
 }
 
@@ -613,8 +628,8 @@ extension _UnsafeDequeHandle {
     assert(range.upperBound <= count)
     assert(newElements.count == range.count)
     guard !range.isEmpty else { return }
-    let target = mutableSegments(forOffsets: range)
-    target.reassign(copying: newElements)
+    let target = unsafe mutableSegments(forOffsets: range)
+    unsafe target.reassign(copying: newElements)
   }
 }
 
@@ -626,12 +641,12 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   internal mutating func unsafeConsumeAll(
     with body: (UnsafeMutableBufferPointer<Element>) -> Void
   ) {
-    let segments = mutableSegments()
-    body(segments.first)
-    if let second = segments.second {
-      body(second)
+    let segments = unsafe mutableSegments()
+    unsafe body(segments.first)
+    if let second = unsafe segments.second {
+      unsafe body(second)
     }
-    self.count = 0
+    unsafe self._count = 0
   }
 
   @_alwaysEmitIntoClient
@@ -641,13 +656,13 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
     with body: (UnsafeMutableBufferPointer<Element>) -> Void
   ) {
     assert(offset >= 0 && offset <= count)
-    let segments = mutableSegments(forOffsets: Range(uncheckedBounds: (0, offset)))
-    body(segments.first)
-    if let second = segments.second {
-      body(second)
+    let segments = unsafe mutableSegments(forOffsets: Range(uncheckedBounds: (0, offset)))
+    unsafe body(segments.first)
+    if let second = unsafe segments.second {
+      unsafe body(second)
     }
-    self.startSlot = self.slot(forOffset: offset)
-    self.count &-= offset
+    unsafe self._startSlot = self.slot(forOffset: offset)
+    unsafe self._count &-= offset
   }
 }
 
@@ -663,8 +678,8 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   @_transparent
   internal mutating func uncheckedAppend(_ element: consuming Element) {
     assert(count < capacity)
-    mutablePtr(at: endSlot).initialize(to: element)
-    count &+= 1
+    unsafe mutablePtr(at: endSlot).initialize(to: element)
+    unsafe _count &+= 1
   }
 
   /// Prepend `element` to the front of this buffer. The buffer must have enough
@@ -677,9 +692,9 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   internal mutating func uncheckedPrepend(_ element: consuming Element) {
     assert(count < capacity)
     let slot = self.slot(before: startSlot)
-    mutablePtr(at: slot).initialize(to: element)
-    startSlot = slot
-    count &+= 1
+    unsafe mutablePtr(at: slot).initialize(to: element)
+    unsafe _startSlot = slot
+    unsafe _count &+= 1
   }
 }
 
@@ -691,9 +706,9 @@ extension UnsafeMutableBufferPointer where Element: ~Copyable {
     initializedCount: inout Int,
     initializingWith body: (inout OutputSpan<Element>) throws(E) -> R
   ) throws(E) -> R {
-    var span = OutputSpan(buffer: self, initializedCount: 0)
+    var span = unsafe OutputSpan(buffer: self, initializedCount: 0)
     defer {
-      initializedCount &+= span.finalize(for: self)
+      unsafe initializedCount &+= span.finalize(for: self)
       span = OutputSpan()
     }
     return try body(&span)
@@ -708,8 +723,8 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
     assert(self.count + count <= capacity)
     guard count > 0 else { return nil }
     let origCount = self.count
-    self.count &+= count
-    return self.mutableSegments(forOffsets: origCount ..< origCount + count)
+    unsafe self._count &+= count
+    return unsafe self.mutableSegments(forOffsets: origCount ..< origCount + count)
   }
 
   @_alwaysEmitIntoClient
@@ -719,9 +734,9 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
     assert(self.count + count <= capacity)
     guard count > 0 else { return nil }
     let oldStart = self.startSlot
-    self.startSlot = self.slot(startSlot, offsetBy: -count)
-    self.count &+= count
-    return self.mutableSegments(between: self.startSlot, and: oldStart)
+    unsafe self._startSlot = self.slot(startSlot, offsetBy: -count)
+    unsafe self._count &+= count
+    return unsafe self.mutableSegments(between: self.startSlot, and: oldStart)
   }
 }
 
@@ -756,15 +771,15 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
     initializingWith body: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) -> Range<Int> {
     let origCount = count
-    let gap = self.mutableSegments(forOffsets: count ..< count + newItemCount)
-    let c = self.count &+ gap.first.count
-    try gap.first._initialize(
-      initializedCount: &self.count, initializingWith: body)
-    if self.count == c, let second = gap.second {
-      try second._initialize(
-        initializedCount: &self.count, initializingWith: body)
+    let gap = unsafe self.mutableSegments(forOffsets: count ..< count + newItemCount)
+    let c = unsafe self.count &+ gap.first.count
+    unsafe try gap.first._initialize(
+      initializedCount: &self._count, initializingWith: body)
+    if self.count == c, let second = unsafe gap.second {
+      unsafe try second._initialize(
+        initializedCount: &self._count, initializingWith: body)
     }
-    return Range(uncheckedBounds: (origCount, count))
+    return unsafe Range(uncheckedBounds: (origCount, count))
   }
 
   /// Prepend a given number of items to the end of this deque by populating
@@ -817,19 +832,21 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
     addingCount newItemCount: Int,
     initializingWith body: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) -> Range<Int> {
-    guard let gap = self._prepend(count: newItemCount) else { return 0 ..< 0 }
+    guard let gap = unsafe self._prepend(count: newItemCount) else {
+      return 0 ..< 0
+    }
 
     var c = 0
     defer {
       if c < newItemCount {
-        closeGap(offsets: c ..< newItemCount)
+        unsafe closeGap(offsets: c ..< newItemCount)
       }
     }
-    try gap.first._initialize(initializedCount: &c, initializingWith: body)
-    if c == gap.first.count, let second = gap.second {
-      try second._initialize(initializedCount: &c, initializingWith: body)
+    unsafe try gap.first._initialize(initializedCount: &c, initializingWith: body)
+    if unsafe c == gap.first.count, let second = unsafe gap.second {
+      unsafe try second._initialize(initializedCount: &c, initializingWith: body)
     }
-    return Range(uncheckedBounds: (0, c))
+    return unsafe Range(uncheckedBounds: (0, c))
   }
 }
 
@@ -850,17 +867,19 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   internal mutating func uncheckedAppend(
     moving items: UnsafeMutableBufferPointer<Element>
   ) -> Range<Int> {
-    guard let gap = _append(count: items.count) else { return count ..< count }
+    guard let gap = unsafe _append(count: items.count) else {
+      return count ..< count
+    }
 
-    gap.first.moveInitializeAll(
+    unsafe gap.first.moveInitializeAll(
       fromContentsOf: items._extracting(first: gap.first.count))
 
-    if let second = gap.second {
-      assert(gap.first.count + second.count == items.count)
-      second.moveInitializeAll(
+    if let second = unsafe gap.second {
+      assert(unsafe gap.first.count + second.count == items.count)
+      unsafe second.moveInitializeAll(
         fromContentsOf: items._extracting(last: second.count))
     }
-    return Range(uncheckedBounds: (count &- items.count, count))
+    return unsafe Range(uncheckedBounds: (count &- items.count, count))
   }
 
   /// Prepends the elements of a buffer to the front of this deque, leaving the
@@ -878,17 +897,17 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   internal mutating func uncheckedPrepend(
     moving items: UnsafeMutableBufferPointer<Element>
   ) -> Range<Int> {
-    guard let gap = _prepend(count: items.count) else { return 0 ..< 0 }
+    guard let gap = unsafe _prepend(count: items.count) else { return 0 ..< 0 }
 
-    gap.first.moveInitializeAll(
+    unsafe gap.first.moveInitializeAll(
       fromContentsOf: items._extracting(first: gap.first.count))
 
-    if let second = gap.second {
-      assert(gap.first.count + second.count == items.count)
-      second.moveInitializeAll(
+    if let second = unsafe gap.second {
+      assert(unsafe gap.first.count + second.count == items.count)
+      unsafe second.moveInitializeAll(
         fromContentsOf: items._extracting(last: second.count))
     }
-    return Range(uncheckedBounds: (0, items.count))
+    return unsafe Range(uncheckedBounds: (0, items.count))
   }
 }
 
@@ -903,9 +922,11 @@ extension _UnsafeDequeHandle {
   internal mutating func uncheckedAppend(
     copying source: UnsafeBufferPointer<Element>
   ) -> Range<Int> {
-    guard let gap = _append(count: source.count) else { return count ..< count }
-    gap.initialize(copying: source)
-    return Range(uncheckedBounds: (count &- source.count, count))
+    guard let gap = unsafe _append(count: source.count) else {
+      return count ..< count
+    }
+    unsafe gap.initialize(copying: source)
+    return unsafe Range(uncheckedBounds: (count &- source.count, count))
   }
 
   /// Prepend the contents of `source` to this buffer. The buffer must have
@@ -918,9 +939,9 @@ extension _UnsafeDequeHandle {
   internal mutating func uncheckedPrepend(
     copying source: UnsafeBufferPointer<Element>
   ) -> Range<Int> {
-    guard let gap = _prepend(count: source.count) else { return 0 ..< 0 }
-    gap.initialize(copying: source)
-    return Range(uncheckedBounds: (0, source.count))
+    guard let gap = unsafe _prepend(count: source.count) else { return 0 ..< 0 }
+    unsafe gap.initialize(copying: source)
+    return unsafe Range(uncheckedBounds: (0, source.count))
   }
 }
 
@@ -933,8 +954,8 @@ extension _UnsafeDequeHandle {
   ) -> S.Iterator {
     // Note: You're supposed to handle contiguous sequences before calling
     // this function. You do this by invoking `withContiguousStorageIfAvailable`.
-    let (it, c) = self.availableSegments().initialize(fromSequencePrefix: items)
-    self.count += c
+    let (it, c) = unsafe self.availableSegments().initialize(fromSequencePrefix: items)
+    unsafe self._count += c
     return it
   }
 
@@ -946,9 +967,11 @@ extension _UnsafeDequeHandle {
   ) -> Range<Int> {
     // Note: You're supposed to handle contiguous sequences before calling
     // this function. You do this by invoking `withContiguousStorageIfAvailable`.
-    guard let gap = self._prepend(count: exactCount) else { return 0 ..< 0 }
-    gap.initialize(copying: items)
-    return Range(uncheckedBounds: (0, exactCount))
+    guard let gap = unsafe self._prepend(count: exactCount) else {
+      return 0 ..< 0
+    }
+    unsafe gap.initialize(copying: items)
+    return unsafe Range(uncheckedBounds: (0, exactCount))
   }
 }
 
@@ -967,7 +990,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
     assert(source.position + count <= self.capacity)
     assert(target.position + count <= self.capacity)
     guard count > 0 else { return (source, target) }
-    mutablePtr(at: target)
+    unsafe mutablePtr(at: target)
       .moveInitialize(from: mutablePtr(at: source), count: count)
     return (slot(source, offsetBy: count), slot(target, offsetBy: count))
   }
@@ -980,7 +1003,8 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
 
   @_alwaysEmitIntoClient
   @_transparent
-  func isLeftLeaning(_ subrange: Range<Int>) -> Bool {
+  @safe
+  internal func isLeftLeaning(_ subrange: Range<Int>) -> Bool {
     subrange.lowerBound < count - subrange.upperBound
   }
 
@@ -1024,7 +1048,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
         //
         //   0) ....ABCDE̲F̲G̲H.....      EFG̲H̲.̲........ABCD      .̲.......ABCDEFGH̲.̲
         //   1) ....ABCD.̲.̲.̲EFGH..      EF.̲.̲.̲GH......ABCD      .̲H......ABCDEFG.̲.̲
-        move(from: gapStart, to: gapEnd, count: tailCount)
+        unsafe move(from: gapStart, to: gapEnd, count: tailCount)
       } else if targetIsContiguous {
         // The gap itself will be wrapped.
 
@@ -1034,8 +1058,8 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
         //   1) .̲..EFGH......ABC̲D̲
         //   2) .̲CDEFGH......AB.̲.̲
         assert(startSlot > originalEnd.orIfZero(capacity))
-        move(from: .zero, to: Slot.zero.advanced(by: gapSize), count: originalEnd.position)
-        move(from: gapStart, to: gapEnd, count: capacity - gapStart.position)
+        unsafe move(from: .zero, to: Slot.zero.advanced(by: gapSize), count: originalEnd.position)
+        unsafe move(from: gapStart, to: gapEnd, count: capacity - gapStart.position)
       } else if sourceIsContiguous {
         // Opening the gap pushes subsequent elements across the wrap.
 
@@ -1044,8 +1068,8 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
         //   0) ........ABC̲D̲E̲FGH.
         //   1) GH......ABC̲D̲E̲F...
         //   2) GH......AB.̲.̲.̲CDEF
-        move(from: limSlot.advanced(by: -gapSize), to: .zero, count: newEnd.position)
-        move(from: gapStart, to: gapEnd, count: tailCount - newEnd.position)
+        unsafe move(from: limSlot.advanced(by: -gapSize), to: .zero, count: newEnd.position)
+        unsafe move(from: gapStart, to: gapEnd, count: tailCount - newEnd.position)
       } else {
         // The rest of the items are wrapped, and will remain so.
 
@@ -1055,12 +1079,12 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
         //   1) ...GH......AB̲C̲D̲EF
         //   2) DEFGH......AB̲C̲.̲..
         //   3) DEFGH......A.̲.̲.̲BC
-        move(from: .zero, to: Slot.zero.advanced(by: gapSize), count: originalEnd.position)
-        move(from: limSlot.advanced(by: -gapSize), to: .zero, count: gapSize)
-        move(from: gapStart, to: gapEnd, count: tailCount - gapSize - originalEnd.position)
+        unsafe move(from: .zero, to: Slot.zero.advanced(by: gapSize), count: originalEnd.position)
+        unsafe move(from: limSlot.advanced(by: -gapSize), to: .zero, count: gapSize)
+        unsafe move(from: gapStart, to: gapEnd, count: tailCount - gapSize - originalEnd.position)
       }
-      count += gapSize
-      return mutableSegments(between: gapStart, and: gapEnd.orIfZero(capacity))
+      unsafe _count += gapSize
+      return unsafe mutableSegments(between: gapStart, and: gapEnd.orIfZero(capacity))
     }
 
     // Open the gap by sliding elements to the left.
@@ -1080,7 +1104,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
       //
       //   0) ....A̲B̲C̲DEFGH...      GH.........̲A̲B̲CDEF      .̲A̲B̲CDEFGH.......̲.̲
       //   1) .ABC.̲.̲.̲DEFGH...      GH......AB.̲.̲.̲CDEF      .̲.̲.̲CDEFGH....AB.̲.̲
-      move(from: originalStart, to: newStart, count: headCount)
+      unsafe move(from: originalStart, to: newStart, count: headCount)
     } else if targetIsContiguous {
       // The gap itself will be wrapped.
 
@@ -1090,8 +1114,8 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
       //   1) C̲D̲EFGH.....AB...̲.̲
       //   2) .̲.̲EFGH.....ABCD.̲.̲
       assert(originalStart >= newStart)
-      move(from: originalStart, to: newStart, count: capacity - originalStart.position)
-      move(from: .zero, to: limSlot.advanced(by: -gapSize), count: gapEnd.position)
+      unsafe move(from: originalStart, to: newStart, count: capacity - originalStart.position)
+      unsafe move(from: .zero, to: limSlot.advanced(by: -gapSize), count: gapEnd.position)
     } else if sourceIsContiguous {
       // Opening the gap pushes preceding elements across the wrap.
 
@@ -1100,8 +1124,8 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
       //   0) .AB̲C̲D̲EFGH.........
       //   1) ...̲C̲D̲EFGH.......AB
       //   2) CD.̲.̲.̲EFGH.......AB
-      move(from: originalStart, to: newStart, count: capacity - newStart.position)
-      move(from: Slot.zero.advanced(by: gapSize), to: .zero, count: gapStart.position)
+      unsafe move(from: originalStart, to: newStart, count: capacity - newStart.position)
+      unsafe move(from: Slot.zero.advanced(by: gapSize), to: .zero, count: gapStart.position)
     } else {
       // The preceding of the items are wrapped, and will remain so.
 
@@ -1110,13 +1134,13 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
       //   1) CD̲E̲F̲GHIJKL......AB...
       //   2) ..̲.̲F̲GHIJKL......ABCDE
       //   3) F.̲.̲.̲GHIJKL......ABCDE
-      move(from: originalStart, to: newStart, count: capacity - originalStart.position)
-      move(from: .zero, to: limSlot.advanced(by: -gapSize), count: gapSize)
-      move(from: Slot.zero.advanced(by: gapSize), to: .zero, count: gapStart.position)
+      unsafe move(from: originalStart, to: newStart, count: capacity - originalStart.position)
+      unsafe move(from: .zero, to: limSlot.advanced(by: -gapSize), count: gapSize)
+      unsafe move(from: Slot.zero.advanced(by: gapSize), to: .zero, count: gapStart.position)
     }
-    startSlot = newStart
-    count += gapSize
-    return mutableSegments(between: gapStart, and: gapEnd.orIfZero(capacity))
+    unsafe _startSlot = newStart
+    unsafe _count += gapSize
+    return unsafe mutableSegments(between: gapStart, and: gapEnd.orIfZero(capacity))
   }
 
   /// Close the gap of already uninitialized elements in `bounds`, sliding
@@ -1152,7 +1176,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
 
         //   0) ....ABCD.̲.̲.̲EFGH..   EF.̲.̲.̲GH........ABCD   .̲.̲.̲E..........ABCD.̲.̲   .̲.̲.̲EF........ABCD .̲.̲.̲DE.......ABC
         //   1) ....ABCDE̲F̲G̲H.....   EFG̲H̲.̲..........ABCD   .̲.̲.̲...........ABCDE̲.̲   E̲F̲.̲..........ABCD D̲E̲.̲.........ABC
-        move(from: gapEnd, to: gapStart, count: tailCount)
+        unsafe move(from: gapEnd, to: gapStart, count: tailCount)
       } else if sourceIsContiguous {
         // The gap lies across the wrap from the subsequent elements.
 
@@ -1161,8 +1185,8 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
         //   2) G̲H̲.̲...........ABCDE̲F̲      GH.........ABCDE̲F̲G̲
         let c = capacity - gapStart.position
         assert(tailCount > c)
-        let next = move(from: gapEnd, to: gapStart, count: c)
-        move(from: next.source, to: .zero, count: tailCount - c)
+        let next = unsafe move(from: gapEnd, to: gapStart, count: c)
+        unsafe move(from: next.source, to: .zero, count: tailCount - c)
       } else if targetIsContiguous {
         // We need to move elements across a wrap, but the wrap will
         // disappear when we're done.
@@ -1170,8 +1194,8 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
         //   0) HI....ABCDE.̲.̲.̲FG
         //   1) HI....ABCDEF̲G̲.̲..
         //   2) ......ABCDEF̲G̲H̲I.
-        let next = move(from: gapEnd, to: gapStart, count: capacity - gapEnd.position)
-        move(from: .zero, to: next.target, count: originalEnd.position)
+        let next = unsafe move(from: gapEnd, to: gapStart, count: capacity - gapEnd.position)
+        unsafe move(from: .zero, to: next.target, count: originalEnd.position)
       } else {
         // We need to move elements across a wrap that won't go away.
 
@@ -1179,11 +1203,11 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
         //   1) HIJKL....ABCDEF̲G̲.̲..
         //   2) ...KL....ABCDEF̲G̲H̲IJ
         //   3) KL.......ABCDEF̲G̲H̲IJ
-        var next = move(from: gapEnd, to: gapStart, count: capacity - gapEnd.position)
-        next = move(from: .zero, to: next.target, count: gapSize)
-        move(from: next.source, to: .zero, count: newEnd.position)
+        var next = unsafe move(from: gapEnd, to: gapStart, count: capacity - gapEnd.position)
+        next = unsafe move(from: .zero, to: next.target, count: gapSize)
+        unsafe move(from: next.source, to: .zero, count: newEnd.position)
       }
-      count -= gapSize
+      unsafe _count -= gapSize
     } else {
       // Close the gap by sliding elements to the right.
       let originalStart = startSlot
@@ -1199,15 +1223,15 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
 
         //   0) ....ABCD.̲.̲.̲EFGH.....   EFGH........AB.̲.̲.̲CD   .̲.̲.̲CDEFGH.......AB.̲.̲   DEFGH.......ABC.̲.̲
         //   1) .......AB̲C̲D̲EFGH.....   EFGH...........̲A̲B̲CD   .̲A̲B̲CDEFGH..........̲.̲   DEFGH.........AB̲C̲     ABCDEFGH........̲.̲.̲
-        move(from: originalStart, to: newStart, count: headCount)
+        unsafe move(from: originalStart, to: newStart, count: headCount)
       } else if sourceIsContiguous {
         // The gap lies across the wrap from the preceding elements.
 
         //   0) .̲.̲DEFGH.......ABC.̲.̲     .̲.̲.̲EFGH.......ABCD
         //   1) B̲C̲DEFGH.......A...̲.̲     B̲C̲D̲DEFGH......A...
         //   2) B̲C̲DEFGH...........̲A̲     B̲C̲D̲DEFGH.........A
-        move(from: limSlot.advanced(by: -gapSize), to: .zero, count: gapEnd.position)
-        move(from: startSlot, to: newStart, count: headCount - gapEnd.position)
+        unsafe move(from: limSlot.advanced(by: -gapSize), to: .zero, count: gapEnd.position)
+        unsafe move(from: startSlot, to: newStart, count: headCount - gapEnd.position)
       } else if targetIsContiguous {
         // We need to move elements across a wrap, but the wrap will
         // disappear when we're done.
@@ -1215,20 +1239,20 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
         //   0) CD.̲.̲.̲EFGHI.....AB
         //   1) ...̲C̲D̲EFGHI.....AB
         //   1) .AB̲C̲D̲EFGHI.......
-        move(from: .zero, to: gapEnd.advanced(by: -gapStart.position), count: gapStart.position)
-        move(from: startSlot, to: newStart, count: headCount - gapStart.position)
+        unsafe move(from: .zero, to: gapEnd.advanced(by: -gapStart.position), count: gapStart.position)
+        unsafe move(from: startSlot, to: newStart, count: headCount - gapStart.position)
       } else {
         // We need to move elements across a wrap that won't go away.
         //   0) FG.̲.̲.̲HIJKLMNO....ABCDE
         //   1) ...̲F̲G̲HIJKLMNO....ABCDE
         //   2) CDE̲F̲G̲HIJKLMNO....AB...
         //   3) CDE̲F̲G̲HIJKLMNO.......AB
-        move(from: .zero, to: Slot.zero.advanced(by: gapSize), count: gapStart.position)
-        move(from: limSlot.advanced(by: -gapSize), to: .zero, count: gapSize)
-        move(from: startSlot, to: newStart, count: headCount - gapEnd.position)
+        unsafe move(from: .zero, to: Slot.zero.advanced(by: gapSize), count: gapStart.position)
+        unsafe move(from: limSlot.advanced(by: -gapSize), to: .zero, count: gapSize)
+        unsafe move(from: startSlot, to: newStart, count: headCount - gapEnd.position)
       }
-      startSlot = newStart
-      count -= gapSize
+      unsafe _startSlot = newStart
+      unsafe _count -= gapSize
     }
   }
 }
@@ -1253,13 +1277,13 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
 
     let gapSize = capacity - count
     if gapSize > 0 {
-      _ = openGap(ofSize: gapSize, atOffset: newStart)
+      _ = unsafe openGap(ofSize: gapSize, atOffset: newStart)
     }
 
     // With the prefix and suffix swapped, update the starting slot and
     // restore the count.
-    startSlot = slot(startSlot, offsetBy: newStart - oldCount)
-    count = oldCount
+    unsafe _startSlot = slot(startSlot, offsetBy: newStart - oldCount)
+    unsafe _count = oldCount
   }
 }
 
@@ -1273,16 +1297,16 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   ) -> Int {
     assert(count < capacity)
     if offset == 0 {
-      uncheckedPrepend(newElement)
+      unsafe uncheckedPrepend(newElement)
       return offset
     }
     if offset == count {
-      uncheckedAppend(newElement)
+      unsafe uncheckedAppend(newElement)
       return offset
     }
-    let gap = openGap(ofSize: 1, atOffset: offset)
-    assert(gap.first.count == 1)
-    gap.first.baseAddress!.initialize(to: newElement)
+    let gap = unsafe openGap(ofSize: 1, atOffset: offset)
+    assert(unsafe gap.first.count == 1)
+    unsafe gap.first.baseAddress!.initialize(to: newElement)
     return offset
   }
 }
@@ -1296,19 +1320,19 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
     initializingWith body: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) -> Range<Int> {
     guard newItemCount > 0 else { return offset ..< offset }
-    let gap = self.openGap(ofSize: newItemCount, atOffset: offset)
+    let gap = unsafe self.openGap(ofSize: newItemCount, atOffset: offset)
 
     var c = 0
     defer {
       if c < newItemCount {
-        closeGap(offsets: offset + c ..< offset + newItemCount)
+        unsafe closeGap(offsets: offset + c ..< offset + newItemCount)
       }
     }
-    try gap.first._initialize(initializedCount: &c, initializingWith: body)
-    if c == gap.first.count, let second = gap.second {
-      try second._initialize(initializedCount: &c, initializingWith: body)
+    unsafe try gap.first._initialize(initializedCount: &c, initializingWith: body)
+    if unsafe c == gap.first.count, let second = unsafe gap.second {
+      unsafe try second._initialize(initializedCount: &c, initializingWith: body)
     }
-    return Range(uncheckedBounds: (offset, offset &+ c))
+    return unsafe Range(uncheckedBounds: (offset, offset &+ c))
   }
 }
 
@@ -1333,8 +1357,8 @@ extension _UnsafeDequeHandle {
     assert(offset <= count)
     assert(newElements.count == newCount)
     guard newCount > 0 else { return }
-    let gap = openGap(ofSize: newCount, atOffset: offset)
-    gap.initialize(copying: newElements)
+    let gap = unsafe openGap(ofSize: newCount, atOffset: offset)
+    unsafe gap.initialize(copying: newElements)
   }
 }
 
@@ -1345,8 +1369,8 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   @_transparent
   internal mutating func uncheckedRemove(at offset: Int) -> Element {
     let slot = self.slot(forOffset: offset)
-    let result = mutablePtr(at: slot).move()
-    closeGap(offsets: Range(uncheckedBounds: (offset, offset + 1)))
+    let result = unsafe mutablePtr(at: slot).move()
+    unsafe closeGap(offsets: Range(uncheckedBounds: (offset, offset + 1)))
     return result
   }
 
@@ -1354,9 +1378,9 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   @_transparent
   internal mutating func uncheckedRemoveFirst() -> Element {
     assert(count > 0)
-    let result = mutablePtr(at: startSlot).move()
-    startSlot = slot(after: startSlot)
-    count -= 1
+    let result = unsafe mutablePtr(at: startSlot).move()
+    unsafe _startSlot = slot(after: startSlot)
+    unsafe _count -= 1
     return result
   }
 
@@ -1365,8 +1389,8 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   internal mutating func uncheckedRemoveLast() -> Element {
     assert(count > 0)
     let slot = self.slot(forOffset: count - 1)
-    let result = mutablePtr(at: slot).move()
-    count -= 1
+    let result = unsafe mutablePtr(at: slot).move()
+    unsafe _count -= 1
     return result
   }
 
@@ -1375,10 +1399,10 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   internal mutating func uncheckedRemoveFirst(_ n: Int) {
     assert(count >= n)
     guard n > 0 else { return }
-    let target = mutableSegments(forOffsets: 0 ..< n)
-    target.deinitialize()
-    startSlot = slot(startSlot, offsetBy: n)
-    count -= n
+    let target = unsafe mutableSegments(forOffsets: 0 ..< n)
+    unsafe target.deinitialize()
+    unsafe _startSlot = slot(startSlot, offsetBy: n)
+    unsafe _count -= n
   }
 
   @_alwaysEmitIntoClient
@@ -1386,9 +1410,9 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   internal mutating func uncheckedRemoveLast(_ n: Int) {
     assert(count >= n)
     guard n > 0 else { return }
-    let target = mutableSegments(forOffsets: count - n ..< count)
-    target.deinitialize()
-    count -= n
+    let target = unsafe mutableSegments(forOffsets: count - n ..< count)
+    unsafe target.deinitialize()
+    unsafe _count -= n
   }
 
   /// Remove all elements stored in this instance, deinitializing their storage.
@@ -1399,10 +1423,10 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   @_transparent
   internal mutating func uncheckedRemoveAll() {
     guard count > 0 else { return }
-    let target = mutableSegments()
-    target.deinitialize()
-    count = 0
-    startSlot = .zero
+    let target = unsafe mutableSegments()
+    unsafe target.deinitialize()
+    unsafe _count = 0
+    unsafe _startSlot = .zero
   }
 
   /// Remove all elements in `bounds`, deinitializing their storage and sliding
@@ -1416,8 +1440,8 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
     assert(bounds.lowerBound >= 0 && bounds.upperBound <= self.count)
 
     // Deinitialize elements in `bounds`.
-    mutableSegments(forOffsets: bounds).deinitialize()
-    closeGap(offsets: bounds)
+    unsafe mutableSegments(forOffsets: bounds).deinitialize()
+    unsafe closeGap(offsets: bounds)
     return bounds.lowerBound
   }
 }
@@ -1437,30 +1461,30 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
     let delta = newItemCount - subrange.count
     let left = isLeftLeaning(subrange)
     if delta > 0 {
-      _ = self.openGap(
+      _ = unsafe self.openGap(
         ofSize: delta,
         atOffset: (left ? subrange.lowerBound : subrange.upperBound))
     } else {
-      self.closeGap(
+      unsafe self.closeGap(
         offsets: (left ? subrange.prefix(-delta) : subrange.suffix(-delta)))
     }
-    let newRange = Range(
+    let newRange = unsafe Range(
       uncheckedBounds: (
         subrange.lowerBound,
         subrange.lowerBound &+ newItemCount))
-    let gap = self.mutableSegments(forOffsets: newRange)
+    let gap = unsafe self.mutableSegments(forOffsets: newRange)
 
     var c = 0
     defer {
       if c < newItemCount {
-        closeGap(offsets: newRange.dropFirst(c))
+        unsafe closeGap(offsets: newRange.dropFirst(c))
       }
     }
-    try gap.first._initialize(initializedCount: &c, initializingWith: initializer)
-    if c == gap.first.count, let second = gap.second {
-      try second._initialize(initializedCount: &c, initializingWith: initializer)
+    try unsafe gap.first._initialize(initializedCount: &c, initializingWith: initializer)
+    if unsafe c == gap.first.count, let second = unsafe gap.second {
+      unsafe try second._initialize(initializedCount: &c, initializingWith: initializer)
     }
-    return Range(uncheckedBounds: (newRange.lowerBound, newRange.lowerBound &+ c))
+    return unsafe Range(uncheckedBounds: (newRange.lowerBound, newRange.lowerBound &+ c))
   }
 
   @_alwaysEmitIntoClient
@@ -1474,8 +1498,8 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
       "Subrange out of bounds")
     assert(newItemCount >= 0, "Cannot add a negative number of items")
     assert(count + newItemCount - subrange.count <= capacity, "RigidDeque capacity overflow")
-    self.mutableSegments(forOffsets: subrange).deinitialize()
-    return try _insertAfterReplace(
+    unsafe self.mutableSegments(forOffsets: subrange).deinitialize()
+    return unsafe try _insertAfterReplace(
       subrange,
       addingCount: newItemCount,
       initializingWith: initializer)
@@ -1495,17 +1519,17 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
     assert(newItemCount >= 0, "Cannot add a negative number of items")
     assert(count + newItemCount - subrange.count <= capacity, "RigidDeque capacity overflow")
     do {
-      let removed = self.mutableSegments(forOffsets: subrange)
-      var span = InputSpan(
+      let removed = unsafe self.mutableSegments(forOffsets: subrange)
+      var span = unsafe InputSpan(
         buffer: removed.first,
         initializedCount: removed.first.count)
       consumer(&span)
-      if let second = removed.second {
-        span = InputSpan(buffer: second, initializedCount: second.count)
+      if let second = unsafe removed.second {
+        span = unsafe InputSpan(buffer: second, initializedCount: second.count)
         consumer(&span)
       }
     }
-    return try _insertAfterReplace(
+    return unsafe try _insertAfterReplace(
       subrange,
       addingCount: newItemCount,
       initializingWith: initializer)

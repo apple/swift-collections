@@ -16,7 +16,7 @@ extension BitArray {
   ///
   /// - Parameter value: The Boolean value to which to set the array's elements.
   public mutating func fill(with value: Bool = true) {
-    fill(in: Range(uncheckedBounds: (0, count)), with: value)
+    fill(in: unsafe Range(uncheckedBounds: (0, count)), with: value)
   }
 
   /// Set every bit of this array within the specified range to `value`
@@ -25,11 +25,11 @@ extension BitArray {
   /// - Parameter range: The range whose elements to overwrite.
   /// - Parameter value: The Boolean value to which to set the array's elements.
   public mutating func fill(in range: Range<Int>, with value: Bool = true) {
-    _update { handle in
+    unsafe _update { handle in
       if value {
-        handle.fill(in: range)
+        unsafe handle.fill(in: range)
       } else {
-        handle.clear(in: range)
+        unsafe handle.clear(in: range)
       }
     }
   }

@@ -82,7 +82,7 @@ extension BitSet {
       return false
     }
     guard let r = other._toUInt() else { return false }
-    return _read { $0.isSuperset(of: r) }
+    return unsafe _read { unsafe $0.isSuperset(of: r) }
   }
 
   /// Returns a Boolean value that indicates whether this set is a strict
@@ -118,14 +118,14 @@ extension BitSet {
     if let other = _specialize(other, for: Range<Int>.self) {
       return isStrictSuperset(of: other)
     }
-    return _UnsafeHandle.withTemporaryBitSet(
+    return unsafe _UnsafeHandle.withTemporaryBitSet(
       wordCount: _storage.count
     ) { seen in
       for i in other {
         guard contains(i) else { return false }
-        seen.insert(UInt(i))
+        unsafe seen.insert(UInt(i))
       }
-      return !_storage.elementsEqual(seen._words)
+      return unsafe !_storage.elementsEqual(seen._words)
     }
   }
 }

@@ -9,20 +9,18 @@ See https://swift.org/LICENSE.txt for license information
 SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
 #]]
 
+set(module_name ContainersPreview)
+add_library(ContainersPreview ${COLLECTIONS_CONTAINERS_SOURCES})
 if(COLLECTIONS_SINGLE_MODULE)
-  set(module_name ${COLLECTIONS_MODULE_NAME})
+  target_link_libraries(ContainersPreview PRIVATE ${COLLECTIONS_MODULE_NAME})
 else()
-  set(module_name ContainersPreview)
-  add_library(ContainersPreview
-    ${COLLECTIONS_CONTAINERS_SOURCES})
   target_link_libraries(ContainersPreview PRIVATE
     InternalCollectionsUtilities SpanPreview BasicContainers DequeModule)
-  set_target_properties(ContainersPreview PROPERTIES
-    INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
-
-  _install_target(ContainersPreview)
-  set_property(GLOBAL APPEND PROPERTY SWIFT_COLLECTIONS_EXPORTS ContainersPreview)
 endif()
+set_target_properties(ContainersPreview PROPERTIES
+  INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
+_install_target(ContainersPreview)
+set_property(GLOBAL APPEND PROPERTY SWIFT_COLLECTIONS_EXPORTS ContainersPreview)
 
 target_sources(${module_name} PRIVATE
   "Conformances/InputSpan+Container.swift"

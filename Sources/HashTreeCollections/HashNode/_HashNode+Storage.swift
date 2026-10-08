@@ -47,9 +47,9 @@ extension _HashNode {
 
     @inlinable
     deinit {
-      UnsafeHandle.update(self) { handle in
-        handle.children.deinitialize()
-        handle.reverseItems.deinitialize()
+      unsafe UnsafeHandle.update(self) { handle in
+        unsafe handle.children.deinitialize()
+        unsafe handle.reverseItems.deinitialize()
       }
     }
   }
@@ -89,16 +89,16 @@ extension _HashNode.Storage {
       _HashNodeHeader(byteCapacity: mincap * childStride)
     }
 
-    object.withUnsafeMutablePointers { header, elements in
+    unsafe object.withUnsafeMutablePointers { header, elements in
       let start = UnsafeRawPointer(elements)
-      let end = start
+      let end = unsafe start
         .advanced(by: Int(header.pointee.byteCapacity))
         .alignedDown(for: Element.self)
-      header.pointee._byteCapacity = UInt32(start.distance(to: end))
-      header.pointee._bytesFree = header.pointee._byteCapacity
-      assert(byteCapacity <= header.pointee.byteCapacity)
+      unsafe header.pointee._byteCapacity = UInt32(start.distance(to: end))
+      unsafe header.pointee._bytesFree = header.pointee._byteCapacity
+      assert(unsafe byteCapacity <= header.pointee.byteCapacity)
     }
-    return unsafeDowncast(object, to: _HashNode.Storage.self)
+    return unsafe unsafeDowncast(object, to: _HashNode.Storage.self)
   }
 }
 
@@ -176,19 +176,19 @@ extension _HashNode {
     let storage = Storage.allocate(
       byteCapacity: occupiedBytes &+ extraBytes)
     var node = _HashNode(storage: storage, count: count)
-    let result: R = node.update {
-      $0.itemMap = itemMap
-      $0.childMap = childMap
+    let result: R = unsafe node.update {
+      unsafe $0.itemMap = itemMap
+      unsafe $0.childMap = childMap
 
-      assert(occupiedBytes <= $0.bytesFree)
-      $0.bytesFree &-= occupiedBytes
+      assert(unsafe occupiedBytes <= $0.bytesFree)
+      unsafe $0.bytesFree &-= occupiedBytes
 
-      let childStart = $0._memory
+      let childStart = unsafe $0._memory
         .bindMemory(to: _HashNode.self, capacity: childCount)
-      let itemStart = ($0._memory + ($0.byteCapacity - itemBytes))
+      let itemStart = unsafe ($0._memory + ($0.byteCapacity - itemBytes))
         .bindMemory(to: Element.self, capacity: itemCount)
 
-      return initializer(
+      return unsafe initializer(
         UnsafeMutableBufferPointer(start: childStart, count: childCount),
         UnsafeMutableBufferPointer(start: itemStart, count: itemCount))
     }
@@ -210,19 +210,19 @@ extension _HashNode {
     assert(MemoryLayout<_Hash>.alignment <= MemoryLayout<_RawHashNode>.alignment)
     let storage = Storage.allocate(byteCapacity: bytes &+ extraBytes)
     var node = _HashNode(storage: storage, count: count)
-    let result: R = node.update {
-      $0.itemMap = _Bitmap(bitPattern: count)
-      $0.childMap = $0.itemMap
-      assert(bytes <= $0.bytesFree)
-      $0.bytesFree &-= bytes
+    let result: R = unsafe node.update {
+      unsafe $0.itemMap = _Bitmap(bitPattern: count)
+      unsafe $0.childMap = $0.itemMap
+      assert(unsafe bytes <= $0.bytesFree)
+      unsafe $0.bytesFree &-= bytes
 
-      $0._memory.storeBytes(of: hash, as: _Hash.self)
+      unsafe $0._memory.storeBytes(of: hash, as: _Hash.self)
 
-      let itemStart = ($0._memory + ($0.byteCapacity &- itemBytes))
+      let itemStart = unsafe ($0._memory + ($0.byteCapacity &- itemBytes))
         .bindMemory(to: Element.self, capacity: count)
 
-      let items = UnsafeMutableBufferPointer(start: itemStart, count: count)
-      return initializer(items)
+      let items = unsafe UnsafeMutableBufferPointer(start: itemStart, count: count)
+      return unsafe initializer(items)
     }
     return (node, result)
   }
@@ -233,23 +233,23 @@ extension _HashNode {
     assert(space >= 0)
 
     if isCollisionNode {
-      return read { src in
-        Self.allocateCollision(
+      return unsafe read { src in
+        unsafe Self.allocateCollision(
           count: self.count, self.collisionHash
         ) { dstItems in
-          dstItems.initializeAll(fromContentsOf: src.reverseItems)
+          unsafe dstItems.initializeAll(fromContentsOf: src.reverseItems)
         }.node
       }
     }
-    return read { src in
-      Self.allocate(
+    return unsafe read { src in
+      unsafe Self.allocate(
         itemMap: src.itemMap,
         childMap: src.childMap,
         count: self.count,
         extraBytes: space
       ) { dstChildren, dstItems in
-        dstChildren.initializeAll(fromContentsOf: src.children)
-        dstItems.initializeAll(fromContentsOf: src.reverseItems)
+        unsafe dstChildren.initializeAll(fromContentsOf: src.children)
+        unsafe dstItems.initializeAll(fromContentsOf: src.reverseItems)
       }.node
     }
   }
@@ -259,26 +259,26 @@ extension _HashNode {
     assert(space >= 0)
     let c = self.count
     if isCollisionNode {
-      self = update { src in
-        Self.allocateCollision(
+      self = unsafe update { src in
+        unsafe Self.allocateCollision(
           count: c, src.collisionHash
         ) { dstItems in
-          dstItems.moveInitializeAll(fromContentsOf: src.reverseItems)
-          src.clear()
+          unsafe dstItems.moveInitializeAll(fromContentsOf: src.reverseItems)
+          unsafe src.clear()
         }.node
       }
       return
     }
-    self = update { src in
-      Self.allocate(
+    self = unsafe update { src in
+      unsafe Self.allocate(
         itemMap: src.itemMap,
         childMap: src.childMap,
         count: c,
         extraBytes: space
       ) { dstChildren, dstItems in
-        dstChildren.moveInitializeAll(fromContentsOf: src.children)
-        dstItems.moveInitializeAll(fromContentsOf: src.reverseItems)
-        src.clear()
+        unsafe dstChildren.moveInitializeAll(fromContentsOf: src.children)
+        unsafe dstItems.moveInitializeAll(fromContentsOf: src.reverseItems)
+        unsafe src.clear()
       }.node
     }
   }

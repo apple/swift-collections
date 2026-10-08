@@ -16,8 +16,7 @@ import InternalCollectionsUtilities
 #endif
 
 extension BitArray {
-  @_spi(Testing)
-  public var _capacity: Int {
+  package var _capacity: Int {
     _storage.capacity * _Word.capacity
   }
 }

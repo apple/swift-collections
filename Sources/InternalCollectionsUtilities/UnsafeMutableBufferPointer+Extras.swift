@@ -14,9 +14,10 @@
 extension UnsafeMutableBufferPointer where Element: ~Copyable {
   @inlinable
   @inline(__always)
+  @unsafe
   package func _ptr(at index: Int) -> UnsafeMutablePointer<Element> {
     assert(index >= 0 && index < count)
-    return baseAddress.unsafelyUnwrapped + index
+    return unsafe baseAddress.unsafelyUnwrapped + index
   }
 }
 
@@ -25,35 +26,39 @@ extension UnsafeMutableBufferPointer where Element: ~Copyable {
   /// `UnsafeMutableBufferPointer` instances refer to the same region in
   /// memory.
   @inlinable @inline(__always)
+  @safe
   package func _isIdentical(to other: Self) -> Bool {
-    (self.baseAddress == other.baseAddress) && (self.count == other.count)
+    unsafe (self.baseAddress == other.baseAddress) && (self.count == other.count)
   }
 
   @inlinable
   @inline(__always)
+  @safe
   package static var _empty: Self {
-    .init(start: nil, count: 0)
+    unsafe .init(start: nil, count: 0)
   }
 }
 
 extension UnsafeMutableBufferPointer where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @inline(__always)
+  @unsafe
   package func _extracting(unchecked bounds: Range<Int>) -> Self {
     assert(bounds.lowerBound >= 0 && bounds.upperBound <= count,
            "Index out of range")
     guard let start = self.baseAddress else {
-      return Self(start: nil, count: 0)
+      return unsafe Self(start: nil, count: 0)
     }
-    return Self(start: start + bounds.lowerBound, count: bounds.count)
+    return unsafe Self(start: start + bounds.lowerBound, count: bounds.count)
   }
 
   @_alwaysEmitIntoClient
+  @unsafe
   package func _extracting(uncheckedFrom start: Int, to end: Int) -> Self {
     guard let base = self.baseAddress else {
       return Self(_empty: ())
     }
-    return Self(start: base + start, count: end - start)
+    return unsafe Self(start: base + start, count: end - start)
   }
 
   /// Returns a buffer pointer containing the initial elements of this buffer,
@@ -76,7 +81,7 @@ extension UnsafeMutableBufferPointer where Element: ~Copyable {
   package func _extracting(first maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Cannot have a prefix of negative length")
     let newCount = Swift.min(maxLength, count)
-    return Self(start: baseAddress, count: newCount)
+    return unsafe Self(start: baseAddress, count: newCount)
   }
 
   /// Returns a buffer pointer containing all but the given number of initial
@@ -99,7 +104,7 @@ extension UnsafeMutableBufferPointer where Element: ~Copyable {
   package func _extracting(droppingFirst maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Cannot have a prefix of negative length")
     let cut = Swift.min(maxLength, count)
-    return Self(start: baseAddress?.advanced(by: cut), count: count &- cut)
+    return unsafe Self(start: baseAddress?.advanced(by: cut), count: count &- cut)
   }
 
   /// Returns a buffer pointer containing the final elements of this buffer,
@@ -122,7 +127,7 @@ extension UnsafeMutableBufferPointer where Element: ~Copyable {
   package func _extracting(last maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Cannot have a suffix of negative length")
     let newCount = Swift.min(maxLength, count)
-    return extracting(Range(uncheckedBounds: (count - newCount, count)))
+    return unsafe extracting(Range(uncheckedBounds: (count - newCount, count)))
   }
 
   /// Returns a buffer pointer containing all but the given number of trailing
@@ -145,7 +150,7 @@ extension UnsafeMutableBufferPointer where Element: ~Copyable {
   package func _extracting(droppingLast maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Cannot have a prefix of negative length")
     let newCount = count &- Swift.min(maxLength, count)
-    return Self(start: baseAddress, count: newCount)
+    return unsafe Self(start: baseAddress, count: newCount)
   }
 }
 
@@ -155,10 +160,10 @@ extension UnsafeMutableBufferPointer where Element: ~Copyable {
   package mutating func _trim(first maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Cannot have a prefix of negative length")
     let cut = Swift.min(maxLength, count)
-    guard cut > 0 else { return .init(start: nil, count: 0) }
-    let oldStart = baseAddress.unsafelyUnwrapped
-    self = Self(start: oldStart + cut, count: count - cut)
-    return Self(start: oldStart, count: cut)
+    guard cut > 0 else { return unsafe .init(start: nil, count: 0) }
+    let oldStart = unsafe baseAddress.unsafelyUnwrapped
+    unsafe self = Self(start: oldStart + cut, count: count - cut)
+    return unsafe Self(start: oldStart, count: cut)
   }
 
   @_alwaysEmitIntoClient
@@ -166,11 +171,11 @@ extension UnsafeMutableBufferPointer where Element: ~Copyable {
   package mutating func _trim(last maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Cannot have a suffix of negative length")
     let cut = Swift.min(maxLength, count)
-    guard cut > 0 else { return .init(start: nil, count: 0) }
-    let oldStart = baseAddress.unsafelyUnwrapped
+    guard cut > 0 else { return unsafe .init(start: nil, count: 0) }
+    let oldStart = unsafe baseAddress.unsafelyUnwrapped
     let newCount = count &- cut
-    self = .init(start: oldStart, count: newCount)
-    return Self(start: oldStart + newCount, count: cut)
+    unsafe self = .init(start: oldStart, count: newCount)
+    return unsafe Self(start: oldStart + newCount, count: cut)
   }
 }
 
@@ -181,7 +186,7 @@ extension UnsafeMutableBufferPointer where Element: ~Copyable {
   ) -> Int {
     if source.isEmpty { return 0 }
     precondition(source.count <= self.count)
-    self.baseAddress.unsafelyUnwrapped.moveInitialize(
+    unsafe self.baseAddress.unsafelyUnwrapped.moveInitialize(
       from: source.baseAddress.unsafelyUnwrapped, count: source.count)
     return source.count
   }
@@ -202,7 +207,7 @@ extension UnsafeMutableBufferPointer {
   ) -> Int {
     if source.isEmpty { return 0 }
     precondition(source.count <= self.count)
-    self.baseAddress.unsafelyUnwrapped.initialize(
+    unsafe self.baseAddress.unsafelyUnwrapped.initialize(
       from: source.baseAddress.unsafelyUnwrapped, count: source.count)
     return source.count
   }
@@ -211,7 +216,7 @@ extension UnsafeMutableBufferPointer {
   package func _initializePrefix(
     copying source: UnsafeMutableBufferPointer<Element>
   ) -> Int {
-    _initializePrefix(copying: UnsafeBufferPointer(source))
+    unsafe _initializePrefix(copying: UnsafeBufferPointer(source))
   }
 
   /// Initialize slots at the start of this buffer by copying data from `source`.
@@ -225,7 +230,9 @@ extension UnsafeMutableBufferPointer {
   @available(SwiftStdlib 5.0, *)
   @inlinable
   package func _initializePrefix(copying source: Span<Element>) -> Int {
-    source.withUnsafeBufferPointer { self._initializePrefix(copying: $0) }
+    source.withUnsafeBufferPointer {
+      unsafe self._initializePrefix(copying: $0)
+    }
   }
 
   /// Initialize slots at the start of this buffer by copying data from `buffer`, then
@@ -238,8 +245,8 @@ extension UnsafeMutableBufferPointer {
   /// The count of `buffer` must not be greater than `self.count`.
   @inlinable
   package mutating func _initializeAndDropPrefix(copying source: UnsafeBufferPointer<Element>) {
-    let i = _initializePrefix(copying: source)
-    self = self.extracting(i...)
+    let i = unsafe _initializePrefix(copying: source)
+    unsafe self = self.extracting(i...)
   }
 
   /// Initialize slots at the start of this buffer by copying data from `span`, then
@@ -254,7 +261,7 @@ extension UnsafeMutableBufferPointer {
   @inlinable
   package mutating func _initializeAndDropPrefix(copying span: Span<Element>) {
     span.withUnsafeBufferPointer { buffer in
-      self._initializeAndDropPrefix(copying: buffer)
+      unsafe self._initializeAndDropPrefix(copying: buffer)
     }
   }
 }
@@ -265,8 +272,8 @@ extension UnsafeMutableBufferPointer {
     guard source.count > 0 else { return 0 }
     precondition(
       source.count <= self.count,
-      "buffer cannot contain every element from source.")
-    baseAddress.unsafelyUnwrapped.initialize(
+      "buffer cannot contain every element from source")
+    unsafe baseAddress.unsafelyUnwrapped.initialize(
       from: source.baseAddress.unsafelyUnwrapped,
       count: source.count)
     return source.count
@@ -274,12 +281,12 @@ extension UnsafeMutableBufferPointer {
 
   @inlinable
   package func initialize(fromContentsOf source: Slice<Self>) -> Index {
-    let sourceCount = source.count
+    let sourceCount = unsafe source.count
     guard sourceCount > 0 else { return 0 }
     precondition(
       sourceCount <= self.count,
-      "buffer cannot contain every element from source.")
-    baseAddress.unsafelyUnwrapped.initialize(
+      "buffer cannot contain every element from source")
+    unsafe baseAddress.unsafelyUnwrapped.initialize(
       from: source.base.baseAddress.unsafelyUnwrapped + source.startIndex,
       count: sourceCount)
     return sourceCount
@@ -293,9 +300,9 @@ extension Slice {
   ) -> Index
   where Base == UnsafeMutableBufferPointer<Element>
   {
-    let target = UnsafeMutableBufferPointer(rebasing: self)
-    let i = target.initialize(fromContentsOf: source)
-    return self.startIndex + i
+    let target = unsafe UnsafeMutableBufferPointer(rebasing: self)
+    let i = unsafe target.initialize(fromContentsOf: source)
+    return unsafe self.startIndex + i
   }
 
   @inlinable @inline(__always)
@@ -304,9 +311,9 @@ extension Slice {
   ) -> Index
   where Base == UnsafeMutableBufferPointer<Element>
   {
-    let target = UnsafeMutableBufferPointer(rebasing: self)
-    let i = target.initialize(fromContentsOf: source)
-    return self.startIndex + i
+    let target = unsafe UnsafeMutableBufferPointer(rebasing: self)
+    let i = unsafe target.initialize(fromContentsOf: source)
+    return unsafe self.startIndex + i
   }
 }
 
@@ -315,19 +322,19 @@ extension UnsafeMutableBufferPointer {
   package func initializeAll<C: Collection>(
     fromContentsOf source: C
   ) where C.Element == Element {
-    let i = self.initialize(fromContentsOf: source)
+    let i = unsafe self.initialize(fromContentsOf: source)
     assert(i == self.endIndex)
   }
 
   @inlinable @inline(__always)
   package func initializeAll(fromContentsOf source: Self) {
-    let i = self.initialize(fromContentsOf: source)
+    let i = unsafe self.initialize(fromContentsOf: source)
     assert(i == self.endIndex)
   }
 
   @inlinable @inline(__always)
   package func initializeAll(fromContentsOf source: Slice<Self>) {
-    let i = self.initialize(fromContentsOf: source)
+    let i = unsafe self.initialize(fromContentsOf: source)
     assert(i == self.endIndex)
   }
 }
@@ -335,7 +342,7 @@ extension UnsafeMutableBufferPointer {
 extension UnsafeMutableBufferPointer where Element: ~Copyable {
   @inlinable @inline(__always)
   package func moveInitializeAll(fromContentsOf source: Self) {
-    let i = self.moveInitialize(fromContentsOf: source)
+    let i = unsafe self.moveInitialize(fromContentsOf: source)
     assert(i == self.endIndex)
   }
 }
@@ -343,7 +350,7 @@ extension UnsafeMutableBufferPointer where Element: ~Copyable {
 extension UnsafeMutableBufferPointer {
   @inlinable @inline(__always)
   package func moveInitializeAll(fromContentsOf source: Slice<Self>) {
-    let i = self.moveInitialize(fromContentsOf: source)
+    let i = unsafe self.moveInitialize(fromContentsOf: source)
     assert(i == self.endIndex)
   }
 }
@@ -353,39 +360,39 @@ extension Slice {
   package func initializeAll<C: Collection>(
     fromContentsOf source: C
   ) where Base == UnsafeMutableBufferPointer<C.Element> {
-    let i = self.initialize(fromContentsOf: source)
-    assert(i == self.endIndex)
+    let i = unsafe self.initialize(fromContentsOf: source)
+    assert(unsafe i == self.endIndex)
   }
 
   @inlinable @inline(__always)
   package func initializeAll<Element>(
     fromContentsOf source: UnsafeMutableBufferPointer<Element>
   ) where Base == UnsafeMutableBufferPointer<Element> {
-    let target = UnsafeMutableBufferPointer(rebasing: self)
-    target.initializeAll(fromContentsOf: source)
+    let target = unsafe UnsafeMutableBufferPointer(rebasing: self)
+    unsafe target.initializeAll(fromContentsOf: source)
   }
 
   @inlinable @inline(__always)
   package func initializeAll<Element>(
     fromContentsOf source: Slice<UnsafeMutableBufferPointer<Element>>
   ) where Base == UnsafeMutableBufferPointer<Element> {
-    let target = UnsafeMutableBufferPointer(rebasing: self)
-    target.initializeAll(fromContentsOf: source)
+    let target = unsafe UnsafeMutableBufferPointer(rebasing: self)
+    unsafe target.initializeAll(fromContentsOf: source)
   }
 
   @inlinable @inline(__always)
   package func moveInitializeAll<Element>(
     fromContentsOf source: UnsafeMutableBufferPointer<Element>
   ) where Base == UnsafeMutableBufferPointer<Element> {
-    let target = UnsafeMutableBufferPointer(rebasing: self)
-    target.moveInitializeAll(fromContentsOf: source)
+    let target = unsafe UnsafeMutableBufferPointer(rebasing: self)
+    unsafe target.moveInitializeAll(fromContentsOf: source)
   }
 
   @inlinable @inline(__always)
   package func moveInitializeAll<Element>(
     fromContentsOf source: Slice<UnsafeMutableBufferPointer<Element>>
   ) where Base == UnsafeMutableBufferPointer<Element> {
-    let target = UnsafeMutableBufferPointer(rebasing: self)
-    target.moveInitializeAll(fromContentsOf: source)
+    let target = unsafe UnsafeMutableBufferPointer(rebasing: self)
+    unsafe target.moveInitializeAll(fromContentsOf: source)
   }
 }

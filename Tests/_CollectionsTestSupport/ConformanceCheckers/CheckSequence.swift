@@ -56,7 +56,7 @@ public func checkSequence<S: Sequence, Expected: Sequence>(
   do {
     let seq = sequenceGenerator()
     let r: Int? = seq.withContiguousStorageIfAvailable { buffer in
-      expectEquivalentElements(buffer, expectedContents, by: areEquivalent)
+      unsafe expectEquivalentElements(buffer, expectedContents, by: areEquivalent)
       return 42
     }
     expectTrue(r == 42 || r == nil)
@@ -78,10 +78,10 @@ public func checkSequence<S: Sequence, Expected: Sequence>(
     let seq = sequenceGenerator()
     let underestimatedCount = seq.underestimatedCount
     var state: (it: S.Iterator, count: Int)!
-    var array = Array<S.Element>(
+    var array = unsafe Array<S.Element>(
       unsafeUninitializedCapacity: underestimatedCount
     ) { buffer, count in
-      state = seq._copyContents(initializing: buffer)
+      state = unsafe seq._copyContents(initializing: buffer)
       count = state.count
     }
     expectEqual(state.count, underestimatedCount)

@@ -166,11 +166,12 @@ extension RigidArray {
 
   @available(*, deprecated, renamed: "replaceSubrange(_:moving:)")
   @_alwaysEmitIntoClient
+  @unsafe
   public mutating func replace(
     removing subrange: Range<Int>,
     moving newElements: UnsafeMutableBufferPointer<Element>,
   ) {
-    replaceSubrange(subrange, moving: newElements)
+    unsafe replaceSubrange(subrange, moving: newElements)
   }
 
   @available(*, deprecated, renamed: "replaceSubrange(_:moving:)")
@@ -202,20 +203,22 @@ extension RigidArray {
 
   @available(*, deprecated, renamed: "replaceSubrange(_:copying:)")
   @inlinable
+  @unsafe
   public mutating func replace(
     removing subrange: Range<Int>,
     copying newElements: UnsafeBufferPointer<Element>
   ) {
-    replaceSubrange(subrange, copying: newElements)
+    unsafe replaceSubrange(subrange, copying: newElements)
   }
 
   @available(*, deprecated, renamed: "replaceSubrange(_:copying:)")
   @inlinable
+  @unsafe
   public mutating func replace(
     removing subrange: Range<Int>,
     copying newElements: UnsafeMutableBufferPointer<Element>
   ) {
-    replaceSubrange(subrange, copying: newElements)
+    unsafe replaceSubrange(subrange, copying: newElements)
   }
 
   @available(*, deprecated, renamed: "replaceSubrange(_:copying:)")

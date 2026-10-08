@@ -19,7 +19,8 @@ extension _BTree {
   /// - Warning: This has the capability to perform safety checks, however they must be explicitly be
   ///     performed using the validation methods.
   @usableFromInline
-  internal struct Index {
+  @safe
+  package struct Index {
     /// A fixed-size array large enough to represent all offsets within a B-Tree index
     @usableFromInline
     internal typealias Offsets = _FixedSizeArray<Slot>
@@ -33,6 +34,7 @@ extension _BTree {
     ///
     /// This is equal to `root` to indicate the `endIndex`
     @usableFromInline
+    @unsafe
     internal var node: Unmanaged<Node.Storage>
     
     /// The slot within the bottom most node which the index points to.
@@ -43,7 +45,7 @@ extension _BTree {
     
     /// The absolute offset of the path's element in the entire tree.
     @usableFromInline
-    internal var offset: Int
+    package var offset: Int
     
     /// The tree that this index references.
     @usableFromInline
@@ -62,6 +64,7 @@ extension _BTree {
     ///   - tree: The tree of this index.
     @inlinable
     @inline(__always)
+    @unsafe
     internal init(
       node: Unmanaged<Node.Storage>,
       slot: Int,
@@ -69,7 +72,7 @@ extension _BTree {
       offset: Int,
       forTree tree: _BTree
     ) {
-      self.node = node
+      unsafe self.node = node
       self.slot = slot
       self.childSlots = childSlots
       self.offset = offset
@@ -86,7 +89,7 @@ extension _BTree {
     internal func ensureValid(forTree tree: _BTree) {
       precondition(
         self.root === tree.root.storage && self.version == tree.version,
-        "Attempt to use an invalid index.")
+        "Attempt to use an invalid index")
     }
     
     /// Ensures the precondition that the index is valid for use with another index
@@ -97,7 +100,7 @@ extension _BTree {
         self.root != nil &&
           self.root === index.root &&
           self.version == index.version,
-        "Attempt to use an invalid indices.")
+        "Attempt to use an invalid indices")
     }
   }
 }
@@ -111,16 +114,16 @@ extension _BTree.Index {
   internal func readNode<R>(
     _ body: (_BTree.Node.UnsafeHandle) throws -> R
   ) rethrows -> R {
-    assert(self.slot != -1, "Invalid operation to read end index.")
-    return try self.node._withUnsafeGuaranteedRef { try $0.read(body) }
+    assert(self.slot != -1, "Invalid operation to read end index")
+    return unsafe try self.node._withUnsafeGuaranteedRef { unsafe try $0.read(body) }
   }
   
   /// Gets the element the path points to.
   @inlinable
   @inline(__always)
   internal var element: _BTree.Element {
-    assert(self.slot != -1, "Cannot dereference out-of-bounds slot.")
-    return self.readNode { $0[elementAt: self.slot] }
+    assert(self.slot != -1, "Cannot dereference out-of-bounds slot")
+    return unsafe self.readNode { unsafe $0[elementAt: self.slot] }
   }
 }
 
@@ -131,7 +134,7 @@ extension _BTree.Index: Comparable {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  internal static func ==(lhs: Self, rhs: Self) -> Bool {
+  package static func ==(lhs: Self, rhs: Self) -> Bool {
     return lhs.offset == rhs.offset
   }
   
@@ -140,7 +143,7 @@ extension _BTree.Index: Comparable {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  internal static func <(lhs: Self, rhs: Self) -> Bool {
+  package static func <(lhs: Self, rhs: Self) -> Bool {
     return lhs.offset < rhs.offset
   }
 }

@@ -27,12 +27,12 @@ extension BitSet {
   ///
   /// - Complexity: O(*max*), where *max* is the largest item in either set.
   public mutating func formIntersection(_ other: BitSet) {
-    other._read { source in
+    unsafe other._read { source in
       if source.wordCount < _storage.count {
         self._storage.removeLast(_storage.count - source.wordCount)
       }
-      _updateThenShrink { target, shrink in
-        target.combineSharedPrefix(
+      unsafe _updateThenShrink { target, shrink in
+        unsafe target.combineSharedPrefix(
           with: source, using: { $0.formIntersection($1) })
       }
     }
@@ -71,8 +71,8 @@ extension BitSet {
     if _storage.count - lastWord - 1 > 0 {
       _storage.removeLast(_storage.count - lastWord - 1)
     }
-    _updateThenShrink { handle, shrink in
-      handle.formIntersection(other)
+    unsafe _updateThenShrink { handle, shrink in
+      unsafe handle.formIntersection(other)
     }
   }
 

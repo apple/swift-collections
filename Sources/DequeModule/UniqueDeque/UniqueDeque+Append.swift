@@ -31,7 +31,7 @@ extension UniqueDeque where Element: ~Copyable {
   @_transparent
   public mutating func append(_ item: consuming Element) {
     _ensureFreeCapacity(1)
-    _storage._handle.uncheckedAppend(item)
+    unsafe _storage._handle.uncheckedAppend(item)
   }
 }
 
@@ -91,7 +91,7 @@ extension UniqueDeque where Element: ~Copyable {
   ) throws(E) -> Range<Int> {
     guard newItemCount > 0 else { return count ..< count }
     _ensureFreeCapacity(newItemCount)
-    return try _storage._handle.uncheckedAppend(
+    return unsafe try _storage._handle.uncheckedAppend(
       addingCount: newItemCount, initializingWith: body)
   }
 }
@@ -117,7 +117,7 @@ extension UniqueDeque where Element: ~Copyable {
     moving items: UnsafeMutableBufferPointer<Element>
   ) -> Range<Int> {
     _ensureFreeCapacity(items.count)
-    return _storage._handle.uncheckedAppend(moving: items)
+    return unsafe _storage._handle.uncheckedAppend(moving: items)
   }
 
 #if UnstableContainersPreview
@@ -138,8 +138,8 @@ extension UniqueDeque where Element: ~Copyable {
   public mutating func append(
     moving items: inout InputSpan<Element>
   ) -> Range<Int> {
-    items.withUnsafeMutableBufferPointer { buffer, count in
-      let source = buffer._extracting(last: count)
+    unsafe items.withUnsafeMutableBufferPointer { buffer, count in
+      let source = unsafe buffer._extracting(last: count)
       count = 0
       return unsafe self.append(moving: source)
     }
@@ -163,8 +163,8 @@ extension UniqueDeque where Element: ~Copyable {
   public mutating func append(
     moving items: inout OutputSpan<Element>
   ) -> Range<Int> {
-    items.withUnsafeMutableBufferPointer { buffer, count in
-      let source = buffer._extracting(first: count)
+    unsafe items.withUnsafeMutableBufferPointer { buffer, count in
+      let source = unsafe buffer._extracting(first: count)
       count = 0
       return unsafe self.append(moving: source)
     }
@@ -294,7 +294,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
     if done != nil { return }
 
     _ensureFreeCapacity(items.underestimatedCount)
-    var it = _storage._handle.uncheckedAppend(copyingPrefixOf: items)
+    var it = unsafe _storage._handle.uncheckedAppend(copyingPrefixOf: items)
     while let item = it.next() {
       _ensureFreeCapacity(1)
       _storage.append(item)

@@ -16,11 +16,11 @@ import InternalCollectionsUtilities
 #endif
 
 extension OrderedSet._UnstableInternals {
-  @_spi(Testing) public var capacity: Int { base._capacity }
-  @_spi(Testing) public var minimumCapacity: Int { base._minimumCapacity }
-  @_spi(Testing) public var scale: Int { base._scale }
-  @_spi(Testing) public var reservedScale: Int { base._reservedScale }
-  @_spi(Testing) public var bias: Int { base._bias }
+  package var capacity: Int { base._capacity }
+  package var minimumCapacity: Int { base._minimumCapacity }
+  package var scale: Int { base._scale }
+  package var reservedScale: Int { base._reservedScale }
+  package var bias: Int { base._bias }
 
   public static var isConsistencyCheckingEnabled: Bool {
     _isCollectionsInternalCheckingEnabled
@@ -28,70 +28,61 @@ extension OrderedSet._UnstableInternals {
 }
 
 extension OrderedSet {
-  @_spi(Testing)
   @_alwaysEmitIntoClient
-  public static var _minimumScale: Int {
+  package static var _minimumScale: Int {
     _HashTable.minimumScale
   }
 
-  @_spi(Testing)
   @_alwaysEmitIntoClient
-  public static func _minimumCapacity(forScale scale: Int) -> Int {
+  package static func _minimumCapacity(forScale scale: Int) -> Int {
     _HashTable.minimumCapacity(forScale: scale)
   }
 
-  @_spi(Testing)
   @_alwaysEmitIntoClient
-  public static func _maximumCapacity(forScale scale: Int) -> Int {
+  package static func _maximumCapacity(forScale scale: Int) -> Int {
     _HashTable.maximumCapacity(forScale: scale)
   }
 
-  @_spi(Testing)
   @_alwaysEmitIntoClient
-  public static func _scale(forCapacity capacity: Int) -> Int {
+  package static func _scale(forCapacity capacity: Int) -> Int {
     _HashTable.scale(forCapacity: capacity)
   }
 
-  @_spi(Testing)
   @_alwaysEmitIntoClient
-  public static func _biasRange(scale: Int) -> Range<Int> {
-    guard scale != 0 else { return Range(uncheckedBounds: (0, 1)) }
-    return Range(uncheckedBounds: (0, (1 &<< scale) - 1))
+  package static func _biasRange(scale: Int) -> Range<Int> {
+    guard scale != 0 else { return unsafe Range(uncheckedBounds: (0, 1)) }
+    return unsafe Range(uncheckedBounds: (0, (1 &<< scale) - 1))
   }
 }
 
 extension OrderedSet._UnstableInternals {
-  @_spi(Testing)
   @_alwaysEmitIntoClient
-  public var hasHashTable: Bool { base._table != nil }
+  package var hasHashTable: Bool { base._table != nil }
 
-  @_spi(Testing)
   @_alwaysEmitIntoClient
-  public var hashTableIdentity: ObjectIdentifier? {
+  package var hashTableIdentity: ObjectIdentifier? {
     guard let storage = base.__storage else { return nil }
     return ObjectIdentifier(storage)
   }
 
-  @_spi(Testing)
-  public var hashTableContents: [Int?] {
+  package var hashTableContents: [Int?] {
     guard let table = base._table else { return [] }
-    return table.read { hashTable in
-      hashTable.debugContents()
+    return unsafe table.read { hashTable in
+      unsafe hashTable.debugContents()
     }
   }
 
-  @_spi(Testing)
   @_alwaysEmitIntoClient
-  mutating public func _regenerateHashTable(bias: Int) {
+  package mutating func _regenerateHashTable(bias: Int) {
     base._ensureUnique()
     let new = base._table!.copy()
-    base._table!.read { source in
-      new.update { target in
-        target.bias = bias
-        var it = source.bucketIterator(startingAt: _Bucket(offset: 0))
+    unsafe base._table!.read { source in
+      unsafe new.update { target in
+        unsafe target.bias = bias
+        var it = unsafe source.bucketIterator(startingAt: _Bucket(offset: 0))
         repeat {
-          target[it.currentBucket] = it.currentValue
-          it.advance()
+          unsafe target[it.currentBucket] = it.currentValue
+          unsafe it.advance()
         } while it.currentBucket.offset != 0
       }
     }
@@ -99,9 +90,8 @@ extension OrderedSet._UnstableInternals {
     base._checkInvariants()
   }
 
-  @_spi(Testing)
   @_alwaysEmitIntoClient
-  public mutating func reserveCapacity(
+  package mutating func reserveCapacity(
     _ minimumCapacity: Int,
     persistent: Bool
   ) {
@@ -111,8 +101,7 @@ extension OrderedSet._UnstableInternals {
 }
 
 extension OrderedSet {
-  @_spi(Testing)
-  public init(
+  package init(
     _scale scale: Int,
     bias: Int,
     contents: some Sequence<Element>
@@ -124,8 +113,8 @@ extension OrderedSet {
     precondition(scale >= _HashTable.minimumScale || bias == 0)
     let table = _HashTable(scale: Swift.max(scale, _HashTable.minimumScale))
     table.header.bias = bias
-    let (success, index) = table.update { hashTable in
-      hashTable.fill(untilFirstDuplicateIn: contents)
+    let (success, index) = unsafe table.update { hashTable in
+      unsafe hashTable.fill(untilFirstDuplicateIn: contents)
     }
     precondition(success, "Duplicate element at index \(index)")
     self.init(

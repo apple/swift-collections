@@ -13,6 +13,7 @@
 
 @usableFromInline
 @frozen // Not really! This module isn't ABI stable
+@safe
 internal struct _RopePath<Summary: RopeSummary> {
   // ┌──────────────────────────────────┬────────┐
   // │ b63:b8                           │ b7:b0  │

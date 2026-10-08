@@ -19,6 +19,7 @@
 /// `distance(from:to:)`, `index(_:offsetBy:)` in non-generic code.
 @usableFromInline
 @frozen
+@safe
 internal struct _RawHashNode {
   @usableFromInline
   internal var storage: _RawHashStorage
@@ -35,22 +36,24 @@ internal struct _RawHashNode {
 
 extension _RawHashNode {
   @inline(__always)
+  @unsafe
   internal func read<R>(_ body: (UnsafeHandle) -> R) -> R {
-    storage.withUnsafeMutablePointers { header, elements in
-      body(UnsafeHandle(header, UnsafeRawPointer(elements)))
+    unsafe storage.withUnsafeMutablePointers { header, elements in
+      unsafe body(UnsafeHandle(header, UnsafeRawPointer(elements)))
     }
   }
 }
 
 extension _RawHashNode {
   @inlinable @inline(__always)
+  @unsafe
   internal var unmanaged: _UnmanagedHashNode {
-    _UnmanagedHashNode(storage)
+    unsafe _UnmanagedHashNode(storage)
   }
 
   @inlinable @inline(__always)
   internal func isIdentical(to other: _UnmanagedHashNode) -> Bool {
-    other.ref.toOpaque() == Unmanaged.passUnretained(storage).toOpaque()
+    unsafe other.ref.toOpaque() == Unmanaged.passUnretained(storage).toOpaque()
   }
 }
 
@@ -58,18 +61,18 @@ extension _RawHashNode {
   @usableFromInline
   internal func validatePath(_ path: _UnsafePath) {
     var l = _HashLevel.top
-    var n = self.unmanaged
+    var n = unsafe self.unmanaged
     while l < path.level {
       let slot = path.ancestors[l]
-      precondition(slot < n.childrenEndSlot)
-      n = n.unmanagedChild(at: slot)
+      precondition(unsafe slot < n.childrenEndSlot)
+      unsafe n = n.unmanagedChild(at: slot)
       l = l.descend()
     }
-    precondition(n == path.node)
+    precondition(unsafe n == path.node)
     if path._isItem {
-      precondition(path.nodeSlot < n.itemsEndSlot)
+      precondition(unsafe path.nodeSlot < n.itemsEndSlot)
     } else {
-      precondition(path.nodeSlot <= n.childrenEndSlot)
+      precondition(unsafe path.nodeSlot <= n.childrenEndSlot)
     }
   }
 }

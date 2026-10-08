@@ -17,7 +17,7 @@ extension _HashTable {
   /// Note that we don't store the number of items currently in the table;
   /// that information can be easily retrieved from the element storage.
   @usableFromInline
-  internal struct Header {
+  package struct Header {
     /// We are packing the scale data into the lower bits of the seed & bias
     /// to save a bit of space that would be otherwise taken up by padding.
     ///
@@ -32,11 +32,11 @@ extension _HashTable {
     ///    │                    bias                      │ rsvd   │
     ///    └──────────────────────────────────────────────┴────────┘
     @usableFromInline
-    var _scaleAndSeed: UInt64
+    package var _scaleAndSeed: UInt64
     @usableFromInline
-    var _reservedScaleAndBias: UInt64
+    package var _reservedScaleAndBias: UInt64
 
-    init(scale: Int, reservedScale: Int, seed: Int) {
+    package init(scale: Int, reservedScale: Int, seed: Int) {
       assert(scale >= _HashTable.minimumScale && scale <= _HashTable.maximumScale)
       assert(reservedScale >= 0 && reservedScale <= _HashTable.maximumScale)
       _scaleAndSeed = UInt64(truncatingIfNeeded: seed) << (Swift.max(UInt64.bitWidth - Int.bitWidth, 6))
@@ -52,12 +52,12 @@ extension _HashTable {
     /// each of which contain an *n*-bit value.
     @inlinable
     @inline(__always)
-    var scale: Int { Int(_scaleAndSeed & 0x3F) }
+    package var scale: Int { Int(_scaleAndSeed & 0x3F) }
 
     /// The scale corresponding to the last call to `reserveCapacity`.
     /// We remember this here to make sure we don't shrink the table below its reserved size.
     @inlinable
-    var reservedScale: Int {
+    package var reservedScale: Int {
       @inline(__always)
       get { Int(_reservedScaleAndBias & 0x3F) }
       set {
@@ -70,7 +70,7 @@ extension _HashTable {
     /// The hasher seed to use within this hash table.
     @inlinable
     @inline(__always)
-    var seed: Int {
+    package var seed: Int {
       Int(truncatingIfNeeded: _scaleAndSeed)
     }
 
@@ -78,7 +78,7 @@ extension _HashTable {
     /// into element storage. (This allows O(1) insertions at the front when the
     /// underlying storage supports it.)
     @inlinable
-    var bias: Int {
+    package var bias: Int {
       @inline(__always)
       get { Int(truncatingIfNeeded: _reservedScaleAndBias) &>> 6 }
       set {
@@ -96,6 +96,6 @@ extension _HashTable {
     /// The maximum number of items that can fit into this table.
     @inlinable
     @inline(__always)
-    var capacity: Int { _HashTable.maximumCapacity(forScale: scale) }
+    package var capacity: Int { _HashTable.maximumCapacity(forScale: scale) }
   }
 }

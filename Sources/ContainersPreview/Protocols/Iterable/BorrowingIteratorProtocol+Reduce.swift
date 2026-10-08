@@ -30,7 +30,7 @@ where
       guard !span.isEmpty else { break }
       var i = 0
       while i < span.count {
-        result = try nextPartialResult(result, span[unchecked: i])
+        result = unsafe try nextPartialResult(result, span[unchecked: i])
         i &+= 1
       }
     }
@@ -48,7 +48,7 @@ where
       guard !span.isEmpty else { break }
       var i = 0
       while i < span.count {
-        try updateAccumulatingResult(&result, span[unchecked: i])
+        unsafe try updateAccumulatingResult(&result, span[unchecked: i])
         i &+= 1
       }
     }

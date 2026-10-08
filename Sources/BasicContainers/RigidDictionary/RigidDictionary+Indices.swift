@@ -17,6 +17,7 @@
 extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
   @available(SwiftStdlib 6.4, *)
   @frozen
+  @safe
   public struct Indices: ~Escapable {
     @_alwaysEmitIntoClient
     package let _base: Ref<_HTable>
@@ -33,7 +34,7 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
   public var indices: Indices {
     @_lifetime(borrow self)
     get {
-      Indices(_base: self._keys._table)
+      unsafe Indices(_base: self._keys._table)
     }
   }
 }
@@ -71,7 +72,7 @@ where Key: ~Copyable, Value: ~Copyable
   public func makeBorrowingIterator() -> BorrowingIterator {
     let bit = self._base.value.makeBucketIterator()
     // FIXME: This override really should not be necessary. Check if the real `struct Borrow` fixes it.
-    let override = _overrideLifetime(bit, copying: self)
+    let override = unsafe _overrideLifetime(bit, copying: self)
     return BorrowingIterator(_it: override)
   }
 }

@@ -31,10 +31,10 @@ extension Sequence {
 
   func _contentsByCopyContents(_ count: Int? = nil) -> [Element] {
     var it: Iterator?
-    var result = Array(
+    var result = unsafe Array(
       unsafeUninitializedCapacity: count ?? self.underestimatedCount
     ) { buffer, count in
-      (it, count) = self._copyContents(initializing: buffer)
+      (it, count) = unsafe self._copyContents(initializing: buffer)
     }
     while let next = it!.next() {
       result.append(next)

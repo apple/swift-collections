@@ -77,8 +77,8 @@ extension Rope._Node {
       return (scion, d.subtracting(scion.summary))
     }
     
-    var (remainder, delta) = self.updateInner { h in
-      h.mutableChildren[0]._graftFront(&scion)
+    var (remainder, delta) = unsafe self.updateInner { h in
+      unsafe h.mutableChildren[0]._graftFront(&scion)
     }
     self.summary.add(delta)
     guard let remainder = remainder else { return (nil, delta) }
@@ -113,8 +113,8 @@ extension Rope._Node {
       return (emptied ? nil : scion, self.summary.subtracting(origSum))
     }
     
-    var (remainder, delta) = self.updateInner { h in
-      h.mutableChildren[h.childCount - 1]._graftBack(&scion)
+    var (remainder, delta) = unsafe self.updateInner { h in
+      unsafe h.mutableChildren[h.childCount - 1]._graftBack(&scion)
     }
     self.summary.add(delta)
     guard let remainder = remainder else { return (nil, delta) }

@@ -18,6 +18,7 @@ import InternalCollectionsUtilities
 extension _HTable {
   /// The minimum hash table scale.
   @_alwaysEmitIntoClient
+  @safe
   package static var minimumScale: UInt8 {
     @_effects(readnone)
     @_transparent
@@ -28,6 +29,7 @@ extension _HTable {
 
   /// The maximum hash table scale.
   @_alwaysEmitIntoClient
+  @safe
   package static var maximumScale: UInt8 {
     @_effects(readnone)
     @_transparent
@@ -38,6 +40,7 @@ extension _HTable {
 
   /// The maximum number of items for which we do not create a hash table.
   @usableFromInline
+  @safe
   package static var maximumUnhashedCount: Int {
     @_effects(readnone)
     get {
@@ -47,6 +50,7 @@ extension _HTable {
 
   @inlinable
   @inline(__always)
+  @safe
   package static func wordCount(forScale scale: UInt8) -> Int {
     guard scale > 0 else { return 0 }
     let shift = Swift.max(UInt(scale), Word.wordShift) - Word.wordShift
@@ -74,24 +78,29 @@ extension _HTable {
 
   /// The numerator of the maximum hash table load factor.
   @_transparent
+  @safe
   internal static var _maxLFNum: UInt { 7 }
 
   /// The denominator of the maximum hash table load factor.
   @_transparent
+  @safe
   internal static var _maxLFDenom: UInt { 8 }
 
   /// The numerator of the minimum hash table load factor.
   @_transparent
+  @safe
   internal static var _minLFNum: UInt { 1 }
 
   /// The denominator of minimum hash table load factor.
   @_alwaysEmitIntoClient
   @_transparent
+  @safe
   internal static var _minLFDenom: UInt { 8 }
 
   /// The minimum number of items that can be held in a hash table of the given scale.
   @usableFromInline
   @_effects(readnone)
+  @safe
   package static func minimumCapacity(forScale scale: UInt8) -> Int {
     guard scale >= minimumScale else { return 0 }
     precondition(scale <= maximumScale)
@@ -102,6 +111,7 @@ extension _HTable {
   /// The maximum number of items that can be held in a hash table of the given scale.
   @usableFromInline
   @_effects(readnone)
+  @safe
   package static func maximumCapacity(forScale scale: UInt8) -> Int {
     let scale = Swift.max(scale, minimumScale &- 1)
     let bucketCount: UInt = 1 &<< scale
@@ -112,6 +122,7 @@ extension _HTable {
   /// The minimum hash table scale that can hold the specified number of elements.
   @usableFromInline
   @_effects(readnone)
+  @safe
   package static func minimumScale(forCapacity capacity: Int) -> UInt8 {
     guard capacity > maximumUnhashedCount else { return 0 }
     let capacity = UInt(truncatingIfNeeded: Swift.max(capacity, 1))
@@ -132,6 +143,7 @@ extension _HTable {
 
   @usableFromInline
   @_effects(readnone)
+  @safe
   package static func dynamicStorageParameters(
     minimumCapacity: Int
   ) -> (scale: UInt8, capacity: Int) {

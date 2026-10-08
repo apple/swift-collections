@@ -13,6 +13,6 @@
 
 extension Slice {
   internal var _bounds: Range<Index> {
-    Range(uncheckedBounds: (startIndex, endIndex))
+    unsafe Range(uncheckedBounds: (startIndex, endIndex))
   }
 }

@@ -15,25 +15,25 @@
 
 extension _HashTable.Header: CustomStringConvertible {
   @usableFromInline
-  internal var _description: String {
+  package var _description: String {
     "(scale: \(scale), reservedScale: \(reservedScale), bias: \(bias), seed: \(String(seed, radix: 16)))"
   }
 
   @usableFromInline
-  internal var description: String {
+  package var description: String {
     "_HashTable.Header\(_description)"
   }
 }
 
 extension _HashTable.UnsafeHandle: CustomStringConvertible {
-  internal func _description(type: String) -> String {
+  package func _description(type: String) -> String {
     var d = """
-      \(type)\(_header.pointee._description)
-        load factor: \(debugLoadFactor())
+      \(type)\(unsafe _header.pointee._description)
+        load factor: \(unsafe debugLoadFactor())
       """
-    if bucketCount < 128 {
+    if unsafe bucketCount < 128 {
       d += "\n  "
-      d += debugContents()
+      d += unsafe debugContents()
         .lazy
         .map { $0 == nil ? "_" : "\($0!)" }
         .joined(separator: " ")
@@ -42,22 +42,22 @@ extension _HashTable.UnsafeHandle: CustomStringConvertible {
   }
 
   @usableFromInline
-  internal var description: String {
-    _description(type: "_HashTable.UnsafeHandle")
+  package var description: String {
+    unsafe _description(type: "_HashTable.UnsafeHandle")
   }
 }
 
 extension _HashTable: CustomStringConvertible {
   @usableFromInline
-  internal var description: String {
-    self.read { $0._description(type: "_HashTable") }
+  package var description: String {
+    unsafe self.read { unsafe $0._description(type: "_HashTable") }
   }
 }
 
 extension _HashTable.Storage: CustomStringConvertible {
   @usableFromInline
-  internal var description: String {
-    _HashTable(self).read { $0._description(type: "_HashTable.Storage") }
+  package var description: String {
+    unsafe _HashTable(self).read { unsafe $0._description(type: "_HashTable.Storage") }
   }
 }
 

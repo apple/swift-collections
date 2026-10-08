@@ -24,15 +24,15 @@ extension _HashNode {
 
     if self.isCollisionNode {
       guard other.isCollisionNode else { return false }
-      return self.read { lhs in
-        other.read { rhs in
-          guard lhs.collisionHash == rhs.collisionHash else { return false }
-          let l = lhs.reverseItems
-          let r = rhs.reverseItems
+      return unsafe self.read { lhs in
+        unsafe other.read { rhs in
+          guard unsafe lhs.collisionHash == rhs.collisionHash else { return false }
+          let l = unsafe lhs.reverseItems
+          let r = unsafe rhs.reverseItems
           assert(l.count == r.count) // Already checked above
           for i in l.indices {
-            let found = r.contains {
-              l[i].key == $0.key && areEquivalent(l[i].value, $0.value)
+            let found = unsafe r.contains {
+              unsafe l[i].key == $0.key && areEquivalent(l[i].value, $0.value)
             }
             guard found else { return false }
           }
@@ -42,19 +42,19 @@ extension _HashNode {
     }
     guard !other.isCollisionNode else { return false }
 
-    return self.read { l in
-      other.read { r in
-        guard l.itemMap == r.itemMap else { return false }
-        guard l.childMap == r.childMap else { return false }
+    return unsafe self.read { l in
+      unsafe other.read { r in
+        guard unsafe l.itemMap == r.itemMap else { return false }
+        guard unsafe l.childMap == r.childMap else { return false }
 
-        guard l.reverseItems.elementsEqual(
+        guard unsafe l.reverseItems.elementsEqual(
           r.reverseItems,
           by: { $0.key == $1.key && areEquivalent($0.value, $1.value) })
         else { return false }
 
-        let lc = l.children
-        let rc = r.children
-        return lc.elementsEqual(
+        let lc = unsafe l.children
+        let rc = unsafe r.children
+        return unsafe lc.elementsEqual(
           rc,
           by: { $0.isEqualSet(to: $1, by: areEquivalent) })
       }

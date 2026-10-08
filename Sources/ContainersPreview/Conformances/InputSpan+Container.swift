@@ -11,7 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !COLLECTIONS_SINGLE_MODULE
+#if COLLECTIONS_SINGLE_MODULE
+import Collections
+#else
 import InternalCollectionsUtilities
 import SpanPreview
 #endif
@@ -30,7 +32,7 @@ where Element: ~Copyable
     let span = self.span
     let it = span.makeBorrowingIterator(from: start, to: end)
     // FIXME: `it` is borrowing `span`, not self
-    return _overrideLifetime(it, borrowing: self)
+    return unsafe _overrideLifetime(it, borrowing: self)
   }
 
   @_alwaysEmitIntoClient

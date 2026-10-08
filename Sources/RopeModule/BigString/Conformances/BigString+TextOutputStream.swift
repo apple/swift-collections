@@ -25,7 +25,7 @@ extension BigString: TextOutputStreamable {
   public func write(to target: inout some TextOutputStream) {
     for chunk in _rope {
       let str = String(unsafeUninitializedCapacity: chunk.utf8Count) {
-        $0.initialize(fromContentsOf: chunk._bytes)
+        unsafe $0.initialize(fromContentsOf: chunk._bytes)
       }
 
       str.write(to: &target)

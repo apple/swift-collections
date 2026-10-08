@@ -13,9 +13,9 @@
 
 import XCTest
 #if COLLECTIONS_SINGLE_MODULE
-@_spi(Testing) import Collections
+import Collections
 #else
-@_spi(Testing) import OrderedCollections
+import OrderedCollections
 import _CollectionsTestSupport
 import InternalCollectionsUtilities
 #endif
@@ -1637,7 +1637,7 @@ class OrderedSetTests: CollectionTestCase {
     let os = OrderedSet([1, 2, 3, 4]).filter { $0.isMultiple(of: 2) }
     expectType(os, OrderedSet<Int>.self)
   }
-  
+
   func test_equal() {
     withEvery("count", in: 0 ..< 20) { count in
       let set = OrderedSet(0 ..< count)
@@ -1645,7 +1645,7 @@ class OrderedSetTests: CollectionTestCase {
       expectEqual(copy, set)
     }
   }
-  
+
   func test_not_equal() {
     withEvery("count", in: 0 ..< 20) { count in
       let left = OrderedSet(0 ..< count)
@@ -1653,14 +1653,14 @@ class OrderedSetTests: CollectionTestCase {
       expectNotEqual(left, right)
     }
   }
-  
+
   func test_equal_elements() {
     withEvery("count", in: 0 ..< 20) { count in
       let set = OrderedSet(0 ..< count)
       expectEqualElements(set, 0 ..< count)
     }
   }
-  
+
   func test_subsequence_equality() {
     let c = 5
     let items1 = OrderedSet(0 ..< c)
@@ -1672,7 +1672,7 @@ class OrderedSetTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_subsequence_not_equality() {
     let c = 5
     let items1 = OrderedSet(0 ..< c)

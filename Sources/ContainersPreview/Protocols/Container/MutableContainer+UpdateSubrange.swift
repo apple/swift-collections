@@ -11,7 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !COLLECTIONS_SINGLE_MODULE
+#if COLLECTIONS_SINGLE_MODULE
+import Collections
+#else
 import SpanPreview
 import InternalCollectionsUtilities
 #endif
@@ -72,7 +74,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
               // We need to update all items that were successfully generated,
               // whether or not we've run into failure/eof.
               let j = offset &+ scratch.count
-              dst._updateSubrange(
+              unsafe dst._updateSubrange(
                 Range(uncheckedBounds: (offset, j)),
                 moving: &scratch)
               offset = j
@@ -159,7 +161,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
           !src.isEmpty,
           "updateSubrange source length does not match target range")
         let k = j &+ src.count
-        dst._updateSubrange(Range(uncheckedBounds: (j, k)), moving: &src)
+        unsafe dst._updateSubrange(Range(uncheckedBounds: (j, k)), moving: &src)
         j = k
       }
     }
@@ -194,7 +196,7 @@ where Self: ~Copyable & ~Escapable, Element: Copyable
       while offset < dst.count {
         let src = try source.nextSpan(maxCount: dst.count &- offset)
         if src.isEmpty { break outer }
-        let range = Range(uncheckedBounds: (offset, offset &+ src.count))
+        let range = unsafe Range(uncheckedBounds: (offset, offset &+ src.count))
         dst._updateSubrange(range, copying: src)
         offset = range.upperBound
       }
@@ -218,7 +220,7 @@ where Self: ~Copyable & ~Escapable, Element: Copyable
         let src = it.nextSpan(maxCount: dst.count &- offset)
         precondition(!src.isEmpty, "updateSubrange source length does not match target range")
         let end = offset + src.count
-        dst._updateSubrange(Range(uncheckedBounds: (offset, end)), copying: src)
+        unsafe dst._updateSubrange(Range(uncheckedBounds: (offset, end)), copying: src)
         offset = end
       }
     }

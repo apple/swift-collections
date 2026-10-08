@@ -14,7 +14,7 @@
 import XCTest
 
 #if !COLLECTIONS_SINGLE_MODULE && DEBUG
-@testable import _CollectionsTestSupport
+import _CollectionsTestSupport
 #endif
 
 #if COLLECTIONS_SINGLE_MODULE || DEBUG

@@ -11,7 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !COLLECTIONS_SINGLE_MODULE
+#if COLLECTIONS_SINGLE_MODULE
+import Collections
+#else
 import InternalCollectionsUtilities
 import SpanPreview
 #endif
@@ -79,7 +81,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
 {
   @_alwaysEmitIntoClient
   public mutating func remove(at index: inout Index) -> Element {
-    let range = Range(uncheckedBounds: (index, self.index(after: index)))
+    let range = unsafe Range(uncheckedBounds: (index, self.index(after: index)))
     var result: Element?
     index = self.consumeSubrange(range) {
       result = $0.removeFirst()

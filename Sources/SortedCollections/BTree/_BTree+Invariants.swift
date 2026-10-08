@@ -26,21 +26,21 @@ extension _BTree {
     maximum: Key?
   ) {
     node.read { handle in
-      assert(handle.depth == expectedDepth, "Node depth mismatch.")
+      assert(handle.depth == expectedDepth, "Node depth mismatch")
       assert(isRoot || handle.elementCount > 0, "Node cannot be empty")
       
       if handle.elementCount > 1 {
         for i in 0..<(handle.elementCount - 1) {
           assert(handle[keyAt: i] <= handle[keyAt: i + 1],
-                 "Node keys out of order.")
+                 "Node keys out of order")
         }
       }
       
       if handle.isLeaf {
         assert(handle.elementCount == handle.subtreeCount,
-               "Element and subtree count should match for leaves.")
-        assert(handle.depth == 0, "Non-zero depth for leaf.")
-        assert(isRoot || handle.isBalanced, "Unbalanced node.")
+               "Element and subtree count should match for leaves")
+        assert(handle.depth == 0, "Non-zero depth for leaf")
+        assert(isRoot || handle.isBalanced, "Unbalanced node")
         
         if handle.elementCount > 0 {
           return (
@@ -69,17 +69,17 @@ extension _BTree {
           
           if i == handle.childCount - 1 {
             assert(minimum! >= handle[keyAt: i - 1],
-                   "Last subtree must be greater than or equal to last key.")
+                   "Last subtree must be greater than or equal to last key")
           } else {
             assert(maximum! <= handle[keyAt: i],
-                   "Subtree must be less than or equal to corresponding key.")
+                   "Subtree must be less than or equal to corresponding key")
           }
           
           totalCount += handle[childAt: i].read { $0.subtreeCount }
         }
         
         assert(handle.subtreeCount == handle.elementCount + totalCount,
-               "Subtree count mismatch.")
+               "Subtree count mismatch")
         
         return (
           minimum: subtreeMinimum,
@@ -91,7 +91,7 @@ extension _BTree {
   
   @inline(never)
   @usableFromInline
-  internal func checkInvariants() {
+  package func checkInvariants() {
     checkInvariants(
       for: root,
       expectedDepth: root.storage.header.depth,
@@ -101,7 +101,7 @@ extension _BTree {
   #else
   @inlinable
   @inline(__always)
-  internal func checkInvariants() {}
+  package func checkInvariants() {}
   #endif // COLLECTIONS_INTERNAL_CHECKS
 }
 

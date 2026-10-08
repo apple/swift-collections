@@ -13,9 +13,12 @@
 
 #if UnstableSortedCollections
 
-#if DEBUG
+#if COLLECTIONS_SINGLE_MODULE
+import Collections
+#else
 import _CollectionsTestSupport
-@_spi(Testing) @testable import SortedCollections
+import SortedCollections
+#endif
 
 func expectNodeJoin(
   capacity: Int,
@@ -26,14 +29,14 @@ func expectNodeJoin(
 ) {
   var tree1 = tree1.toNode(ofCapacity: capacity)
   var tree2 = tree2.toNode(ofCapacity: capacity)
-  
+
   let newTree = _Node.join(
     &tree1,
     with: &tree2,
     separatedBy: (separator, -separator),
     capacity: capacity
   )
-  
+
   expectTrue(refTree.matches(newTree))
   _BTree(rootedAt: newTree, internalCapacity: capacity).checkInvariants()
 }
@@ -52,7 +55,7 @@ final class NodeJoinTests: CollectionTestCase {
       },
       toEqual: tree { 0; 1; 2; 3; 4 }
     )
-    
+
     expectNodeJoin(
       capacity: 5,
       tree1: tree {
@@ -69,7 +72,7 @@ final class NodeJoinTests: CollectionTestCase {
       }
     )
   }
-  
+
   func test_joinMedian() {
     expectNodeJoin(
       capacity: 2,
@@ -108,6 +111,4 @@ final class NodeJoinTests: CollectionTestCase {
     )
   }
 }
-#endif
-
 #endif

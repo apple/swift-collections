@@ -35,56 +35,61 @@ extension RigidSet: Iterable where Element: ~Copyable {
   package borrowing func _validateIterator(
     _ iterator: borrowing BorrowingIterator
   ) -> Bool {
-    iterator._baseAddress == UnsafePointer(self._members)
+    unsafe iterator._baseAddress == UnsafePointer(self._members)
     && iterator._bucketIterator._words == UnsafePointer(self._table._bitmap)
   }
 
   @frozen
+  @safe
   public struct BorrowingIterator:
     BorrowingIteratorProtocol,
     ~Copyable,
     ~Escapable
   {
     @_alwaysEmitIntoClient
+    @unsafe
     package var _baseAddress: UnsafePointer<Element>?
 
     @_alwaysEmitIntoClient
     package var _bucketIterator: _HTable.BucketIterator
 
     @_alwaysEmitIntoClient
-    package var _endBucket: _Bucket
+    package let _endBucket: _Bucket
 
     @_alwaysEmitIntoClient
     @_lifetime(borrow _set)
+    @safe
     package init(
       _set: borrowing RigidSet<Element>
     ) {
-      self._baseAddress = .init(_set._members)
-      self._bucketIterator = _set._table.makeBucketIterator()
+      unsafe self._baseAddress = .init(_set._members)
+      self._bucketIterator = unsafe _set._table.makeBucketIterator()
       self._endBucket = self._bucketIterator._endBucket
       _bucketIterator.advanceToOccupied()
     }
 
     @_alwaysEmitIntoClient
     @_lifetime(borrow _set)
+    @unsafe
     package init(
       _set: borrowing RigidSet<Element>,
       from start: Index,
       to end: Index
     ) {
-      self._baseAddress = .init(_set._members)
-      self._bucketIterator = _set._table.makeBucketIterator(from: start._bucket)
+      unsafe self._baseAddress = .init(_set._members)
+      self._bucketIterator = unsafe _set._table.makeBucketIterator(from: start._bucket)
       self._endBucket = end._bucket
       _bucketIterator.advanceToOccupied()
     }
 
     @_alwaysEmitIntoClient
     @_lifetime(copy self)
+    @unsafe
     internal func _span(from start: _Bucket, to end: _Bucket) -> Span<Element> {
-      let items = UnsafeBufferPointer(
+      let items = unsafe UnsafeBufferPointer(
         start: _baseAddress.unsafelyUnwrapped + start.offset,
         count: end.offset - start.offset)
-      return _overrideLifetime(Span(_unsafeElements: items), copying: self)
+      return unsafe _overrideLifetime(Span(_unsafeElements: items), copying: self)
     }
     
     @_alwaysEmitIntoClient
@@ -103,7 +108,7 @@ extension RigidSet: Iterable where Element: ~Copyable {
         end = _endBucket
         _bucketIterator.advanceToEnd()
       }
-      return _span(from: start, to: end)
+      return unsafe _span(from: start, to: end)
     }
   }
 }

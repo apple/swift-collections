@@ -543,20 +543,20 @@ extension BigString {
     let endRopeIndex = end._rope!
 
     if ri == endRopeIndex {
-      let buffer = _rope[ri]._bytes.extracting(start._chunkIndex.utf8Offset ..< end._chunkIndex.utf8Offset)
-      body(buffer)
+      let buffer = unsafe _rope[ri]._bytes.extracting(start._chunkIndex.utf8Offset ..< end._chunkIndex.utf8Offset)
+      unsafe body(buffer)
       return
     }
 
-    body(_rope[ri]._bytes.extracting(start._chunkIndex.utf8Offset...))
+    unsafe body(_rope[ri]._bytes.extracting(start._chunkIndex.utf8Offset...))
 
     _rope.formIndex(after: &ri)
     while ri < endRopeIndex {
-      body(_rope[ri]._bytes)
+      unsafe body(_rope[ri]._bytes)
       _rope.formIndex(after: &ri)
     }
 
-    body(_rope[ri]._bytes.extracting(..<end._chunkIndex.utf8Offset))
+    unsafe body(_rope[ri]._bytes.extracting(..<end._chunkIndex.utf8Offset))
   }
 }
 

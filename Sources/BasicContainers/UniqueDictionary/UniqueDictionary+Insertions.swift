@@ -25,10 +25,10 @@ extension UniqueDictionary where Key: ~Copyable, Value: ~Copyable {
     if bucket != nil {
       return value
     }
-    if _ensureFreeCapacity(1), !_storage._keys._table.isSmall {
+    if _ensureFreeCapacity(1), !_storage._isSmall {
       hashValue = _storage._keys._hashValue(for: key)
     }
-    _storage._insertNew(key, hashValue: hashValue, value)
+    unsafe _storage._insertNew(key, hashValue: hashValue, value)
     return nil
   }
   
@@ -40,12 +40,12 @@ extension UniqueDictionary where Key: ~Copyable, Value: ~Copyable {
   ) -> Value? {
     var (bucket, hashValue) = _storage._find(key)
     if let bucket {
-      return exchange(&_storage._valuePtr(at: bucket).pointee, with: value)
+      return unsafe exchange(&_storage._valuePtr(at: bucket).pointee, with: value)
     }
-    if _ensureFreeCapacity(1), !_storage._keys._table.isSmall {
+    if _ensureFreeCapacity(1), !_storage._isSmall {
       hashValue = _storage._keys._hashValue(for: key)
     }
-    _storage._insertNew(key, hashValue: hashValue, value)
+    unsafe _storage._insertNew(key, hashValue: hashValue, value)
     return nil
   }
 
@@ -64,10 +64,10 @@ extension UniqueDictionary where Key: ~Copyable, Value: ~Copyable {
     } else {
       let value = try body(key)
       var hashValue = r.hashValue
-      if _ensureFreeCapacity(1), !_storage._keys._table.isSmall {
+      if _ensureFreeCapacity(1), !_storage._isSmall {
         hashValue = _storage._keys._hashValue(for: key)
       }
-      bucket = _storage._insertNew(key, hashValue: hashValue, value)
+      bucket = unsafe _storage._insertNew(key, hashValue: hashValue, value)
     }
     return _storage._borrowValue(at: bucket)
   }
@@ -84,25 +84,25 @@ extension UniqueDictionary where Key: ~Copyable, Value: ~Copyable {
     let r = _storage._find(key)
     bucket = r.bucket
     if let bucket {
-      value = _storage._valuePtr(at: bucket).move()
+      value = unsafe _storage._valuePtr(at: bucket).move()
     }
     
     var key: Key? = key // To work around inability to consume key in deinit
     defer {
       if let bucket {
         if let value = value.take() { // Simple update
-          _storage._valuePtr(at: bucket).initialize(to: value)
+          unsafe _storage._valuePtr(at: bucket).initialize(to: value)
         } else { // Removal
-          _ = _removeValue(at: bucket)
+          _ = unsafe _removeValue(at: bucket)
         }
       } else if let value = value.take() {
         // Insertion.
         let key = key.take()!
         var hashValue = r.hashValue
-        if _ensureFreeCapacity(1), !_storage._keys._table.isSmall {
+        if _ensureFreeCapacity(1), !_storage._isSmall {
           hashValue = _storage._keys._hashValue(for: key)
         }
-        _storage._insertNew(key, hashValue: hashValue, value)
+        unsafe _storage._insertNew(key, hashValue: hashValue, value)
       }
     }
     

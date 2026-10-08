@@ -13,121 +13,132 @@
 
 @usableFromInline
 @frozen
+@unsafe
 internal struct _HashTreeIterator {
   @usableFromInline
+  @unsafe
   internal struct _Opaque {
+    @safe
     internal var ancestorSlots: _AncestorHashSlots
+    @unsafe
     internal var ancestorNodes: _HashStack<_UnmanagedHashNode>
+    @safe
     internal var level: _HashLevel
+    @safe
     internal var isAtEnd: Bool
 
     @usableFromInline
     @_effects(releasenone)
     internal init(_ root: _UnmanagedHashNode) {
       self.ancestorSlots = .empty
-      self.ancestorNodes = _HashStack(filledWith: root)
+      unsafe self.ancestorNodes = _HashStack(filledWith: root)
       self.level = .top
       self.isAtEnd = false
     }
   }
 
   @usableFromInline
+  @unsafe
   internal let root: _RawHashStorage
 
   @usableFromInline
+  @unsafe
   internal var node: _UnmanagedHashNode
 
   @usableFromInline
+  @safe
   internal var slot: _HashSlot
 
   @usableFromInline
+  @safe
   internal var endSlot: _HashSlot
 
   @usableFromInline
+  @unsafe
   internal var _o: _Opaque
 
   @usableFromInline
   @_effects(releasenone)
   internal init(root: __shared _RawHashNode) {
-    self.root = root.storage
-    self.node = root.unmanaged
+    unsafe self.root = root.storage
+    unsafe self.node = root.unmanaged
     self.slot = .zero
-    self.endSlot = node.itemsEndSlot
-    self._o = _Opaque(self.node)
+    self.endSlot = unsafe node.itemsEndSlot
+    unsafe self._o = _Opaque(self.node)
 
-    if node.hasItems { return }
-    if node.hasChildren {
-      _descendToLeftmostItem(ofChildAtSlot: .zero)
+    if unsafe node.hasItems { return }
+    if unsafe node.hasChildren {
+      unsafe _descendToLeftmostItem(ofChildAtSlot: .zero)
     } else {
-      self._o.isAtEnd = true
+      unsafe self._o.isAtEnd = true
     }
   }
 }
 
-extension _HashTreeIterator: IteratorProtocol {
+extension _HashTreeIterator: @unsafe IteratorProtocol {
   @inlinable
   internal mutating func next(
   ) -> (node: _UnmanagedHashNode, slot: _HashSlot)? {
     guard slot < endSlot else {
-      return _next()
+      return unsafe _next()
     }
     defer { slot = slot.next() }
-    return (node, slot)
+    return unsafe (node, slot)
   }
 
   @usableFromInline
   @_effects(releasenone)
   internal mutating func _next(
   ) -> (node: _UnmanagedHashNode, slot: _HashSlot)? {
-    if _o.isAtEnd { return nil }
-    if node.hasChildren {
-      _descendToLeftmostItem(ofChildAtSlot: .zero)
+    if unsafe _o.isAtEnd { return nil }
+    if unsafe node.hasChildren {
+      unsafe _descendToLeftmostItem(ofChildAtSlot: .zero)
       slot = slot.next()
-      return (node, .zero)
+      return unsafe (node, .zero)
     }
-    while !_o.level.isAtRoot {
-      let nextChild = _ascend().next()
-      if nextChild < node.childrenEndSlot {
-        _descendToLeftmostItem(ofChildAtSlot: nextChild)
+    while unsafe !_o.level.isAtRoot {
+      let nextChild = unsafe _ascend().next()
+      if unsafe nextChild < node.childrenEndSlot {
+        unsafe _descendToLeftmostItem(ofChildAtSlot: nextChild)
         slot = slot.next()
-        return (node, .zero)
+        return unsafe (node, .zero)
       }
     }
     // At end
-    endSlot = node.itemsEndSlot
+    endSlot = unsafe node.itemsEndSlot
     slot = endSlot
-    _o.isAtEnd = true
+    unsafe _o.isAtEnd = true
     return nil
   }
 }
 
 extension _HashTreeIterator {
   internal mutating func _descend(toChildSlot childSlot: _HashSlot) {
-    assert(childSlot < node.childrenEndSlot)
-    _o.ancestorSlots[_o.level] = childSlot
-    _o.ancestorNodes.push(node)
-    _o.level = _o.level.descend()
-    node = node.unmanagedChild(at: childSlot)
+    assert(unsafe childSlot < node.childrenEndSlot)
+    unsafe _o.ancestorSlots[_o.level] = childSlot
+    unsafe _o.ancestorNodes.push(node)
+    unsafe _o.level = _o.level.descend()
+    unsafe node = node.unmanagedChild(at: childSlot)
     slot = .zero
-    endSlot = node.itemsEndSlot
+    unsafe endSlot = node.itemsEndSlot
   }
 
   internal mutating func _ascend() -> _HashSlot {
-    assert(!_o.level.isAtRoot)
-    node = _o.ancestorNodes.pop()
-    _o.level = _o.level.ascend()
-    let childSlot = _o.ancestorSlots[_o.level]
-    _o.ancestorSlots.clear(_o.level)
+    assert(unsafe !_o.level.isAtRoot)
+    unsafe node = _o.ancestorNodes.pop()
+    unsafe _o.level = _o.level.ascend()
+    let childSlot = unsafe _o.ancestorSlots[_o.level]
+    unsafe _o.ancestorSlots.clear(_o.level)
     return childSlot
   }
 
   internal mutating func _descendToLeftmostItem(
     ofChildAtSlot childSlot: _HashSlot
   ) {
-    _descend(toChildSlot: childSlot)
+    unsafe _descend(toChildSlot: childSlot)
     while endSlot == .zero {
-      assert(node.hasChildren)
-      _descend(toChildSlot: .zero)
+      assert(unsafe node.hasChildren)
+      unsafe _descend(toChildSlot: .zero)
     }
   }
 }

@@ -17,11 +17,11 @@ import XCTest
 import Collections
 #else
 import _CollectionsTestSupport
-import ContainersPreview
 import InternalCollectionsUtilities
 import BasicContainers
 import SpanPreview
 #endif
+import ContainersPreview
 
 #if compiler(>=6.4) && UnstableContainersPreview
 @available(SwiftStdlib 6.4, *)

@@ -25,7 +25,7 @@ extension _HTable {
     // Let's reverse the order of members, to emphasize that this is not an
     // ordered container.
     let c = source.count
-    self._count = c
+    unsafe self._count = c
     self._maxProbeLength = c
     var dst = Bucket(offset: c)
     var it = source.makeBucketIterator()

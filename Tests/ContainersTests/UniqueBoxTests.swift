@@ -18,8 +18,8 @@ import XCTest
 import Collections
 #else
 import _CollectionsTestSupport
-import ContainersPreview
 #endif
+import ContainersPreview
 
 final class UniqueBoxTests: CollectionTestCase {
   struct NoncopyablePayload: ~Copyable {
