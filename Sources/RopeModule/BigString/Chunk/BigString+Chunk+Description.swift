@@ -26,12 +26,7 @@ extension BigString._Chunk: CustomStringConvertible {
   }
 
   var _identity: String {
-#if !$Embedded
-    unsafe unsafeBitCast(storage, to: UnsafeRawPointer.self).debugDescription
-#else
-    let address = unsafe UInt(bitPattern: unsafeBitCast(storage, to: UnsafeRawPointer.self))
-    return "0x" + String(address, radix: 16)
-#endif
+    unsafe _addressString(for: unsafeBitCast(storage, to: UnsafeRawPointer.self))
   }
 
   func _succinctContents(maxLength c: Int) -> String {
