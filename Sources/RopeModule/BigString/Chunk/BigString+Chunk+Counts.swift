@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !$Embedded
-
 @available(SwiftStdlib 6.2, *)
 extension BigString._Chunk {
   struct Counts: Equatable {
@@ -150,5 +148,3 @@ extension BigString._Chunk.Counts {
     self._characters += other._characters
   }
 }
-
-#endif // !$Embedded

@@ -11,13 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !$Embedded
-
 @available(SwiftStdlib 6.2, *)
 extension BigString: ExpressibleByStringLiteral {
   public init(stringLiteral value: String) {
     self.init(value)
   }
 }
-
-#endif // !$Embedded

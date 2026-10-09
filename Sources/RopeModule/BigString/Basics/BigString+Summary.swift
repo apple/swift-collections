@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !$Embedded
-
 @available(SwiftStdlib 6.2, *)
 extension BigString {
   struct Summary {
@@ -80,5 +78,3 @@ extension BigString.Summary: RopeSummary {
     utf8 -= other.utf8
   }
 }
-
-#endif // !$Embedded

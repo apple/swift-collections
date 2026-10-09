@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !$Embedded
-
 @available(SwiftStdlib 6.2, *)
 extension BigString {
   struct Builder {
@@ -147,5 +145,3 @@ extension BigString.Builder {
     return string
   }
 }
-
-#endif // !$Embedded

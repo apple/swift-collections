@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !$Embedded
-
 @available(SwiftStdlib 6.2, *)
 extension BigString {
   public  struct Index: Sendable {
@@ -237,5 +235,3 @@ extension BigString {
       chunk: ci)
   }
 }
-
-#endif // !$Embedded

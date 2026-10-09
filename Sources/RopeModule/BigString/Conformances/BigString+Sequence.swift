@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !$Embedded
-
 @available(SwiftStdlib 6.2, *)
 extension BigString: Sequence {
   public typealias Element = Character
@@ -233,5 +231,3 @@ extension BigString.Iterator {
     self.utf8Offset < index.utf8Offset
   }
 }
-
-#endif // !$Embedded

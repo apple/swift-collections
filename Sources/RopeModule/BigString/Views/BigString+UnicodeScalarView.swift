@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !$Embedded
-
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
 #endif
@@ -396,5 +394,3 @@ extension BigString.UnicodeScalarView: RangeReplaceableCollection {
     self._base = BigString()
   }
 }
-
-#endif // !$Embedded

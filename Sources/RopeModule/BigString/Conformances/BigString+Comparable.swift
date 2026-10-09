@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !$Embedded
-
 @available(SwiftStdlib 6.2, *)
 extension BigString: Comparable {
   public static func < (left: Self, right: Self) -> Bool {
@@ -37,5 +35,3 @@ extension BigString: Comparable {
     }
   }
 }
-
-#endif // !$Embedded

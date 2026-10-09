@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !$Embedded
-
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
 #endif
@@ -220,5 +218,3 @@ extension BigString: RangeReplaceableCollection {
     self = BigString()
   }
 }
-
-#endif // !$Embedded

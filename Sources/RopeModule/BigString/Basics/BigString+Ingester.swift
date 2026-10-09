@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !$Embedded
-
 @available(SwiftStdlib 6.2, *)
 extension BigString {
   func _ingester(
@@ -171,5 +169,3 @@ extension BigString._Chunk {
     assert(ingester.isAtEnd)
   }
 }
-
-#endif // !$Embedded

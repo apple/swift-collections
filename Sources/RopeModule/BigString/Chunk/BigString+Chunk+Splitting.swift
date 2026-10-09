@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !$Embedded
-
 @available(SwiftStdlib 6.2, *)
 extension BigString._Chunk {
   func splitCounts(at i: Index) -> (left: Counts, right: Counts) {
@@ -143,5 +141,3 @@ extension BigString._Chunk {
     return result
   }
 }
-
-#endif // !$Embedded

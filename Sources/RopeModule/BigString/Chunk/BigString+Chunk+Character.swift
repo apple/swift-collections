@@ -11,10 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !$Embedded
-
 @available(SwiftStdlib 6.2, *)
 extension BigString._Chunk {
+#if !$Embedded
   func characterIndex(
     roundingDown i: Index,
     in range: Range<Index>? = nil
@@ -88,6 +87,66 @@ extension BigString._Chunk {
 
     return Index(utf8Offset: si.currentCodeUnitOffset + bias).characterAligned
   }
+#else
+  // Embedded Swift does not have `UTF8Span.makeCharacterIterator()`, so these implementations
+  // use `_CharacterRecognizer` to find grapheme breaks. The recognizer can only go forward, so
+  // each operation scans forward from a known character boundary. A new recognizer always
+  // reports a break before the first scalar it sees, so the start of each scan counts as a break.
+  // Chunks are small, so the cost of the scan is bounded.
+
+  func characterIndex(
+    roundingDown i: Index,
+    in range: Range<Index>? = nil
+  ) -> Index {
+    precondition(hasBreaks, "Chunk must have a break to round")
+
+    if i.isKnownCharacterAligned || i.utf8Offset == 0 {
+      return i.characterAligned
+    }
+
+    if i == endIndex {
+      return endIndex
+    }
+
+    let range = range ?? firstBreak ..< endIndex
+    if i >= range.upperBound {
+      return i.characterAligned
+    }
+
+    // The start of the range is not always a character boundary, but `firstBreak` is.
+    let start = range.lowerBound < firstBreak && firstBreak <= i ? firstBreak : range.lowerBound
+    let end = scalarIndex(after: scalarIndex(roundingDown: i))
+    var state = _CharacterRecognizer()
+    guard let (_, _, last) = state.consume(self, start ..< end) else {
+      return start.characterAligned
+    }
+    return last.characterAligned
+  }
+
+  func characterIndex(after i: Index, in range: Range<Index>? = nil) -> Index {
+    let range = range ?? startIndex..<endIndex
+
+    let i = characterIndex(roundingDown: i, in: range)
+    guard i < range.upperBound else { return i }
+    let next = scalarIndex(after: i)
+    var state = _CharacterRecognizer(partialCharacter: utf8Span(from: i, to: next))
+    let j = state.firstBreak(in: self, from: next ..< range.upperBound)?.lowerBound
+    return (j ?? range.upperBound).characterAligned
+  }
+
+  func characterIndex(before i: Index, in range: Range<Index>? = nil) -> Index {
+    let range = range ?? firstBreak..<i
+
+    let i = characterIndex(roundingDown: i, in: range)
+    // The start of the range is not always a character boundary, but `firstBreak` is.
+    let start = range.lowerBound < firstBreak && firstBreak < i ? firstBreak : range.lowerBound
+    var state = _CharacterRecognizer()
+    guard let (_, _, last) = state.consume(self, start ..< i) else {
+      return start.characterAligned
+    }
+    return last.characterAligned
+  }
+#endif
 
   func characterIndex(_ i: Index, offsetBy n: Int) -> Index {
     var i = characterIndex(roundingDown: i)
@@ -203,9 +262,14 @@ extension BigString._Chunk {
 
     let i = characterIndex(roundingDown: i)
 
+#if !$Embedded
     var iter = utf8Span.makeCharacterIterator()
     unsafe iter.reset(toUnchecked: i.utf8Offset)
     return unsafe iter.next().unsafelyUnwrapped
+#else
+    let j = characterIndex(after: i, in: i ..< endIndex)
+    return Character(String(copying: utf8Span(from: i, to: j)))
+#endif
   }
 }
 
@@ -300,5 +364,3 @@ extension BigString._Chunk {
     return (false, false)
   }
 }
-
-#endif // !$Embedded

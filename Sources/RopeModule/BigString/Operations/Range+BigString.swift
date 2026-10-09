@@ -11,13 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !$Embedded
-
 @available(SwiftStdlib 6.2, *)
 extension Range<BigString.Index> {
   internal var _isEmptyUTF8: Bool {
     lowerBound.utf8Offset == upperBound.utf8Offset
   }
 }
-
-#endif // !$Embedded

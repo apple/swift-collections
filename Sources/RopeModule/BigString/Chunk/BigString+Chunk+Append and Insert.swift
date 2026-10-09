@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !$Embedded
-
 @available(SwiftStdlib 6.2, *)
 extension BigString._Chunk {
   mutating func append(_ other: borrowing BigString._Chunk) {
@@ -239,5 +237,3 @@ extension BigString._Chunk {
     return .split(spawn: spawn, endStates: (sum - offset, old, new))
   }
 }
-
-#endif // !$Embedded

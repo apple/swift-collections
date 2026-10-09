@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !$Embedded
-
 @available(SwiftStdlib 6.2, *)
 extension BigString._Chunk: RopeElement {
   typealias Summary = BigString.Summary
@@ -154,5 +152,3 @@ extension BigString._Chunk {
     left = Self(copying: left.utf8Span(from: left.startIndex, to: i), counts.left)
   }
 }
-
-#endif // !$Embedded

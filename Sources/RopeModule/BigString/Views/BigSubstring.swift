@@ -11,8 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !$Embedded
-
 @available(SwiftStdlib 6.2, *)
 public struct BigSubstring: Sendable {
   var _base: BigString
@@ -361,5 +359,3 @@ extension BigSubstring: RangeReplaceableCollection {
     assert(_bounds.isEmpty)
   }
 }
-
-#endif // !$Embedded

@@ -11,13 +11,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !$Embedded
-
 @available(SwiftStdlib 6.2, *)
 extension BigString {
   public func _dump(heightLimit: Int = .max) {
     _rope._dump(heightLimit: heightLimit)
   }
 }
-
-#endif // !$Embedded
