@@ -112,6 +112,30 @@ jobs:
           CMAKE: ${{ steps.install-cmake.outputs.cmake }}
         run: |
           "$CMAKE" --build .cmake-build
+      - name: Configure with CMake (Single-module mode)
+        shell: bash
+        env:
+          CMAKE: ${{ steps.install-cmake.outputs.cmake }}
+        run: |
+          "$CMAKE" -G Ninja -S . -B .singlemodule-build -D COLLECTIONS_SINGLE_MODULE=ON
+      - name: Build with CMake (Single-module mode)
+        shell: bash
+        env:
+          CMAKE: ${{ steps.install-cmake.outputs.cmake }}
+        run: |
+          "$CMAKE" --build .singlemodule-build
+      - name: Configure with CMake (Foundation toolchain module mode)
+        shell: bash
+        env:
+          CMAKE: ${{ steps.install-cmake.outputs.cmake }}
+        run: |
+          "$CMAKE" -G Ninja -S . -B .foundation-build -D COLLECTIONS_FOUNDATION_TOOLCHAIN_MODULE=ON
+      - name: Build with CMake (Foundation toolchain module mode)
+        shell: bash
+        env:
+          CMAKE: ${{ steps.install-cmake.outputs.cmake }}
+        run: |
+          "$CMAKE" --build .foundation-build
 
   xcode-build:
     name: Xcode Project Build
