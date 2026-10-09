@@ -68,6 +68,15 @@ class SortedSetTests: CollectionTestCase {
     }
   }
 
+  func test_BidirectionalCollection() {
+    withEvery("count", in: [0, 1, 5, 6, 17, 18, 29, 30]) { count in
+      checkBidirectionalCollection(
+        SortedSet(sortedElements: 0 ..< count), expectedContents: 0 ..< count)
+      checkBidirectionalCollection(
+        SortedSet(0 ..< count), expectedContents: 0 ..< count)
+    }
+  }
+
   func test_firstIndexOf_lastIndexOf() {
     withEvery("count", in: 0 ..< 20) { count in
       let contents = Array(0 ..< count)
@@ -255,6 +264,38 @@ class SortedSetTests: CollectionTestCase {
         25, 26, 27, 28, 29, 30, 31, 32]
       expectEqualElements(set, 1 ... 32)
     }
+  }
+
+  func test_Equatable_Hashable() {
+    let evens = stride(from: 0, to: 42, by: 2)
+    let classes: [[SortedSet<Int>]] = [
+      [[]],
+      [[0]],
+      [[1]],
+      [SortedSet(sortedElements: 0 ..< 20), SortedSet(0 ..< 20)],
+      [SortedSet(sortedElements: 0 ..< 21), SortedSet(0 ..< 21)],
+      [SortedSet(sortedElements: 1 ..< 21), SortedSet(1 ..< 21)],
+      [SortedSet(evens)],
+      [SortedSet(evens.map { $0 == 20 ? 21 : $0 })],
+      [SortedSet(evens.map { $0 == 38 ? 39 : $0 })],
+    ]
+    checkHashable(equivalenceClasses: classes)
+  }
+
+  func test_subSequence_Equatable_Hashable() {
+    let evens = stride(from: 0, to: 80, by: 2)
+    let classes: [[SortedSet<Int>.SubSequence]] = [
+      [SortedSet<Int>()[0 ..< 10], SortedSet(0 ..< 40)[50 ..< 60]],
+      [
+        SortedSet(sortedElements: 0 ..< 40)[10 ..< 30],
+        SortedSet(0 ..< 40)[10 ..< 30],
+        SortedSet(10 ..< 30)[...],
+      ],
+      [SortedSet(evens)[20 ..< 60]],
+      [SortedSet(evens.map { $0 == 40 ? 41 : $0 })[20 ..< 60]],
+      [SortedSet(evens.map { $0 == 56 ? 57 : $0 })[20 ..< 60]],
+    ]
+    checkHashable(equivalenceClasses: classes)
   }
 
   func test_Encodable() throws {

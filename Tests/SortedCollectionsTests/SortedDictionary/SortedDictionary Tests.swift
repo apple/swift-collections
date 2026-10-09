@@ -288,7 +288,26 @@ final class SortedDictionaryTests: CollectionTestCase {
     }
   }
 
-  func test_keys_Equatable() {
+  func test_Equatable_Hashable() {
+    let evens = stride(from: 0, to: 42, by: 2).map { ($0, $0 / 2) }
+    let keyChanged = evens.map { key, value in (key == 20 ? 21 : key, value) }
+    let valueChanged = evens.map { key, value in (key, key == 20 ? -1 : value) }
+    let classes: [[SortedDictionary<Int, Int>]] = [
+      [[:]],
+      [[0: 0]],
+      [[0: 1]],
+      [[1: 0]],
+      [
+        SortedDictionary(sortedKeysWithValues: evens),
+        SortedDictionary(keysWithValues: evens),
+      ],
+      [SortedDictionary(sortedKeysWithValues: keyChanged)],
+      [SortedDictionary(sortedKeysWithValues: valueChanged)],
+    ]
+    checkHashable(equivalenceClasses: classes)
+  }
+
+  func test_keys_Equatable_Hashable() {
     let left: SortedDictionary = [
       1: "one",
       2: "two",
@@ -309,14 +328,22 @@ final class SortedDictionaryTests: CollectionTestCase {
     expectEqual(left.keys, rightEqual.keys)
     expectNotEqual(left.keys, rightUnequal.keys)
 
-    checkEquatable(equivalenceClasses: [
+    let evens = stride(from: 0, to: 42, by: 2).map { ($0, "\($0)") }
+    let keyChanged = evens.map { key, value in (key == 20 ? 21 : key, value) }
+
+    checkHashable(equivalenceClasses: [
       [SortedDictionary<Int, String>().keys, SortedDictionary<Int, String>().keys],
       [left.keys, rightEqual.keys],
       [rightUnequal.keys],
+      [
+        SortedDictionary(sortedKeysWithValues: evens).keys,
+        SortedDictionary(keysWithValues: evens.map { key, _ in (key, "") }).keys,
+      ],
+      [SortedDictionary(sortedKeysWithValues: keyChanged).keys],
     ])
   }
 
-  func test_values_Equatable() {
+  func test_values_Equatable_Hashable() {
     let left: SortedDictionary = [
       1: "one",
       2: "two",
@@ -337,14 +364,22 @@ final class SortedDictionaryTests: CollectionTestCase {
     expectEqual(left.values, rightEqual.values)
     expectNotEqual(left.values, rightUnequal.values)
 
-    checkEquatable(equivalenceClasses: [
+    let evens = stride(from: 0, to: 42, by: 2).map { ($0, "\($0)") }
+    let valueChanged = evens.map { key, value in (key, key == 20 ? "" : value) }
+
+    checkHashable(equivalenceClasses: [
       [SortedDictionary<Int, String>().values, SortedDictionary<Int, String>().values],
       [left.values, rightEqual.values],
       [rightUnequal.values],
+      [
+        SortedDictionary(sortedKeysWithValues: evens).values,
+        SortedDictionary(keysWithValues: evens.map { key, value in (key + 1, value) }).values,
+      ],
+      [SortedDictionary(sortedKeysWithValues: valueChanged).values],
     ])
   }
 
-  func test_subSequence_Equatable() {
+  func test_subSequence_Equatable_Hashable() {
     let left: SortedDictionary = [
       1: "one",
       2: "two",
@@ -377,6 +412,28 @@ final class SortedDictionaryTests: CollectionTestCase {
     expectEqual(leftSlice, leftSlice)
     expectEqual(leftSlice, rightEqualSlice)
     expectNotEqual(leftSlice, rightUnequalSlice)
+
+    let pairs = (0 ..< 40).map { ($0, "\($0)") }
+    let bulk = SortedDictionary(sortedKeysWithValues: pairs)
+    let inserted = SortedDictionary(keysWithValues: pairs)
+    let valueChanged = SortedDictionary(
+      sortedKeysWithValues: pairs.map { key, value in (key, key == 20 ? "" : value) })
+    let keysShifted = SortedDictionary(
+      sortedKeysWithValues: pairs.map { key, value in (key + 1, value) })
+
+    let classes: [[SortedDictionary<Int, String>.SubSequence]] = [
+      [left.prefix(0), SortedDictionary<Int, String>()[...]],
+      [leftSlice, rightEqualSlice],
+      [rightUnequalSlice],
+      [
+        bulk.dropFirst(10).prefix(20),
+        inserted.dropFirst(10).prefix(20),
+        SortedDictionary(sortedKeysWithValues: pairs[10 ..< 30])[...],
+      ],
+      [valueChanged.dropFirst(10).prefix(20)],
+      [keysShifted.dropFirst(10).prefix(20)],
+    ]
+    checkHashable(equivalenceClasses: classes)
   }
 }
 
