@@ -362,3 +362,4 @@ We expect contributors to adhere to our [Code of Conduct][coc].
 ## Contact information
 
 The current maintainer of this package is Karoy Lorentey ([@lorentey](https://github.com/lorentey)). You can contact him [on the Swift forums](https://forums.swift.org/u/lorentey/summary), or by writing an email to klorentey at apple dot com. (Please keep it related to this project.)
+
