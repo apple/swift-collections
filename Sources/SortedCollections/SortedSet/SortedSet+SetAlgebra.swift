@@ -380,9 +380,7 @@ extension SortedSet {
   ///
   /// - Parameter other: An arbitrary finite sequence of elements, possibly
   ///   containing duplicates.
-  /// - Complexity: O(`self.count` + `other.count`) when `other` is a
-  ///   `SortedSet`; otherwise the sequence is first collected into a
-  ///   temporary sorted set.
+  /// - Complexity: O(`self.count` + `n` * log(`n`)) where `n` is the length of `other`.
   @inlinable
   public func union(_ other: __owned some Sequence<Element>) -> Self {
     if let other = other as? Self {
@@ -395,9 +393,7 @@ extension SortedSet {
   ///
   /// - Parameter other: An arbitrary finite sequence of elements, possibly
   ///   containing duplicates.
-  /// - Complexity: O(`self.count` + `other.count`) when `other` is a
-  ///   `SortedSet`; otherwise the sequence is first collected into a
-  ///   temporary sorted set.
+  /// - Complexity: O(`self.count` + `n` * log(`n`)) where `n` is the length of `other`.
   @inlinable
   public mutating func formUnion(_ other: __owned some Sequence<Element>) {
     self = union(other)
@@ -408,9 +404,7 @@ extension SortedSet {
   ///
   /// - Parameter other: An arbitrary finite sequence of elements, possibly
   ///   containing duplicates.
-  /// - Complexity: O(`self.count` + `other.count`) when `other` is a
-  ///   `SortedSet`; otherwise the sequence is first collected into a
-  ///   temporary sorted set.
+  /// - Complexity: O(`self.count` + `n` * log(`n`)) where `n` is the length of `other`.
   @inlinable
   public func intersection(_ other: some Sequence<Element>) -> Self {
     if let other = other as? Self {
@@ -423,9 +417,7 @@ extension SortedSet {
   ///
   /// - Parameter other: An arbitrary finite sequence of elements, possibly
   ///   containing duplicates.
-  /// - Complexity: O(`self.count` + `other.count`) when `other` is a
-  ///   `SortedSet`; otherwise the sequence is first collected into a
-  ///   temporary sorted set.
+  /// - Complexity: O(`self.count` + `n` * log(`n`)) where `n` is the length of `other`.
   @inlinable
   public mutating func formIntersection(_ other: some Sequence<Element>) {
     self = intersection(other)
@@ -436,9 +428,7 @@ extension SortedSet {
   ///
   /// - Parameter other: An arbitrary finite sequence of elements, possibly
   ///   containing duplicates.
-  /// - Complexity: O(`self.count` + `other.count`) when `other` is a
-  ///   `SortedSet`; otherwise the sequence is first collected into a
-  ///   temporary sorted set.
+  /// - Complexity: O(`self.count` + `n` * log(`n`)) where `n` is the length of `other`.
   @inlinable
   public func symmetricDifference(
     _ other: __owned some Sequence<Element>
@@ -454,9 +444,7 @@ extension SortedSet {
   ///
   /// - Parameter other: An arbitrary finite sequence of elements, possibly
   ///   containing duplicates.
-  /// - Complexity: O(`self.count` + `other.count`) when `other` is a
-  ///   `SortedSet`; otherwise the sequence is first collected into a
-  ///   temporary sorted set.
+  /// - Complexity: O(`self.count` + `n` * log(`n`)) where `n` is the length of `other`.
   @inlinable
   public mutating func formSymmetricDifference(
     _ other: __owned some Sequence<Element>
@@ -469,9 +457,7 @@ extension SortedSet {
   ///
   /// - Parameter other: An arbitrary finite sequence of elements, possibly
   ///   containing duplicates.
-  /// - Complexity: O(`self.count` + `other.count`) when `other` is a
-  ///   `SortedSet`; otherwise the sequence is first collected into a
-  ///   temporary sorted set.
+  /// - Complexity: O(`self.count` + `n` * log(`n`)) where `n` is the length of `other`.
   @inlinable
   public __consuming func subtracting(
     _ other: some Sequence<Element>
@@ -486,9 +472,7 @@ extension SortedSet {
   ///
   /// - Parameter other: An arbitrary finite sequence of elements, possibly
   ///   containing duplicates.
-  /// - Complexity: O(`self.count` + `other.count`) when `other` is a
-  ///   `SortedSet`; otherwise the sequence is first collected into a
-  ///   temporary sorted set.
+  /// - Complexity: O(`self.count` + `n` * log(`n`)) where `n` is the length of `other`.
   @inlinable
   public mutating func subtract(_ other: some Sequence<Element>) {
     self = subtracting(other)
@@ -501,9 +485,7 @@ extension SortedSet {
   ///
   /// - Parameter other: An arbitrary finite sequence of elements, possibly
   ///   containing duplicates.
-  /// - Complexity: O(`self.count` + `other.count`) when `other` is a
-  ///   `SortedSet`; otherwise the sequence is first collected into a
-  ///   temporary sorted set.
+  /// - Complexity: O(`self.count` + `n` * log(`n`)) where `n` is the length of `other`.
   @inlinable
   public func isSubset(of other: some Sequence<Element>) -> Bool {
     if let other = other as? Self {
@@ -517,9 +499,7 @@ extension SortedSet {
   ///
   /// - Parameter other: An arbitrary finite sequence of elements, possibly
   ///   containing duplicates.
-  /// - Complexity: O(`self.count` + `other.count`) when `other` is a
-  ///   `SortedSet`; otherwise the sequence is first collected into a
-  ///   temporary sorted set.
+  /// - Complexity: O(`self.count` + `n` * log(`n`)) where `n` is the length of `other`.
   @inlinable
   public func isStrictSubset(of other: some Sequence<Element>) -> Bool {
     if let other = other as? Self {
@@ -533,8 +513,7 @@ extension SortedSet {
   ///
   /// - Parameter other: An arbitrary finite sequence of elements, possibly
   ///   containing duplicates.
-  /// - Complexity: O(`other.count` log `self.count`) in the worst case;
-  ///   O(`self.count` + `other.count`) when `other` is a `SortedSet`.
+  /// - Complexity: O(`n` * log(`self.count`)), where `n` is the length of `other`.
   @inlinable
   public func isSuperset(of other: some Sequence<Element>) -> Bool {
     if let other = other as? Self {
@@ -548,9 +527,7 @@ extension SortedSet {
   ///
   /// - Parameter other: An arbitrary finite sequence of elements, possibly
   ///   containing duplicates.
-  /// - Complexity: O(`self.count` + `other.count`) when `other` is a
-  ///   `SortedSet`; otherwise the sequence is first collected into a
-  ///   temporary sorted set.
+/// - Complexity: O(`self.count` + `n` * log(`n`)) where `n` is the length of `other`.
   @inlinable
   public func isStrictSuperset(of other: some Sequence<Element>) -> Bool {
     if let other = other as? Self {
@@ -564,8 +541,7 @@ extension SortedSet {
   ///
   /// - Parameter other: An arbitrary finite sequence of elements, possibly
   ///   containing duplicates.
-  /// - Complexity: O(`other.count` log `self.count`) in the worst case;
-  ///   O(`self.count` + `other.count`) when `other` is a `SortedSet`.
+  /// - Complexity: O(`n` * log(`self.count`)) where `n` is the length of `other`.
   @inlinable
   public func isDisjoint(with other: some Sequence<Element>) -> Bool {
     guard !self.isEmpty else { return true }

@@ -21,10 +21,6 @@ import SortedCollections
 import _CollectionsTestSupport
 #endif
 
-// Regression tests for https://github.com/apple/swift-collections/issues/743:
-// SortedSet's set operations must accept arbitrary sequences, not just
-// another SortedSet. Satisfying this shape is also what lets SortedSet
-// conform to SetAPIChecker.
 extension SortedSet: SetAPIChecker {}
 
 class SortedSetSequenceOperationTests: CollectionTestCase {
