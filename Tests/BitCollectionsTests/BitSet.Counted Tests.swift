@@ -165,6 +165,7 @@ final class BitSetCountedTests: CollectionTestCase {
     expectTrue(a.isEqualSet(to: BitSet(b)))
     expectTrue(a.isEqualSet(to: b))
     expectTrue(a.isEqualSet(to: Set(b)))
+    expectTrue(a.isEqualSet(to: [4, 1, 1, 2, 3, 3, 4] as [Int]))
 
     let c = 2 ..< 7
     expectFalse(a.isEqualSet(to: BitSet.Counted(c)))

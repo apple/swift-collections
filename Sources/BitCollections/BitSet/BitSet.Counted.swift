@@ -940,8 +940,7 @@ extension BitSet.Counted {
   /// - Complexity: O(*n*), where *n* is the number of items in `other`.
   @inlinable
   public func isEqualSet(to other: some Sequence<Int>) -> Bool {
-    guard self.count >= other.underestimatedCount else { return false }
-    return _bits.isEqualSet(to: other)
+    _bits.isEqualSet(to: other)
   }
 }
 
