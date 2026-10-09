@@ -44,6 +44,11 @@ option(COLLECTIONS_INSTALL_ARCH_SUBDIR "Install libraries under an architecture 
 
 if(COLLECTIONS_FOUNDATION_TOOLCHAIN_MODULE)
   set(COLLECTIONS_SINGLE_MODULE YES)
+  add_compile_definitions("$<$<COMPILE_LANGUAGE:Swift>:COLLECTIONS_FOUNDATION_TOOLCHAIN_MODULE>")
+endif()
+
+if(COLLECTIONS_SINGLE_MODULE)
+  add_compile_definitions("$<$<COMPILE_LANGUAGE:Swift>:COLLECTIONS_SINGLE_MODULE>")
 endif()
 
 include(CTest)
@@ -63,8 +68,6 @@ set(collections_swift_flags
 foreach(flag ${collections_swift_flags})
  add_compile_options("$<$<COMPILE_LANGUAGE:Swift>:SHELL:${flag}>")
 endforeach()
-
-#add_compile_options("$<$<COMPILE_LANGUAGE:Swift>:SHELL:${collections_swift_flags}>")
 
 set(availability_defs
   "SwiftStdlib 5.0: macOS 10.14.4, iOS 12.2, watchOS 5.2, tvOS 12.2"
