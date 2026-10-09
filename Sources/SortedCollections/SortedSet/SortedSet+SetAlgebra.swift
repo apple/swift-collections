@@ -373,4 +373,183 @@ extension SortedSet: SetAlgebra {
   }
 }
 
+extension SortedSet {
+  // MARK: Combining Sets with arbitrary Sequences
+
+  /// Returns a new set with the elements of both this set and the given sequence.
+  ///
+  /// - Parameter other: An arbitrary finite sequence of elements, possibly
+  ///   containing duplicates.
+  /// - Complexity: O(`self.count` + `n` * log(`n`)) where `n` is the length of `other`.
+  @inlinable
+  public func union(_ other: __owned some Sequence<Element>) -> Self {
+    if let other = other as? Self {
+      return union(other)
+    }
+    return union(SortedSet(other))
+  }
+
+  /// Adds the elements of the given sequence to the set.
+  ///
+  /// - Parameter other: An arbitrary finite sequence of elements, possibly
+  ///   containing duplicates.
+  /// - Complexity: O(`self.count` + `n` * log(`n`)) where `n` is the length of `other`.
+  @inlinable
+  public mutating func formUnion(_ other: __owned some Sequence<Element>) {
+    self = union(other)
+  }
+
+  /// Returns a new set with the elements that are common to both this set and
+  /// the given sequence.
+  ///
+  /// - Parameter other: An arbitrary finite sequence of elements, possibly
+  ///   containing duplicates.
+  /// - Complexity: O(`self.count` + `n` * log(`n`)) where `n` is the length of `other`.
+  @inlinable
+  public func intersection(_ other: some Sequence<Element>) -> Self {
+    if let other = other as? Self {
+      return intersection(other)
+    }
+    return intersection(SortedSet(other))
+  }
+
+  /// Removes the elements of this set that aren't also in the given sequence.
+  ///
+  /// - Parameter other: An arbitrary finite sequence of elements, possibly
+  ///   containing duplicates.
+  /// - Complexity: O(`self.count` + `n` * log(`n`)) where `n` is the length of `other`.
+  @inlinable
+  public mutating func formIntersection(_ other: some Sequence<Element>) {
+    self = intersection(other)
+  }
+
+  /// Returns a new set with the elements that are either in this set or in the
+  /// given sequence, but not in both.
+  ///
+  /// - Parameter other: An arbitrary finite sequence of elements, possibly
+  ///   containing duplicates.
+  /// - Complexity: O(`self.count` + `n` * log(`n`)) where `n` is the length of `other`.
+  @inlinable
+  public func symmetricDifference(
+    _ other: __owned some Sequence<Element>
+  ) -> Self {
+    if let other = other as? Self {
+      return symmetricDifference(other)
+    }
+    return symmetricDifference(SortedSet(other))
+  }
+
+  /// Removes the elements of the set that are also in the given sequence and
+  /// adds the members of the sequence that are not already in the set.
+  ///
+  /// - Parameter other: An arbitrary finite sequence of elements, possibly
+  ///   containing duplicates.
+  /// - Complexity: O(`self.count` + `n` * log(`n`)) where `n` is the length of `other`.
+  @inlinable
+  public mutating func formSymmetricDifference(
+    _ other: __owned some Sequence<Element>
+  ) {
+    self = symmetricDifference(other)
+  }
+
+  /// Returns a new set containing the elements of this set that do not occur
+  /// in the given sequence.
+  ///
+  /// - Parameter other: An arbitrary finite sequence of elements, possibly
+  ///   containing duplicates.
+  /// - Complexity: O(`self.count` + `n` * log(`n`)) where `n` is the length of `other`.
+  @inlinable
+  public __consuming func subtracting(
+    _ other: some Sequence<Element>
+  ) -> Self {
+    if let other = other as? Self {
+      return subtracting(other)
+    }
+    return subtracting(SortedSet(other))
+  }
+
+  /// Removes the elements of the given sequence from this set.
+  ///
+  /// - Parameter other: An arbitrary finite sequence of elements, possibly
+  ///   containing duplicates.
+  /// - Complexity: O(`self.count` + `n` * log(`n`)) where `n` is the length of `other`.
+  @inlinable
+  public mutating func subtract(_ other: some Sequence<Element>) {
+    self = subtracting(other)
+  }
+
+  // MARK: Comparing Sets with arbitrary Sequences
+
+  /// Returns a Boolean value that indicates whether the set is a subset of the
+  /// given sequence.
+  ///
+  /// - Parameter other: An arbitrary finite sequence of elements, possibly
+  ///   containing duplicates.
+  /// - Complexity: O(`self.count` + `n` * log(`n`)) where `n` is the length of `other`.
+  @inlinable
+  public func isSubset(of other: some Sequence<Element>) -> Bool {
+    if let other = other as? Self {
+      return isSubset(of: other)
+    }
+    return isSubset(of: SortedSet(other))
+  }
+
+  /// Returns a Boolean value that indicates whether this set is a strict
+  /// subset of the given sequence.
+  ///
+  /// - Parameter other: An arbitrary finite sequence of elements, possibly
+  ///   containing duplicates.
+  /// - Complexity: O(`self.count` + `n` * log(`n`)) where `n` is the length of `other`.
+  @inlinable
+  public func isStrictSubset(of other: some Sequence<Element>) -> Bool {
+    if let other = other as? Self {
+      return isStrictSubset(of: other)
+    }
+    return isStrictSubset(of: SortedSet(other))
+  }
+
+  /// Returns a Boolean value that indicates whether the set is a superset of
+  /// the given sequence.
+  ///
+  /// - Parameter other: An arbitrary finite sequence of elements, possibly
+  ///   containing duplicates.
+  /// - Complexity: O(`n` * log(`self.count`)), where `n` is the length of `other`.
+  @inlinable
+  public func isSuperset(of other: some Sequence<Element>) -> Bool {
+    if let other = other as? Self {
+      return isSuperset(of: other)
+    }
+    return other.allSatisfy { self.contains($0) }
+  }
+
+  /// Returns a Boolean value that indicates whether this set is a strict
+  /// superset of the given sequence.
+  ///
+  /// - Parameter other: An arbitrary finite sequence of elements, possibly
+  ///   containing duplicates.
+/// - Complexity: O(`self.count` + `n` * log(`n`)) where `n` is the length of `other`.
+  @inlinable
+  public func isStrictSuperset(of other: some Sequence<Element>) -> Bool {
+    if let other = other as? Self {
+      return isStrictSuperset(of: other)
+    }
+    return SortedSet(other).isStrictSubset(of: self)
+  }
+
+  /// Returns a Boolean value that indicates whether the set has no members in
+  /// common with the given sequence.
+  ///
+  /// - Parameter other: An arbitrary finite sequence of elements, possibly
+  ///   containing duplicates.
+  /// - Complexity: O(`n` * log(`self.count`)) where `n` is the length of `other`.
+  @inlinable
+  public func isDisjoint(with other: some Sequence<Element>) -> Bool {
+    guard !self.isEmpty else { return true }
+    if let other = other as? Self {
+      return isDisjoint(with: other)
+    }
+    return other.allSatisfy { !self.contains($0) }
+  }
+}
+
 #endif
