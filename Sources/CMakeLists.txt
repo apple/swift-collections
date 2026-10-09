@@ -10,7 +10,7 @@ SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
 #]]
 
 if(COLLECTIONS_SINGLE_MODULE)
-  if (COLLECTIONS_FOUNDATION_TOOLCHAIN_MODULE)
+  if(COLLECTIONS_FOUNDATION_TOOLCHAIN_MODULE)
     set(COLLECTIONS_MODULE_NAME _FoundationCollections)
     set(COLLECTIONS_MODULE_TYPE STATIC)
   else()
@@ -22,10 +22,10 @@ if(COLLECTIONS_SINGLE_MODULE)
 
   if(COLLECTIONS_FOUNDATION_TOOLCHAIN_MODULE)
     target_compile_options(${COLLECTIONS_MODULE_NAME} PRIVATE
-      "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -allowable-client -Xfrontend FoundationEssentials>")
+      "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -allowable-client -Xfrontend FoundationEssentials>"
+      "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -allowable-client -Xfrontend _FoundationContainersPreview>")
   endif()
 
-  target_compile_definitions(${COLLECTIONS_MODULE_NAME} PRIVATE COLLECTIONS_SINGLE_MODULE)
   set_target_properties(${COLLECTIONS_MODULE_NAME} PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
 
@@ -52,6 +52,7 @@ if(COLLECTIONS_SINGLE_MODULE)
   endif()
   set_property(GLOBAL APPEND PROPERTY SWIFT_COLLECTIONS_EXPORTS ${COLLECTIONS_MODULE_NAME})
 else()
+  set(COLLECTIONS_MODULE_NAME Collections)
   add_subdirectory(Collections)
 endif()
 

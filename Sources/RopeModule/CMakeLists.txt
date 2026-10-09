@@ -9,7 +9,7 @@ See https://swift.org/LICENSE.txt for license information
 SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
 #]]
 
-if(COLLECTIONS_FOUNDATION_TOOLCHAIN_MODULE)
+if(COLLECTIONS_SINGLE_MODULE)
   set(module_name ${COLLECTIONS_MODULE_NAME})
 else()
   set(module_name _RopeModule)
