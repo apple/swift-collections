@@ -12,16 +12,30 @@
 //===----------------------------------------------------------------------===//
 
 
-/// A container type implementing a double-ended priority queue.
-/// `Heap` is a container of `Comparable` elements that provides immediate
-/// access to its minimal and maximal members, and supports removing these items
-/// or inserting arbitrary new items in (amortized) logarithmic complexity.
+/// A collection that provides efficient access to its smallest and largest elements.
 ///
-///     var queue: Heap<Int> = [3, 4, 1, 2]
-///     queue.insert(0)
-///     print(queue.min)      // 0
-///     print(queue.popMax()) // 4
-///     print(queue.max)      // 3
+/// Use a `Heap` when you need to repeatedly retrieve the minimum or maximum
+/// element from a collection of items that grows or shrinks incrementally.
+/// For example, a server might use a heap to process incoming requests in
+/// priority order, or a pathfinding algorithm might use one to always explore
+/// the lowest-cost node next.
+///
+///     var heap: Heap<Int> = [3, 4, 1, 2]
+///     heap.insert(0)
+///     print(heap.min)       // Optional(0)
+///     print(heap.popMax())  // Optional(4)
+///     print(heap.max)       // Optional(3)
+///
+/// `Heap` provides optimized O(1) access to both the minimum and maximum
+/// elements, and O(log n) insertion and removal:
+///
+/// - ``insert(_:)``: Inserts a new element in O(log(`count`)) time.
+/// - ``min``: Retrieves (but does not remove) the minimum element in O(1) time.
+/// - ``max``: Retrieves (but does not remove) the maximum element in O(1) time.
+/// - ``popMin()``: Removes and returns the minimum element in O(log(`count`)) time.
+/// - ``popMax()``: Removes and returns the maximum element in O(log(`count`)) time.
+///
+/// ## Implementation Details
 ///
 /// `Heap` implements the min-max heap data structure, based on
 /// [Atkinson et al. 1986].
