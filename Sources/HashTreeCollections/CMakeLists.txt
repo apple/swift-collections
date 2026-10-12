@@ -13,8 +13,7 @@ if(COLLECTIONS_SINGLE_MODULE)
   set(module_name ${COLLECTIONS_MODULE_NAME})
 else()
   set(module_name HashTreeCollections)
-  add_library(HashTreeCollections
-    ${COLLECTIONS_HASHTREE_SOURCES})
+  add_library(HashTreeCollections)
   target_link_libraries(HashTreeCollections PRIVATE
     InternalCollectionsUtilities)
   set_target_properties(HashTreeCollections PROPERTIES

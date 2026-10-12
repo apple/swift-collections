@@ -13,8 +13,7 @@ if(COLLECTIONS_SINGLE_MODULE)
   set(module_name ${COLLECTIONS_MODULE_NAME})
 else()
   set(module_name OrderedCollections)
-  add_library(OrderedCollections
-    ${COLLECTIONS_ORDERED_SOURCES})
+  add_library(OrderedCollections)
   target_link_libraries(OrderedCollections PRIVATE
     InternalCollectionsUtilities)
   set_target_properties(OrderedCollections PROPERTIES

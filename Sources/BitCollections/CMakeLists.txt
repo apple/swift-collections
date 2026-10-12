@@ -13,8 +13,7 @@ if(COLLECTIONS_SINGLE_MODULE)
   set(module_name ${COLLECTIONS_MODULE_NAME})
 else()
   set(module_name BitCollections)
-  add_library(BitCollections
-    ${COLLECTIONS_BIT_SOURCES})
+  add_library(BitCollections)
   target_link_libraries(BitCollections PRIVATE
     InternalCollectionsUtilities)
   set_target_properties(BitCollections PROPERTIES

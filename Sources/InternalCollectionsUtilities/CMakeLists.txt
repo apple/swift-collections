@@ -13,8 +13,7 @@ if(COLLECTIONS_SINGLE_MODULE)
   set(module_name ${COLLECTIONS_MODULE_NAME})
 else()
   set(module_name InternalCollectionsUtilities)
-  add_library(InternalCollectionsUtilities
-    ${COLLECTIONS_UTILITIES_SOURCES})
+  add_library(InternalCollectionsUtilities)
   set_target_properties(InternalCollectionsUtilities PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
 

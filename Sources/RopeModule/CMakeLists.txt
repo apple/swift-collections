@@ -13,8 +13,7 @@ if(COLLECTIONS_SINGLE_MODULE)
   set(module_name ${COLLECTIONS_MODULE_NAME})
 else()
   set(module_name _RopeModule)
-  add_library(_RopeModule
-    ${COLLECTIONS_ROPE_SOURCES})
+  add_library(_RopeModule)
   target_link_libraries(_RopeModule PRIVATE
     InternalCollectionsUtilities)
   set_target_properties(_RopeModule PROPERTIES
