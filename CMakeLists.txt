@@ -42,6 +42,9 @@ option(COLLECTIONS_SINGLE_MODULE "Build as a single module" NO)
 option(COLLECTIONS_FOUNDATION_TOOLCHAIN_MODULE "Build a module for Foundation in the toolchain" NO)
 option(COLLECTIONS_INSTALL_ARCH_SUBDIR "Install libraries under an architecture subdirectory" NO)
 
+option(COLLECTIONS_ENABLE_CONTAINERS_PREVIEW "Enable the UnstableContainersPreview trait" YES)
+option(COLLECTIONS_ENABLE_HASHED_CONTAINERS "Enable the UnstableHashedContainers trait" YES)
+
 if(COLLECTIONS_FOUNDATION_TOOLCHAIN_MODULE)
   set(COLLECTIONS_SINGLE_MODULE YES)
   add_compile_definitions("$<$<COMPILE_LANGUAGE:Swift>:COLLECTIONS_FOUNDATION_TOOLCHAIN_MODULE>")
@@ -88,6 +91,12 @@ foreach(def ${availability_defs})
 endforeach()
 
 add_compile_options("$<$<COMPILE_LANGUAGE:Swift>:SHELL:-package-name swift-collections>")
+if(COLLECTIONS_ENABLE_CONTAINERS_PREVIEW)
+  add_compile_definitions("$<$<COMPILE_LANGUAGE:Swift>:UnstableContainersPreview>")
+endif()
+if(COLLECTIONS_ENABLE_HASHED_CONTAINERS)
+  add_compile_definitions("$<$<COMPILE_LANGUAGE:Swift>:UnstableHashedContainers>")
+endif()
 
 add_subdirectory(Sources)
 # if(BUILD_TESTING)
