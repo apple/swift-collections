@@ -578,9 +578,12 @@ where
     var c = items.count
     var i = items.startIndex
     let range = self.replaceSubrange(subrange, addingCount: c) { target in
-      let source = items.nextSpan(after: &i, maxCount: target.freeCapacity)
-      target._append(copying: source)
-      c -= source.count
+      while !target.isFull {
+        let source = items.nextSpan(after: &i, maxCount: target.freeCapacity)
+        if source.isEmpty { break }
+        target._append(copying: source)
+        c -= source.count
+      }
     }
     precondition(c == 0, "Invalid RangeReplaceableContainer")
     return range
