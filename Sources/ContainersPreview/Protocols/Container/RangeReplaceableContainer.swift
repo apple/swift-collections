@@ -578,10 +578,6 @@ where
     var c = items.count
     var i = items.startIndex
     let range = self.replaceSubrange(subrange, addingCount: c) { target in
-      // A source container may be split across several spans. Keep copying
-      // until this output span is full or the source is exhausted; a single
-      // `nextSpan` leaves the remaining spans uncopied and trips the
-      // precondition below.
       while !target.isFull {
         let source = items.nextSpan(after: &i, maxCount: target.freeCapacity)
         if source.isEmpty { break }
