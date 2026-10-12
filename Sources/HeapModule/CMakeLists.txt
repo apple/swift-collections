@@ -13,8 +13,7 @@ if(COLLECTIONS_SINGLE_MODULE)
   set(module_name ${COLLECTIONS_MODULE_NAME})
 else()
   set(module_name HeapModule)
-  add_library(HeapModule
-    ${COLLECTIONS_HEAP_SOURCES})
+  add_library(HeapModule)
   target_link_libraries(HeapModule PRIVATE
     InternalCollectionsUtilities)
   set_target_properties(HeapModule PROPERTIES

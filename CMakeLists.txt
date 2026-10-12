@@ -66,7 +66,7 @@ set(collections_swift_flags
   "-enable-experimental-feature BorrowingSequence"
 )
 foreach(flag ${collections_swift_flags})
- add_compile_options("$<$<COMPILE_LANGUAGE:Swift>:SHELL:${flag}>")
+  add_compile_options("$<$<COMPILE_LANGUAGE:Swift>:SHELL:${flag}>")
 endforeach()
 
 set(availability_defs
@@ -85,7 +85,7 @@ set(availability_defs
   "SwiftStdlib 6.5: macOS 9999, iOS 9999, watchOS 9999, tvOS 9999, visionOS 9999"
   )
 foreach(def ${availability_defs})
- add_compile_options("$<$<COMPILE_LANGUAGE:Swift>:SHELL:-enable-experimental-feature \"AvailabilityMacro=${def}\">")
+  add_compile_options("$<$<COMPILE_LANGUAGE:Swift>:SHELL:-enable-experimental-feature \"AvailabilityMacro=${def}\">")
 endforeach()
 
 add_compile_options("$<$<COMPILE_LANGUAGE:Swift>:SHELL:-package-name swift-collections>")

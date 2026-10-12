@@ -13,8 +13,7 @@ if(COLLECTIONS_SINGLE_MODULE)
   set(module_name ${COLLECTIONS_MODULE_NAME})
 else()
   set(module_name BasicContainers)
-  add_library(BasicContainers
-    ${COLLECTIONS_ARRAY_SOURCES})
+  add_library(BasicContainers)
   target_link_libraries(BasicContainers PRIVATE
     InternalCollectionsUtilities SpanPreview)
   set_target_properties(BasicContainers PROPERTIES

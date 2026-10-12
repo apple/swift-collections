@@ -13,8 +13,7 @@ if(COLLECTIONS_SINGLE_MODULE)
   set(module_name ${COLLECTIONS_MODULE_NAME})
 else()
   set(module_name DequeModule)
-  add_library(DequeModule
-    ${COLLECTIONS_DEQUE_SOURCES})
+  add_library(DequeModule)
   target_link_libraries(DequeModule PRIVATE
     InternalCollectionsUtilities
     SpanPreview)
