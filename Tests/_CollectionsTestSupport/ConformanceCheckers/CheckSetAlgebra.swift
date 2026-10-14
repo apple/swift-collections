@@ -284,7 +284,8 @@ private func _checkSetAlgebraBinaryLaws<S: SetAPIChecker & Sequence>(
   // The predicates against a plain Sequence. A duplicate must not count twice.
   for (other, label) in [
     (Array(ym), "Sequence"),
-    (Array(ym) + Array(ym), "Sequence with duplicates"),
+    (Array(repeatElement(ym, count: xm.count + 2).joined()),
+     "Sequence with duplicates"),
   ] {
     expectEqual(x.isSubset(of: other), xm.isSubset(of: ym),
                 "isSubset(\(label))", file: file, line: line)
@@ -389,8 +390,9 @@ private func _checkIsEqualSet<S: SetAPIExtras & Sequence>(
               file: file, line: line)
   expectEqual(x.isEqualSet(to: Array(ym)), expected, "isEqualSet(Sequence)",
               file: file, line: line)
-  expectEqual(x.isEqualSet(to: Array(ym) + Array(ym)), expected,
-              "isEqualSet(Sequence with duplicates)", file: file, line: line)
+  expectEqual(
+    x.isEqualSet(to: Array(repeatElement(ym, count: xm.count + 2).joined())),
+    expected, "isEqualSet(Sequence with duplicates)", file: file, line: line)
   // `Set` is a `_UniqueCollection`, which some types take a separate path for.
   expectEqual(x.isEqualSet(to: ym), expected, "isEqualSet(unique Sequence)",
               file: file, line: line)
