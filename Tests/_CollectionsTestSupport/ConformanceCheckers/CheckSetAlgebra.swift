@@ -247,6 +247,23 @@ private func _checkSetAlgebraBinaryLaws<S: SetAPIChecker & Sequence>(
   expectEqual(x.isDisjoint(with: y), xm.isDisjoint(with: ym), "isDisjoint",
               file: file, line: line)
 
+  // The predicates against a plain Sequence. A duplicate must not count twice.
+  for (other, label) in [
+    (Array(ym), "Sequence"),
+    (Array(ym) + Array(ym), "Sequence with duplicates"),
+  ] {
+    expectEqual(x.isSubset(of: other), xm.isSubset(of: ym),
+                "isSubset(\(label))", file: file, line: line)
+    expectEqual(x.isSuperset(of: other), xm.isSuperset(of: ym),
+                "isSuperset(\(label))", file: file, line: line)
+    expectEqual(x.isStrictSubset(of: other), xm.isStrictSubset(of: ym),
+                "isStrictSubset(\(label))", file: file, line: line)
+    expectEqual(x.isStrictSuperset(of: other), xm.isStrictSuperset(of: ym),
+                "isStrictSuperset(\(label))", file: file, line: line)
+    expectEqual(x.isDisjoint(with: other), xm.isDisjoint(with: ym),
+                "isDisjoint(\(label))", file: file, line: line)
+  }
+
   // And against each other. A type can implement each predicate plausibly and
   // still have them disagree.
   expectEqual(x.isSubset(of: y), y.isSuperset(of: x),
