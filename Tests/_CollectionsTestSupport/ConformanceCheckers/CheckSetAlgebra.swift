@@ -298,6 +298,22 @@ private func _checkSetAlgebraBinaryLaws<S: SetAPIChecker & Sequence>(
                 "isDisjoint(\(label))", file: file, line: line)
   }
 
+  // A single-pass sequence that underestimates its count.
+  expectEqual(x.isSubset(of: MinimalSequence(elements: ym)), xm.isSubset(of: ym),
+              "isSubset(MinimalSequence)", file: file, line: line)
+  expectEqual(x.isSuperset(of: MinimalSequence(elements: ym)),
+              xm.isSuperset(of: ym),
+              "isSuperset(MinimalSequence)", file: file, line: line)
+  expectEqual(x.isStrictSubset(of: MinimalSequence(elements: ym)),
+              xm.isStrictSubset(of: ym),
+              "isStrictSubset(MinimalSequence)", file: file, line: line)
+  expectEqual(x.isStrictSuperset(of: MinimalSequence(elements: ym)),
+              xm.isStrictSuperset(of: ym),
+              "isStrictSuperset(MinimalSequence)", file: file, line: line)
+  expectEqual(x.isDisjoint(with: MinimalSequence(elements: ym)),
+              xm.isDisjoint(with: ym),
+              "isDisjoint(MinimalSequence)", file: file, line: line)
+
   // And against each other. A type can implement each predicate plausibly and
   // still have them disagree.
   expectEqual(x.isSubset(of: y), y.isSuperset(of: x),
@@ -378,4 +394,6 @@ private func _checkIsEqualSet<S: SetAPIExtras & Sequence>(
   // `Set` is a `_UniqueCollection`, which some types take a separate path for.
   expectEqual(x.isEqualSet(to: ym), expected, "isEqualSet(unique Sequence)",
               file: file, line: line)
+  expectEqual(x.isEqualSet(to: MinimalSequence(elements: ym)), expected,
+              "isEqualSet(MinimalSequence)", file: file, line: line)
 }
