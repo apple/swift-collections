@@ -672,4 +672,14 @@ class SortedSetTests: CollectionTestCase {
   }
 }
 
+extension SortedSetTests {
+  func test_SetAlgebraConformance() {
+    let models: [Set<Int>] = [
+      [], [0], [1], [0, 1, 2, 3], [5, 17, 42], [3, 5, 17, 42, 99],
+      Set(0 ..< 12), Set(stride(from: 0, to: 40, by: 3)), Set(0 ..< 30),
+    ]
+    checkSetAlgebra(models.map { SortedSet($0) }, models: models)
+  }
+}
+
 #endif
