@@ -34,6 +34,39 @@ package func checkSetAlgebra<S: SetAPIChecker & Sequence>(
   models: [Set<S.Element>],
   file: StaticString = #filePath, line: UInt = #line
 ) where S.Element: Hashable {
+  _checkSetAlgebra(instances, models: models, file: file, line: line)
+}
+
+/// Same as `checkSetAlgebra(_:models:)` for `SetAPIChecker` types, but also
+/// tests `isEqualSet(to:)`.
+package func checkSetAlgebra<S: SetAPIExtras & Sequence>(
+  _ instances: [S],
+  models: [Set<S.Element>],
+  file: StaticString = #filePath, line: UInt = #line
+) where S.Element: Hashable {
+  guard _checkSetAlgebra(instances, models: models, file: file, line: line)
+  else { return }
+
+  let entry = TestContext.current.push("checkSetAlgebra", file: file, line: line)
+  defer { TestContext.current.pop(entry) }
+
+  for i in instances.indices {
+    for j in instances.indices {
+      _checkIsEqualSet(
+        instances[i], models[i], i,
+        instances[j], models[j], j,
+        file: file, line: line)
+    }
+  }
+}
+
+/// Returns `false` if the models are not a usable specification.
+@discardableResult
+private func _checkSetAlgebra<S: SetAPIChecker & Sequence>(
+  _ instances: [S],
+  models: [Set<S.Element>],
+  file: StaticString, line: UInt
+) -> Bool where S.Element: Hashable {
   let entry = TestContext.current.push("checkSetAlgebra", file: file, line: line)
   defer { TestContext.current.pop(entry) }
 
@@ -43,7 +76,7 @@ package func checkSetAlgebra<S: SetAPIChecker & Sequence>(
   guard _checkSetAlgebraModels(models, file: file, line: line) else {
     // The specification is inconsistent. Judging the type against it would
     // report defects in the wrong artefact, so stop here.
-    return
+    return false
   }
 
   for i in instances.indices {
@@ -58,6 +91,7 @@ package func checkSetAlgebra<S: SetAPIChecker & Sequence>(
         file: file, line: line)
     }
   }
+  return true
 }
 
 // MARK: - Validating the specification
@@ -247,6 +281,40 @@ private func _checkSetAlgebraBinaryLaws<S: SetAPIChecker & Sequence>(
   expectEqual(x.isDisjoint(with: y), xm.isDisjoint(with: ym), "isDisjoint",
               file: file, line: line)
 
+  // The predicates against a plain Sequence. A duplicate must not count twice.
+  for (other, label) in [
+    (Array(ym), "Sequence"),
+    (Array(repeatElement(ym, count: xm.count + 2).joined()),
+     "Sequence with duplicates"),
+  ] {
+    expectEqual(x.isSubset(of: other), xm.isSubset(of: ym),
+                "isSubset(\(label))", file: file, line: line)
+    expectEqual(x.isSuperset(of: other), xm.isSuperset(of: ym),
+                "isSuperset(\(label))", file: file, line: line)
+    expectEqual(x.isStrictSubset(of: other), xm.isStrictSubset(of: ym),
+                "isStrictSubset(\(label))", file: file, line: line)
+    expectEqual(x.isStrictSuperset(of: other), xm.isStrictSuperset(of: ym),
+                "isStrictSuperset(\(label))", file: file, line: line)
+    expectEqual(x.isDisjoint(with: other), xm.isDisjoint(with: ym),
+                "isDisjoint(\(label))", file: file, line: line)
+  }
+
+  // A single-pass sequence that underestimates its count.
+  expectEqual(x.isSubset(of: MinimalSequence(elements: ym)), xm.isSubset(of: ym),
+              "isSubset(MinimalSequence)", file: file, line: line)
+  expectEqual(x.isSuperset(of: MinimalSequence(elements: ym)),
+              xm.isSuperset(of: ym),
+              "isSuperset(MinimalSequence)", file: file, line: line)
+  expectEqual(x.isStrictSubset(of: MinimalSequence(elements: ym)),
+              xm.isStrictSubset(of: ym),
+              "isStrictSubset(MinimalSequence)", file: file, line: line)
+  expectEqual(x.isStrictSuperset(of: MinimalSequence(elements: ym)),
+              xm.isStrictSuperset(of: ym),
+              "isStrictSuperset(MinimalSequence)", file: file, line: line)
+  expectEqual(x.isDisjoint(with: MinimalSequence(elements: ym)),
+              xm.isDisjoint(with: ym),
+              "isDisjoint(MinimalSequence)", file: file, line: line)
+
   // And against each other. A type can implement each predicate plausibly and
   // still have them disagree.
   expectEqual(x.isSubset(of: y), y.isSuperset(of: x),
@@ -305,4 +373,29 @@ private func _checkSetAlgebraBinaryLaws<S: SetAPIChecker & Sequence>(
                   { $0.formSymmetricDifference(Array(ym)) },
                   xm.symmetricDifference(ym))
   }
+}
+
+// MARK: - isEqualSet
+
+private func _checkIsEqualSet<S: SetAPIExtras & Sequence>(
+  _ x: S, _ xm: Set<S.Element>, _ i: Int,
+  _ y: S, _ ym: Set<S.Element>, _ j: Int,
+  file: StaticString, line: UInt
+) where S.Element: Hashable {
+  let entry = TestContext.current.push("instances \(i), \(j)", file: file, line: line)
+  defer { TestContext.current.pop(entry) }
+
+  let expected = xm == ym
+  expectEqual(x.isEqualSet(to: y), expected, "isEqualSet",
+              file: file, line: line)
+  expectEqual(x.isEqualSet(to: Array(ym)), expected, "isEqualSet(Sequence)",
+              file: file, line: line)
+  expectEqual(
+    x.isEqualSet(to: Array(repeatElement(ym, count: xm.count + 2).joined())),
+    expected, "isEqualSet(Sequence with duplicates)", file: file, line: line)
+  // `Set` is a `_UniqueCollection`, which some types take a separate path for.
+  expectEqual(x.isEqualSet(to: ym), expected, "isEqualSet(unique Sequence)",
+              file: file, line: line)
+  expectEqual(x.isEqualSet(to: MinimalSequence(elements: ym)), expected,
+              "isEqualSet(MinimalSequence)", file: file, line: line)
 }
