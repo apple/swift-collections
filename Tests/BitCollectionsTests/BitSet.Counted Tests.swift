@@ -29,6 +29,17 @@ extension BitSet.Counted: SetAPIExtras {
 extension BitSet.Counted: SortedCollectionAPIChecker {}
 
 final class BitSetCountedTests: CollectionTestCase {
+  func test_collection_strides() {
+    withEvery("stride", in: [1, 2, 3, 5, 7, 8, 11, 13, 63, 79, 300]) { stride in
+      withEvery("count", in: [0, 1, 2, 5, 10, 20, 25]) { count in
+        let input = Swift.stride(from: 0, to: stride * count, by: stride)
+        let expected = Array(input)
+        let actual = BitSet.Counted(input)
+        checkBidirectionalCollection(actual, expectedContents: expected)
+      }
+    }
+  }
+
   func test_union() {
     let a: BitSet.Counted = [1, 2, 3, 4]
 
