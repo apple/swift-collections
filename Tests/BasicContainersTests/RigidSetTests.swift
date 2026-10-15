@@ -599,5 +599,38 @@ class RigidSetTests: CollectionTestCase {
       }
     }
   }
+  func test_hashable() {
+    let contents: [[Int]] = [[], [0], [1], [0, 1], [1, 0], [0, 1, 2], Array(0 ..< 50)]
+    withEvery("i", in: contents.indices) { i in
+      withEvery("j", in: contents.indices) { j in
+        var a = RigidSet<Int>(capacity: 100)
+        for item in contents[i] { a.insert(item) }
+        var b = RigidSet<Int>(capacity: contents[j].count)
+        for item in contents[j].reversed() { b.insert(item) }
+        // FIXME: Use checkHashable when possible
+        var goodHash = false
+        for seed in 0 ..< 10 {
+          var ha = Hasher()
+          ha.combine(seed)
+          a.hash(into: &ha)
+          let hashValueA = ha.finalize()
+
+          var hb = Hasher()
+          hb.combine(seed)
+          b.hash(into: &hb)
+          let hashValueB = hb.finalize()
+
+          if Set(contents[i]) == Set(contents[j]) {
+            expectEqual(hashValueA, hashValueB)
+            goodHash = true
+          } else if hashValueA != hashValueB {
+            goodHash = true
+          }
+        }
+        expectTrue(goodHash, "Hashing does not differentiate between inequal containers")
+      }
+    }
+  }
+
 }
 #endif

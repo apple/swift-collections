@@ -38,6 +38,7 @@ extension RigidSet where Element: ~Copyable {
     var it = self.makeBorrowingIterator()
     while true {
       let next = it.nextSpan()
+      if next.isEmpty { break }
       var i = 0
       while i < next.count {
         hash ^= unsafe next[unchecked: i]._rawHashValue(seed: seed)
