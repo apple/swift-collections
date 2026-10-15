@@ -680,6 +680,13 @@ extension SortedSetTests {
     ]
     checkSetAlgebra(models.map { SortedSet($0) }, models: models)
   }
+
+  func test_SetAlgebraMemberIdentity() {
+    checkSetAlgebraMemberIdentity(
+      SortedSet<LifetimeTracked<Int>>.self,
+      models: [[], [0], [0, 1, 2, 3], Set(stride(from: 0, to: 200, by: 2))],
+      members: { Array($0) })
+  }
 }
 
 #endif
