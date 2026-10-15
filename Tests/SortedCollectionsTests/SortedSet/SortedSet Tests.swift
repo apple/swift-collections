@@ -645,6 +645,31 @@ class SortedSetTests: CollectionTestCase {
       }
     }
   }
+
+  func test_insertAndUpdate_equalElement() {
+    // Elements that compare equal but are distinguishable, like the
+    // stdlib `Set` semantics this test mirrors.
+    struct Item: Comparable, Hashable {
+      var key: Int
+      var tag: String
+      static func == (lhs: Item, rhs: Item) -> Bool { lhs.key == rhs.key }
+      static func < (lhs: Item, rhs: Item) -> Bool { lhs.key < rhs.key }
+      func hash(into hasher: inout Hasher) { hasher.combine(key) }
+    }
+
+    var set: SortedSet = [Item(key: 1, tag: "a")]
+
+    // `insert` must keep the existing member, like `Set` does.
+    let insertResult = set.insert(Item(key: 1, tag: "b"))
+    expectFalse(insertResult.inserted)
+    expectEqual(insertResult.memberAfterInsert.tag, "a")
+    expectEqual(set.first?.tag, "a")
+
+    // `update(with:)` must replace the existing member, like `Set` does.
+    let oldMember = set.update(with: Item(key: 1, tag: "c"))
+    expectEqual(oldMember?.tag, "a")
+    expectEqual(set.first?.tag, "c")
+  }
 }
 
 #endif

@@ -44,7 +44,7 @@ extension SortedSet: SetAlgebra {
   public mutating func insert(
     _ newMember: Element
   ) -> (inserted: Bool, memberAfterInsert: Element) {
-    if let oldKey = self._root.updateAnyValue((), forKey: newMember, updatingKey: false)?.key {
+    if let oldKey = self._root.updateAnyValue((), forKey: newMember, updatingKey: true)?.key {
       return (inserted: false, memberAfterInsert: oldKey)
     } else {
       return (inserted: true, memberAfterInsert: newMember)
@@ -62,7 +62,7 @@ extension SortedSet: SetAlgebra {
   @inline(__always)
   @discardableResult
   public mutating func update(with newMember: Element) -> Element? {
-    return self._root.updateAnyValue((), forKey: newMember, updatingKey: true)?.key
+    return self._root.updateAnyValue((), forKey: newMember, updatingKey: false)?.key
   }
   
   /// Removes the given element from the set.
