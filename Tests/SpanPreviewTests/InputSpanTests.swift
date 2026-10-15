@@ -24,5 +24,39 @@ final class InputSpanTests: CollectionTestCase {
   func test_dummy() {
 
   }
+
+  func withInputSpan(
+    capacity: Int,
+    count: Int,
+    tracker: LifetimeTracker,
+    _ body: (inout InputSpan<LifetimeTracked<Int>>) -> Void
+  ) {
+    let buffer = UnsafeMutableBufferPointer<LifetimeTracked<Int>>
+      .allocate(capacity: capacity)
+    for i in 0 ..< count {
+      unsafe buffer.initializeElement(
+        at: capacity - count + i, to: tracker.instance(for: i))
+    }
+    var span = unsafe InputSpan(buffer: buffer, initializedCount: count)
+    body(&span)
+    _ = consume span
+    unsafe buffer.deallocate()
+  }
+
+  func test_removeAll() {
+    for capacity in [0, 1, 5, 10] {
+      for count in 0 ... capacity {
+        withLifetimeTracking { tracker in
+          withInputSpan(
+            capacity: capacity, count: count, tracker: tracker
+          ) { span in
+            span.removeAll()
+            expectTrue(span.isEmpty)
+            expectEqual(tracker.instances, 0)
+          }
+        }
+      }
+    }
+  }
 }
 #endif

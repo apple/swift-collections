@@ -432,8 +432,10 @@ extension InputSpan where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_lifetime(self: copy self)
   public mutating func removeAll() {
-    _ = unsafe _start().withMemoryRebound(to: Element.self, capacity: _count) {
-      unsafe $0.deinitialize(count: _count)
+    guard count > 0 else { return }
+    let start = unsafe _unsafeRawAddressOfSlot(uncheckedOffset: 0)
+    unsafe start.withMemoryRebound(to: Element.self, capacity: _count) {
+      _ = unsafe $0.deinitialize(count: _count)
     }
     _count = 0
   }
