@@ -781,6 +781,31 @@ class UniqueArrayTests: CollectionTestCase {
     }
   }
 
+  func test_append_moving_RigidArray() {
+    withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
+      withEvery("additions", in: [0, 1, 10, 100]) { additions in
+        withLifetimeTracking { tracker in
+          var a = tracker.uniqueArray(layout: layout)
+          var b = RigidArray(capacity: additions) { span in
+            for i in 0 ..< additions {
+              span.append(tracker.instance(for: layout.count + i))
+            }
+          }
+          let range = a.append(moving: &b)
+          let c = layout.count + additions
+          expectEqual(range, layout.count ..< c)
+          expectEqual(b.count, 0)
+          expectUniqueArrayContents(
+            a,
+            equivalentTo: 0 ..< c,
+            by: { $0.payload == $1 },
+            printer: { "\($0.payload)" })
+          expectEqual(tracker.instances, c)
+        }
+      }
+    }
+  }
+
 #if UnstableContainersPreview
 #if false // FIXME: Update
   func test_append_copying_Container() {
