@@ -1314,7 +1314,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
 @available(SwiftStdlib 5.0, *)
 extension _UnsafeDequeHandle where Element: ~Copyable {
   @_alwaysEmitIntoClient
-  internal mutating func uncheckedInsert<E: Error>(
+  package mutating func uncheckedInsert<E: Error>(
     addingCount newItemCount: Int,
     at offset: Int,
     initializingWith body: (inout OutputSpan<Element>) throws(E) -> Void

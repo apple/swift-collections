@@ -129,8 +129,9 @@ extension UniqueDeque where Element: ~Copyable {
     while !done {
       let c = Swift.max(producer.underestimatedCount, 1)
       _ensureFreeCapacity(c)
-      _ = unsafe try _storage._handle.uncheckedPrepend(
-        addingCount: freeCapacity
+      _ = unsafe try _storage._handle.uncheckedInsert(
+        addingCount: freeCapacity,
+        at: added
       ) { target throws(E) in
         let origCount = target.count
         defer {
