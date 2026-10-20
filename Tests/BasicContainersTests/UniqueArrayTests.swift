@@ -929,6 +929,26 @@ class UniqueArrayTests: CollectionTestCase {
 #endif
 #endif
 
+  func test_replace_addingCount_partial_returnedRange() {
+    let fillTwo: (inout OutputSpan<Int>) -> Void = { span in
+      span.append(100)
+      span.append(101)
+    }
+
+    var a = UniqueArray<Int>()
+    let r1 = a.replaceSubrange(0 ..< 0, addingCount: 5, initializingWith: fillTwo)
+    expectEqual(r1, 0 ..< 2)
+    expectEqual(a.count, 2)
+
+    var b = RigidArray<Int>(capacity: 10)
+    b.append(0)
+    b.append(1)
+    b.append(2)
+    expectEqual(b.replaceSubrange(1 ..< 2, addingCount: 5, initializingWith: fillTwo), 1 ..< 3)
+    expectEqual(b.count, 4)
+    expectEqual(b.insert(addingCount: 5, at: 0, initializingWith: fillTwo), 0 ..< 2)
+  }
+
   func test_replace_copying_Collection() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 5, 10]) { layout in
       withEveryRange("range", in: 0 ..< layout.count) { range in

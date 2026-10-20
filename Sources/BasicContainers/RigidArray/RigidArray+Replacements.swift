@@ -96,8 +96,7 @@ extension RigidArray where Element: ~Copyable {
       span = OutputSpan()
     }
     try initializer(&span)
-    return unsafe Range(uncheckedBounds: (
-      subrange.lowerBound, subrange.lowerBound + newItemCount))
+    return subrange.lowerBound ..< (subrange.lowerBound + span.count)
   }
 }
 
@@ -201,9 +200,8 @@ extension RigidArray where Element: ~Copyable {
         span = OutputSpan()
       }
       try initializer(&span)
+      return subrange.lowerBound ..< (subrange.lowerBound + span.count)
     }
-    return unsafe Range(uncheckedBounds: (
-      subrange.lowerBound, subrange.lowerBound + newItemCount))
   }
 #endif
 }

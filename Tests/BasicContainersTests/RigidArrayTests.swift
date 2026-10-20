@@ -1282,13 +1282,14 @@ class RigidArrayTests: CollectionTestCase {
             withLifetimeTracking { tracker in
               var a = tracker.rigidArray(layout: layout)
 
-              a.replaceSubrange(subrange, addingCount: c) { target in
+              let r = a.replaceSubrange(subrange, addingCount: c) { target in
                 expectTrue(target.isEmpty)
                 expectEqual(target.freeCapacity, c)
                 for i in 0 ..< n {
                   target.append(tracker.instance(for: layout.count + i))
                 }
               }
+              expectEqual(r, subrange.lowerBound ..< subrange.lowerBound + n)
               expectEqual(a.count, layout.count - subrange.count + n)
 
               var expected = Array(0 ..< layout.count)
@@ -1356,7 +1357,7 @@ class RigidArrayTests: CollectionTestCase {
             withLifetimeTracking { tracker in
               var a = tracker.rigidArray(layout: layout)
 
-              a.replaceSubrange(
+              let r = a.replaceSubrange(
                 subrange,
                 consumingWith: { span in
                   for i in 0 ..< subrange.count {
@@ -1373,6 +1374,7 @@ class RigidArrayTests: CollectionTestCase {
                 }
               }
 
+              expectEqual(r, subrange.lowerBound ..< subrange.lowerBound + n)
               expectEqual(a.count, layout.count - subrange.count + n)
               expectEqual(tracker.instances, layout.count - subrange.count + n)
 
