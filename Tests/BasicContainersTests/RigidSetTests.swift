@@ -110,6 +110,45 @@ class RigidSetTests: CollectionTestCase {
     }
   }
 
+  func test_init_capacity_initializingWith() {
+    // Regression test for https://github.com/apple/swift-collections/issues/774:
+    // without the `UnstableContainersPreview` trait, `insert(addingCount:initializingWith:)`
+    // never terminated because the batch loop didn't update its `remainder` bookkeeping.
+    var calls = 0
+    let fillTwo: (inout OutputSpan<Int>) -> Void = { span in
+      calls += 1
+      span.append(1)
+      span.append(2)
+    }
+
+    // Exact fill: the batch fills its whole span.
+    let a = RigidSet<Int>(capacity: 2, initializingWith: fillTwo)
+    expectEqual(a.count, 2)
+    expectEqual(calls, 1)
+    expectTrue(a.contains(1))
+    expectTrue(a.contains(2))
+    expectConsistentSet(a)
+
+    // Short fill: the initializer stops before the span is full.
+    calls = 0
+    let b = RigidSet<Int>(capacity: 4, initializingWith: fillTwo)
+    expectEqual(b.count, 2)
+    expectEqual(calls, 1)
+    expectConsistentSet(b)
+
+    calls = 0
+    var c = RigidSet<Int>(capacity: 8)
+    c.insert(addingCount: 5, initializingWith: fillTwo)
+    expectEqual(c.count, 2)
+    expectEqual(calls, 1)
+    expectConsistentSet(c)
+
+    calls = 0
+    let d = UniqueSet<Int>(minimumCapacity: 4, initializingWith: fillTwo)
+    expectEqual(d.count, 2)
+    expectEqual(calls, 1)
+  }
+
   func test_insert_one_large() {
     withLifetimeTracking { tracker in
       var s = RigidSet<LifetimeTracked<Int>>(capacity: 20)
