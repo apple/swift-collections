@@ -1048,6 +1048,56 @@ class TestBigString: CollectionTestCase {
     expectEqual(s1.base, "Foo👩‍👧bar")
   }
 
+  func test_removeSubrange_joins_characters() {
+    // Removing text can join the characters on either side of the gap.
+    let long = String(repeating: "x", count: 2000)
+    let cases: [(string: String, range: Range<Int>)] = [
+      ("e\n\u{301}", 1 ..< 2), // e, LF, COMBINING ACUTE ACCENT
+      ("a\n\u{301}b", 1 ..< 2),
+      ("🇺x🇸", 1 ..< 2), // Regional indicators "U", "S"
+      ("\u{1100}x\u{1161}", 1 ..< 2), // Hangul L, V jamo
+      ("\rx\n", 1 ..< 2),
+      ("e\n\(long)\n\u{301}", 1 ..< 2003),
+    ]
+    withEvery("i", in: cases.indices) { i in
+      let (string, range) = cases[i]
+
+      var flat = string
+      let f1 = flat.index(flat.startIndex, offsetBy: range.lowerBound)
+      let f2 = flat.index(flat.startIndex, offsetBy: range.upperBound)
+      flat.removeSubrange(f1 ..< f2)
+
+      var big = BigString(string)
+      let b1 = big.index(big.startIndex, offsetBy: range.lowerBound)
+      let b2 = big.index(big.startIndex, offsetBy: range.upperBound)
+      big.removeSubrange(b1 ..< b2)
+      big._invariantCheck()
+
+      expectEqual(String(big), flat)
+      expectEqual(big.count, flat.count)
+      checkCharacterIndices(flat, big)
+      checkScalarIndices(flat, big)
+
+      var scalars = BigString(string)
+      let s1 = scalars.index(scalars.startIndex, offsetBy: range.lowerBound)
+      let s2 = scalars.index(scalars.startIndex, offsetBy: range.upperBound)
+      scalars.unicodeScalars.removeSubrange(s1 ..< s2)
+      scalars._invariantCheck()
+      expectEqual(scalars.count, flat.count)
+      checkCharacterIndices(flat, scalars)
+    }
+  }
+
+  func test_remove_at_joins_characters() {
+    var flat = "e\n\u{301}"
+    var big = BigString(flat)
+    expectEqual(flat.remove(at: flat.index(after: flat.startIndex)), "\n")
+    expectEqual(big.remove(at: big.index(after: big.startIndex)), "\n")
+    big._invariantCheck()
+    expectEqual(big.count, 1)
+    checkCharacterIndices(flat, big)
+  }
+
   func test_ExpressibleByStringLiteral_and_CustomStringConvertible() {
     let a: BigString = "foobar"
     expectEqual(a.description, "foobar")

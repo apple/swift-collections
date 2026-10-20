@@ -16,9 +16,10 @@ extension BigString {
   mutating func _removeSubrange(_ bounds: Range<Index>) {
     precondition(bounds.upperBound <= endIndex, "Index out of bounds")
     if bounds.isEmpty { return }
-    let lower = bounds.lowerBound.utf8Offset
-    let upper = bounds.upperBound.utf8Offset
-    _rope.removeSubrange(lower ..< upper, in: _UTF8Metric())
+    // Removing text can join the characters on either side of the gap, so
+    // the grapheme breaks in the suffix need to be resynchronized.
+    var builder = _split(removing: bounds)
+    self = builder.finalize()
   }
 }
 
