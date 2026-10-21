@@ -160,8 +160,9 @@ extension UniqueArray where Element: ~Copyable {
     _ensureFreeCapacity(items.count)
     return items.edit { source in
       unsafe source.withUnsafeMutableBufferPointer { buffer, count in
+        let extracted = unsafe buffer._extracting(first: count)
         count = 0
-        return unsafe _storage.append(moving: buffer._extracting(first: count))
+        return unsafe _storage.append(moving: extracted)
       }
     }
   }
