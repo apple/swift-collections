@@ -230,6 +230,34 @@ final class UniqueDequeTests: CollectionTestCase {
     }
   }
 
+#if compiler(>=6.4) && UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
+  func test_prepend_Producer_preserves_order() {
+    // Regression test for https://github.com/apple/swift-collections/issues/763:
+    // prepend(from:) was inserting each batch at index 0, reversing batch order.
+    withEvery("existingCount", in: [0, 1, 3]) { existingCount in
+      withEvery("newCount", in: [0, 1, 7, 8, 9, 20]) { newCount in
+        withLifetimeTracking { tracker in
+          var deque = UniqueDeque<LifetimeTracked<Int>>()
+          let existing = tracker.instances(for: 1000 ..< 1000 + existingCount)
+          for item in existing { deque.append(item) }
+
+          var items = tracker.instances(for: 0 ..< newCount)
+          var producer = CustomProducer<LifetimeTracked<Int>, Never> { _ in
+            guard !items.isEmpty else { return nil }
+            return items.removeFirst()
+          }
+          deque.prepend(from: producer)
+
+          let expected = tracker.instances(for: 0 ..< newCount)
+            + tracker.instances(for: 1000 ..< 1000 + existingCount)
+          expectUniqueDequeContents(deque, equalTo: expected)
+        }
+      }
+    }
+  }
+#endif
+
   func test_growth() {
     let expectedCapacities = [
       0, 1, 2, 3, 5, 8, 12, 18, 27, 41, 62, 93, 140, 210, 315

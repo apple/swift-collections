@@ -124,13 +124,17 @@ extension UniqueDeque where Element: ~Copyable {
   ) throws(E) -> Range<Int>
   where P.Element: ~Copyable
   {
+    // FIXME: This is slower than it should be because it is moving elements 
+    // unnecessarily. Forward to append then rotate instead; additionally, 
+    // add a CountedProducer overload that avoids having to move items at all.
     var done = false
     var added = 0
     while !done {
       let c = Swift.max(producer.underestimatedCount, 1)
       _ensureFreeCapacity(c)
-      _ = unsafe try _storage._handle.uncheckedPrepend(
-        addingCount: freeCapacity
+      _ = unsafe try _storage._handle.uncheckedInsert(
+        addingCount: freeCapacity,
+        at: added
       ) { target throws(E) in
         let origCount = target.count
         defer {
