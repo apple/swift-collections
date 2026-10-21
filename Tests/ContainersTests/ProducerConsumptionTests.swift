@@ -289,5 +289,20 @@ final class ProducerConsumptionTests: CollectionTestCase {
       }
     }
   }
+
+  func test_throwingConsumption_CustomDrain() {
+    withEvery("count", in: [0, 1, 7, 8, 9, 16, 17, 30]) { count in
+      withEvery("chunkSize", in: [1, 3, 8]) { chunkSize in
+        checkThrowingConsumption(
+          expectedContents: Array(0 ..< count)
+        ) { tracker, body in
+          body(CustomDrain(
+            count: count,
+            chunkSize: chunkSize,
+            generatingWith: tracker.instance(for:)))
+        }
+      }
+    }
+  }
 }
 #endif
