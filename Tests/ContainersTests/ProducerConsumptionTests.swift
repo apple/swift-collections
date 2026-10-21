@@ -174,5 +174,32 @@ final class ProducerConsumptionTests: CollectionTestCase {
       }
     }
   }
+
+  func test_throwingConsumption_ConsumingFilterProducer() {
+    withEvery("count", in: [0, 1, 7, 8, 9, 16, 17, 30]) { count in
+      let expected = (0 ..< count).filter { $0 % 16 < 8 }
+      checkThrowingConsumption(
+        expectedContents: expected, error: TestFailure.closure
+      ) { tracker, body in
+        body(CustomProducer<LifetimeTracked<Int>, TestFailure> {
+          offset throws(TestFailure) in
+          offset < count ? tracker.instance(for: offset) : nil
+        }
+        .filter { $0.payload % 16 < 8 })
+      }
+      checkThrowingConsumption(
+        expectedContents: expected,
+        throwsAtEnd: true,
+        error: TestFailure.closure
+      ) { tracker, body in
+        body(CustomProducer<LifetimeTracked<Int>, TestFailure> {
+          offset throws(TestFailure) in
+          guard offset < count else { throw .producer }
+          return tracker.instance(for: offset)
+        }
+        .filter { $0.payload % 16 < 8 })
+      }
+    }
+  }
 }
 #endif
