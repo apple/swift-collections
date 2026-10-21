@@ -124,6 +124,9 @@ extension UniqueDeque where Element: ~Copyable {
   ) throws(E) -> Range<Int>
   where P.Element: ~Copyable
   {
+    // FIXME: This is slower than it should be because it is moving elements 
+    // unnecessarily. Forward to append then rotate instead; additionally, 
+    // add a CountedProducer overload that avoids having to move items at all.
     var done = false
     var added = 0
     while !done {
