@@ -504,6 +504,31 @@ final class SortedDictionaryTests: CollectionTestCase {
     ]
     checkHashable(equivalenceClasses: classes)
   }
+
+  func test_subSequence_bidirectionalCollection() {
+    withEvery("count", in: [0, 1, 5, 6, 17, 18, 29, 30, 53, 54, 149, 150]) { count in
+      withEvery("isBulk", in: [false, true]) { isBulk in
+        withLifetimeTracking { tracker in
+          let (inserted, kvs) = tracker.sortedDictionary(keys: 0 ..< count)
+          let dictionary = isBulk
+            ? SortedDictionary(sortedKeysWithValues: kvs)
+            : inserted
+          let indices = Array(dictionary.indices) + [dictionary.endIndex]
+          let lengths = Set([0, 1, 8].map { min($0, count) }).sorted()
+          withEvery("length", in: lengths) { length in
+            let starts = Set([0, (count - length) / 2, count - length]).sorted()
+            withEvery("start", in: starts) { start in
+              let end = start + length
+              checkBidirectionalCollection(
+                dictionary[indices[start] ..< indices[end]],
+                expectedContents: Array(kvs[start ..< end]),
+                by: { $0.key == $1.key && $0.value == $1.value })
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 #endif
