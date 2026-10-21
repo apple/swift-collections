@@ -201,5 +201,35 @@ final class ProducerConsumptionTests: CollectionTestCase {
       }
     }
   }
+
+  func test_throwingConsumption_BorrowingMapProducer() {
+    withEvery("count", in: [0, 1, 7, 8, 9, 16, 17, 30]) { count in
+      withEvery("chunkSize", in: [1, 3, 8]) { chunkSize in
+        checkThrowingConsumption(
+          expectedContents: Array(0 ..< count), error: TestFailure.closure
+        ) { tracker, body in
+          body(CustomBorrowingIterator<LifetimeTracked<Int>, TestFailure>(
+            chunkSize: chunkSize
+          ) { offset throws(TestFailure) in
+            offset < count ? tracker.instance(for: offset) : nil
+          }
+          .map { tracker.instance(for: $0.payload) })
+        }
+        checkThrowingConsumption(
+          expectedContents: Array(0 ..< count),
+          throwsAtEnd: true,
+          error: TestFailure.closure
+        ) { tracker, body in
+          body(CustomBorrowingIterator<LifetimeTracked<Int>, TestFailure>(
+            chunkSize: chunkSize
+          ) { offset throws(TestFailure) in
+            guard offset < count else { throw .producer }
+            return tracker.instance(for: offset)
+          }
+          .map { tracker.instance(for: $0.payload) })
+        }
+      }
+    }
+  }
 }
 #endif
