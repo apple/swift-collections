@@ -22,6 +22,7 @@ import ContainersPreview
 #if compiler(>=6.4) && UnstableContainersPreview
 private enum TestFailure: Error {
   case closure
+  case producer
 }
 
 private struct Token: ~Copyable {
@@ -75,6 +76,30 @@ final class ProducerConsumptionTests: CollectionTestCase {
         count += 1
       }
       expectEqual(unsafe Token.destroyed.sorted(), unsafe Token.created)
+    }
+  }
+
+  func test_throwingConsumption_CustomProducer() {
+    withEvery("count", in: [0, 1, 7, 8, 9, 16, 17, 30]) { count in
+      checkThrowingConsumption(
+        expectedContents: Array(0 ..< count), error: TestFailure.closure
+      ) { tracker, body in
+        body(CustomProducer<LifetimeTracked<Int>, TestFailure> {
+          offset throws(TestFailure) in
+          offset < count ? tracker.instance(for: offset) : nil
+        })
+      }
+      checkThrowingConsumption(
+        expectedContents: Array(0 ..< count),
+        throwsAtEnd: true,
+        error: TestFailure.closure
+      ) { tracker, body in
+        body(CustomProducer<LifetimeTracked<Int>, TestFailure> {
+          offset throws(TestFailure) in
+          guard offset < count else { throw .producer }
+          return tracker.instance(for: offset)
+        })
+      }
     }
   }
 }
