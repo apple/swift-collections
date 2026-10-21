@@ -42,9 +42,12 @@ extension OutputSpan where Element: ~Copyable {
       var span = unsafe InputSpan(
         buffer: buffer._extracting(first: count),
         initializedCount: count)
+      // Hand ownership to the span before the throwing call: if the consumer
+      // throws, the span's deinit destroys the elements and the zeroed count
+      // prevents a second destroy from the outer OutputSpan cleanup.
+      count = 0
       try consumer(&span)
       _ = consume span
-      count = 0
     }
   }
 }
