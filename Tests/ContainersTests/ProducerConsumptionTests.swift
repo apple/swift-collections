@@ -265,5 +265,29 @@ final class ProducerConsumptionTests: CollectionTestCase {
       }
     }
   }
+
+  func test_throwingConsumption_SubrangeConsumer() {
+    withEvery("count", in: [0, 1, 7, 8, 9, 16, 17, 30]) { count in
+      checkThrowingConsumption(
+        expectedContents: Array(0 ..< count)
+      ) { tracker, body in
+        var items = RigidArray(
+          capacity: count, copying: tracker.instances(for: 0 ..< count))
+        body(items.consumeAll())
+      }
+      checkThrowingConsumption(
+        expectedContents: Array(0 ..< count)
+      ) { tracker, body in
+        var items = RigidDeque<LifetimeTracked<Int>>(capacity: count)
+        for i in (0 ..< count / 2).reversed() {
+          items.prepend(tracker.instance(for: i))
+        }
+        for i in count / 2 ..< count {
+          items.append(tracker.instance(for: i))
+        }
+        body(items.consumeAll())
+      }
+    }
+  }
 }
 #endif
