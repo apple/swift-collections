@@ -129,5 +129,50 @@ final class ProducerConsumptionTests: CollectionTestCase {
       }
     }
   }
+
+  func test_throwingConsumption_ConsumingMapProducer() {
+    withEvery("count", in: [0, 1, 7, 8, 9, 16, 17, 30]) { count in
+      let expected = (0 ..< count).map { 2 * $0 }
+      checkThrowingConsumption(
+        expectedContents: expected, error: TestFailure.closure
+      ) { tracker, body in
+        body(CustomProducer<LifetimeTracked<Int>, TestFailure> {
+          offset throws(TestFailure) in
+          offset < count ? tracker.instance(for: offset) : nil
+        }
+        .map { item throws(TestFailure) in
+          tracker.instance(for: 2 * item.payload)
+        })
+      }
+      checkThrowingConsumption(
+        expectedContents: expected,
+        throwsAtEnd: true,
+        error: TestFailure.closure
+      ) { tracker, body in
+        body(CustomProducer<LifetimeTracked<Int>, TestFailure> {
+          offset throws(TestFailure) in
+          guard offset < count else { throw .producer }
+          return tracker.instance(for: offset)
+        }
+        .map { item throws(TestFailure) in
+          tracker.instance(for: 2 * item.payload)
+        })
+      }
+      checkThrowingConsumption(
+        expectedContents: expected,
+        throwsAtEnd: true,
+        error: TestFailure.closure
+      ) { tracker, body in
+        body(CustomProducer<LifetimeTracked<Int>, TestFailure> {
+          offset throws(TestFailure) in
+          offset <= count ? tracker.instance(for: offset) : nil
+        }
+        .map { item throws(TestFailure) in
+          guard item.payload < count else { throw .producer }
+          return tracker.instance(for: 2 * item.payload)
+        })
+      }
+    }
+  }
 }
 #endif
