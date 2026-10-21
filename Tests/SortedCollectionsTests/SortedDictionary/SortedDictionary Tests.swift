@@ -107,6 +107,45 @@ final class SortedDictionaryTests: CollectionTestCase {
     }
   }
 
+  func test_formIndexOffsetBy() {
+    withEvery("count", in: [0, 1, 5, 6, 17, 18, 29, 30, 53, 54]) { count in
+      withEvery("isBulk", in: [false, true]) { isBulk in
+        withLifetimeTracking { tracker in
+          let (inserted, kvs) = tracker.sortedDictionary(keys: 0 ..< count)
+          let dictionary = isBulk
+            ? SortedDictionary(sortedKeysWithValues: kvs)
+            : inserted
+          let keys = dictionary.keys
+          let values = dictionary.values
+          let indices = Array(dictionary.indices) + [dictionary.endIndex]
+          withEvery("offset", in: 0 ... count) { offset in
+            withEvery("distance", in: -offset ... count - offset) { distance in
+              let start = indices[offset]
+              var index = start
+              dictionary.formIndex(&index, offsetBy: distance)
+              var keyIndex = start
+              keys.formIndex(&keyIndex, offsetBy: distance)
+              var valueIndex = start
+              values.formIndex(&valueIndex, offsetBy: distance)
+              if offset + distance < count {
+                let (key, value) = kvs[offset + distance]
+                expectEqual(dictionary[index].key, key)
+                expectEqual(dictionary[index].value, value)
+                expectEqual(keys[keyIndex], key)
+                expectEqual(values[valueIndex], value)
+              }
+              let expected = kvs[(offset + distance)...]
+                .map { (key: $0, value: $1) }
+              expectEqualElements(dictionary[index...], expected)
+              expectEqualElements(dictionary[keyIndex...], expected)
+              expectEqualElements(dictionary[valueIndex...], expected)
+            }
+          }
+        }
+      }
+    }
+  }
+
   func test_bidirectionalCollection() {
     withEvery("count", in: [1, 2, 4, 8, 16, 32, 64]) { count in
       withLifetimeTracking { tracker in
