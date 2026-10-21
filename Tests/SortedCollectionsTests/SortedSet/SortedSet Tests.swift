@@ -322,6 +322,25 @@ class SortedSetTests: CollectionTestCase {
     checkHashable(equivalenceClasses: classes)
   }
 
+  func test_subSequence_BidirectionalCollection() {
+    withEvery("count", in: [0, 1, 5, 6, 17, 18, 29, 30, 53, 54, 149, 150]) { count in
+      withEvery("isBulk", in: [false, true]) { isBulk in
+        let set = isBulk
+          ? SortedSet(sortedElements: 0 ..< count)
+          : SortedSet(0 ..< count)
+        let lengths = Set([0, 1, 8].map { min($0, count) }).sorted()
+        withEvery("length", in: lengths) { length in
+          let starts = Set([0, (count - length) / 2, count - length]).sorted()
+          withEvery("start", in: starts) { start in
+            let end = start + length
+            checkBidirectionalCollection(
+              set[start ..< end], expectedContents: start ..< end)
+          }
+        }
+      }
+    }
+  }
+
   func test_Encodable() throws {
     let s1: SortedSet<Int> = []
     let v1: MinimalEncoder.Value = .array([])
