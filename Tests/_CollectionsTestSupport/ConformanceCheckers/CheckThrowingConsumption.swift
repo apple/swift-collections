@@ -26,6 +26,8 @@ private enum ConsumingOperation: String, CaseIterable {
   case mapNext = "`map(_:)` with `next()`"
 }
 
+private struct ClosureError: Error, Equatable {}
+
 private final class PinningTracker: LifetimeTracker {
   var pinned: [LifetimeTracked<Int>] = []
 
@@ -323,6 +325,57 @@ package func checkThrowingConsumption<P: Producer & ~Copyable & ~Escapable>(
         producer.map { item throws(P.Failure) in
           try closure(item)
           return item
+        })
+    }
+  }
+}
+
+/// Test that the `Drain` variants of `reduce(_:_:)`, `reduce(into:_:)`, and
+/// `map(_:)` followed by calls to `generate(into:)` or to `next()` until the
+/// end obey the law that the `Producer` variant of `checkThrowingConsumption`
+/// checks, except for the clause about full targets.
+///
+/// `withDrain` must pass a new drain over `expectedContents` to its second
+/// argument, creating its items with the `instance(for:)` or
+/// `instances(for:)` method of the given tracker.
+@available(SwiftStdlib 6.4, *)
+package func checkThrowingConsumption<D: Drain & ~Copyable & ~Escapable>(
+  expectedContents: [Int],
+  file: StaticString = #filePath,
+  line: UInt = #line,
+  withDrain: (LifetimeTracker, (consuming D) -> Void) -> Void
+) where D.Element == LifetimeTracked<Int> {
+  checkConsumption(
+    expectedContents: expectedContents,
+    throwsAtEnd: false,
+    error: ClosureError(),
+    file: file,
+    line: line,
+    withProducer: withDrain
+  ) { operation, drain, closure throws(ClosureError) in
+    switch operation {
+    case .reduce:
+      return try drain.reduce([]) { result, item throws(ClosureError) in
+        try closure(item)
+        return result + [item.payload]
+      }
+    case .reduceInto:
+      return try drain.reduce(into: []) { result, item throws(ClosureError) in
+        try closure(item)
+        result.append(item.payload)
+      }
+    case .mapGenerate:
+      return try generateAll(
+        drain.map { item throws(ClosureError) in
+          try closure(item)
+          return copy item
+        },
+        capacity: expectedContents.count + 1)
+    case .mapNext:
+      return try nextAll(
+        drain.map { item throws(ClosureError) in
+          try closure(item)
+          return copy item
         })
     }
   }
