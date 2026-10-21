@@ -102,5 +102,32 @@ final class ProducerConsumptionTests: CollectionTestCase {
       }
     }
   }
+
+  func test_throwingConsumption_UnfoldProducer() {
+    withEvery("count", in: [0, 1, 7, 8, 9, 16, 17, 30]) { count in
+      checkThrowingConsumption(
+        expectedContents: Array(0 ..< count), error: TestFailure.closure
+      ) { tracker, body in
+        body(producer(state: 0) {
+          (state: inout Int) throws(TestFailure) -> LifetimeTracked<Int>? in
+          guard state < count else { return nil }
+          defer { state += 1 }
+          return tracker.instance(for: state)
+        })
+      }
+      checkThrowingConsumption(
+        expectedContents: Array(0 ..< count),
+        throwsAtEnd: true,
+        error: TestFailure.closure
+      ) { tracker, body in
+        body(producer(state: 0) {
+          (state: inout Int) throws(TestFailure) -> LifetimeTracked<Int>? in
+          guard state < count else { throw .producer }
+          defer { state += 1 }
+          return tracker.instance(for: state)
+        })
+      }
+    }
+  }
 }
 #endif
