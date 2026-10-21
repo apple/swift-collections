@@ -1688,6 +1688,26 @@ class OrderedSetTests: CollectionTestCase {
     }
   }
 
+  func test_subsequence_Equatable_Hashable() {
+    let a: OrderedSet = [0, 1, 2, 3]
+    let b: OrderedSet = [1, 2]
+    let c: OrderedSet = [3, 2, 1, 0]
+    let d = OrderedSet(0 ..< 20)
+    let samples: [[OrderedSet<Int>.SubSequence]] = [
+      [a[0 ..< 0], a[4 ..< 4], b[1 ..< 1], d[10 ..< 10]],
+      [a[1 ..< 2], b[0 ..< 1], c[2 ..< 3], d[1 ..< 2]],
+      [a[2 ..< 3], b[1 ..< 2], c[1 ..< 2], d[2 ..< 3]],
+      [a[1 ..< 3], b[0 ..< 2], d[1 ..< 3]],
+      [c[1 ..< 3]],
+      [a[1 ..< 4], d[1 ..< 4]],
+      [a[0 ..< 4], d[0 ..< 4]],
+      [c[0 ..< 4]],
+      [d[0 ..< 20], OrderedSet(0 ..< 20)[0 ..< 20]],
+      [d[4 ..< 20], OrderedSet(4 ..< 20)[0 ..< 16]],
+    ]
+    checkHashable(equivalenceClasses: samples)
+  }
+
   func test_move_empty() {
     withOrderedSetLayouts(scales: [0, 5, 6]) { layout in
       var set = OrderedSet(layout: layout)
