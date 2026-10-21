@@ -134,6 +134,19 @@ final class SortedDictionaryTests: CollectionTestCase {
     }
   }
 
+  func test_values_bidirectionalCollection() {
+    withEvery("count", in: [0, 1, 5, 6, 17, 18]) { count in
+      withLifetimeTracking { tracker in
+        let (d, kvs) = tracker.sortedDictionary(keys: 0 ..< count)
+
+        checkBidirectionalCollection(
+          d.values,
+          expectedContents: kvs.map { _, value in value }
+        )
+      }
+    }
+  }
+
   func test_orderedInsertion() {
     withEvery("count", in: [0, 1, 2, 3, 4, 8, 16, 64]) { count in
       var sortedDictionary: SortedDictionary<Int, Int> = [:]
