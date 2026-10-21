@@ -16,6 +16,8 @@ import XCTest
 import Collections
 #else
 import _CollectionsTestSupport
+import BasicContainers
+import DequeModule
 #endif
 import ContainersPreview
 
@@ -228,6 +230,38 @@ final class ProducerConsumptionTests: CollectionTestCase {
           }
           .map { tracker.instance(for: $0.payload) })
         }
+      }
+    }
+  }
+
+  func test_throwingConsumption_DrainMapProducer() {
+    withEvery("count", in: [0, 1, 7, 8, 9, 16, 17, 30]) { count in
+      let expected = (0 ..< count).map { 2 * $0 }
+      checkThrowingConsumption(
+        expectedContents: expected, error: TestFailure.closure
+      ) { tracker, body in
+        var items = RigidDeque<LifetimeTracked<Int>>(capacity: count)
+        for i in (0 ..< count / 2).reversed() {
+          items.prepend(tracker.instance(for: i))
+        }
+        for i in count / 2 ..< count {
+          items.append(tracker.instance(for: i))
+        }
+        body(try! items.consumeAll().map { item throws(TestFailure) in
+          tracker.instance(for: 2 * item.payload)
+        })
+      }
+      checkThrowingConsumption(
+        expectedContents: expected,
+        throwsAtEnd: true,
+        error: TestFailure.closure
+      ) { tracker, body in
+        var items = RigidArray(
+          capacity: count + 1, copying: tracker.instances(for: 0 ... count))
+        body(try! items.consumeAll().map { item throws(TestFailure) in
+          guard item.payload < count else { throw .producer }
+          return tracker.instance(for: 2 * item.payload)
+        })
       }
     }
   }
