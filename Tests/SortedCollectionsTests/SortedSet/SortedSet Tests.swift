@@ -77,6 +77,27 @@ class SortedSetTests: CollectionTestCase {
     }
   }
 
+  func test_formIndexOffsetBy() {
+    withEvery("count", in: [0, 1, 5, 6, 17, 18, 29, 30, 53, 54]) { count in
+      withEvery("isBulk", in: [false, true]) { isBulk in
+        let set = isBulk
+          ? SortedSet(sortedElements: 0 ..< count)
+          : SortedSet(0 ..< count)
+        let indices = Array(set.indices) + [set.endIndex]
+        withEvery("offset", in: 0 ... count) { offset in
+          withEvery("distance", in: -offset ... count - offset) { distance in
+            var index = indices[offset]
+            set.formIndex(&index, offsetBy: distance)
+            if offset + distance < count {
+              expectEqual(set[index], offset + distance)
+            }
+            expectEqualElements(set[index...], offset + distance ..< count)
+          }
+        }
+      }
+    }
+  }
+
   func test_firstIndexOf_lastIndexOf() {
     withEvery("count", in: 0 ..< 20) { count in
       let contents = Array(0 ..< count)
