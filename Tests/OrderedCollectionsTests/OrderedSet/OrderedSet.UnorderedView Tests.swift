@@ -84,4 +84,11 @@ class OrderedSetUnorderedViewTests: CollectionTestCase {
       expectFalse(copy.contains(30))
     }
   }
+
+  func test_SetAlgebraMemberIdentity() {
+    checkSetAlgebraMemberIdentity(
+      OrderedSet<LifetimeTracked<Int>>.UnorderedView.self,
+      models: [[], [0], [0, 1, 2, 3], Set(stride(from: 0, to: 200, by: 2))],
+      members: { Array(OrderedSet($0)) })
+  }
 }
