@@ -13,6 +13,56 @@
 
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
+  @available(*, deprecated, renamed: "nextSpan(after:)")
+  @inlinable
+  @_lifetime(borrow self)
+  public func span(after index: inout Int) -> Span<Element> {
+    self.nextSpan(after: &index)
+  }
+
+  @available(*, deprecated, renamed: "previousSpan(before:)")
+  @inlinable
+  @_lifetime(borrow self)
+  public func span(before index: inout Int) -> Span<Element> {
+    previousSpan(before: &index)
+  }
+
+#if COLLECTIONS_SINGLE_MODULE // FIXME: Remove when references have been flushed
+  @available(*, unavailable)
+  @usableFromInline
+  internal func _contiguousSubrange(following index: inout Int) -> Range<Int> {
+    precondition(index >= 0 && index <= count, "Index out of bounds")
+    defer { index = count }
+    return unsafe Range(uncheckedBounds: (index, count))
+  }
+
+  @available(*, unavailable)
+  @usableFromInline
+  internal func _contiguousSubrange(preceding index: inout Int) -> Range<Int> {
+    precondition(index >= 0 && index <= count, "Index out of bounds")
+    defer { index = 0 }
+    return unsafe Range(uncheckedBounds: (0, index))
+  }
+#endif
+
+  @available(*, deprecated, renamed: "nextMutableSpan(after:)")
+  @_lifetime(&self)
+  @inlinable
+  public mutating func mutableSpan(
+    after index: inout Int
+  ) -> MutableSpan<Element> {
+    nextMutableSpan(after: &index)
+  }
+
+  @available(*, deprecated, renamed: "previousMutableSpan(before:)")
+  @_lifetime(&self)
+  @inlinable
+  public mutating func mutableSpan(
+    before index: inout Int
+  ) -> MutableSpan<Element> {
+    previousMutableSpan(before: &index)
+  }
+
   @available(*, deprecated, renamed: "nextSpan(after:maxCount:)")
   @inlinable
   @_lifetime(borrow self)

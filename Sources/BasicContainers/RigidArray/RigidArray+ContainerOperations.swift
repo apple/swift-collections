@@ -305,6 +305,17 @@ extension RigidArray where Element: ~Copyable {
     index._advance(by: &n, limitedBy: limit)
   }
 
+  /// Return a borrowing span over the maximal storage chunk following the
+  /// specified position in the array.
+  ///
+  /// The returned span provides direct read-only access to all array elements
+  /// in the range `index ..< count`.
+  ///
+  /// - Parameter index: A valid index in the array, including the end index.
+  ///   When `span(after:)` returns, `index` is equal to the array's
+  ///   `endIndex`.
+  ///
+  /// - Complexity: O(1)
   @inlinable
   @_lifetime(borrow self)
   public func nextSpan(
@@ -429,6 +440,28 @@ extension RigidArray where Element: ~Copyable {
       before: index, maxDistance: maxDistance, limitedBy: limit)
   }
 
+  /// Return a borrowing span over the maximal storage chunk preceding the
+  /// specified position in the array.
+  ///
+  /// The returned span provides direct read-only access to all array elements
+  /// in the range `0 ..< index`.
+  ///
+  /// - Parameter index: A valid index in the array, including the end index.
+  ///   When `span(before:)` returns, `index` is equal to the array's
+  ///   `startIndex`.
+  ///
+  /// - Complexity: O(1)
+  @_alwaysEmitIntoClient
+  @_lifetime(borrow self)
+  public func previousSpan(
+    before index: inout Int
+  ) -> Span<Element> {
+    // FIXME: Remove this in favor of the BidirectionalContainer algorithm.
+    _checkValidIndex(index)
+    defer { index = 0 }
+    return _span(in: unsafe Range(uncheckedBounds: (0, index)))
+  }
+
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
   public func previousSpan(
@@ -439,6 +472,17 @@ extension RigidArray where Element: ~Copyable {
     precondition(maxCount > 0, "maxCount must be positive")
     let start = index
     index = start &- Swift.min(maxCount, start)
-    return _span(in: unsafe Range(uncheckedBounds: (start, index)))
+    return _span(in: unsafe Range(uncheckedBounds: (index, start)))
+  }
+
+  @_alwaysEmitIntoClient
+  @_lifetime(&self)
+  public mutating func previousMutableSpan(
+    before index: inout Int
+  ) -> MutableSpan<Element> {
+    // FIXME: Remove this in favor of the BidirectionalContainer algorithm.
+    _checkValidIndex(index)
+    defer { index = 0 }
+    return _mutableSpan(in: unsafe Range(uncheckedBounds: (0, index)))
   }
 }

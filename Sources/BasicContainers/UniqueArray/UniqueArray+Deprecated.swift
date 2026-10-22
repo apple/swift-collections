@@ -17,6 +17,21 @@ import SpanPreview
 
 @available(SwiftStdlib 5.0, *)
 extension UniqueArray where Element: ~Copyable {
+  @available(*, deprecated, renamed: "nextSpan(after:)")
+  @inlinable
+  @inline(__always)
+  @_lifetime(borrow self)
+  public func span(after index: inout Int) -> Span<Element> {
+    nextSpan(after: &index)
+  }
+
+  @available(*, deprecated, renamed: "nextSpan(after:)")
+  @inlinable
+  @_lifetime(borrow self)
+  public func span(before index: inout Int) -> Span<Element> {
+    previousSpan(before: &index)
+  }
+
   @available(*, deprecated, renamed: "nextSpan(after:maxCount:)")
   @inlinable
   @_lifetime(borrow self)
@@ -27,6 +42,24 @@ extension UniqueArray where Element: ~Copyable {
       after: &index,
       maxCount: maximumCount,
       limitedBy: self.endIndex)
+  }
+
+  @available(*, deprecated, renamed: "nextMutableSpan(after:)")
+  @_lifetime(&self)
+  @inlinable
+  public mutating func mutableSpan(
+    after index: inout Int
+  ) -> MutableSpan<Element> {
+    self.nextMutableSpan(after: &index)
+  }
+
+  @available(*, deprecated, renamed: "previousMutableSpan(before:)")
+  @_lifetime(&self)
+  @inlinable
+  public mutating func mutableSpan(
+    before index: inout Int
+  ) -> MutableSpan<Element> {
+    self.previousMutableSpan(before: &index)
   }
 
   @available(*, deprecated, renamed: "nextMutableSpan(after:maxCount:)")
