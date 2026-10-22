@@ -1021,9 +1021,9 @@ final class BitArrayTests: CollectionTestCase {
   }
 
   func test_resizingShiftRight_matches_removeFirst() {
-    for count in [1, 2, 31, 32, 33, 63, 64, 65, 127, 128, 129, 200] {
+    withEvery("count", in: [1, 2, 31, 32, 33, 63, 64, 65, 127, 128, 129, 200]) { count in
       let bools = randomBoolArray(count: count)
-      for amount in 0 ... (count &+ 2) {
+      withEvery("amount", in: 0 ... (count &+ 2)) { amount in
         var a = BitArray(bools)
         a.resizingShiftRight(by: amount)
         expectEqual(
@@ -1037,9 +1037,9 @@ final class BitArrayTests: CollectionTestCase {
   }
 
   func test_resizingShiftRight_byNegativeAmount_matches_shiftLeft() {
-    for count in [1, 31, 32, 33, 64, 65, 129] {
+    withEvery("count", in: [1, 31, 32, 33, 64, 65, 129]) { count in
       let bools = randomBoolArray(count: count)
-      for amount in stride(from: -1, through: 0 &- count &- 2, by: -1) {
+      withEvery("amount", in: stride(from: -1, through: 0 &- count &- 2, by: -1)) { count in
         var a = BitArray(bools)
         a.resizingShiftRight(by: amount)
         expectEqual(a.count, count &- amount, "count: \(count), amount: \(amount)")
@@ -1051,9 +1051,9 @@ final class BitArrayTests: CollectionTestCase {
   }
 
   func test_resizingShiftLeft_byPositiveAmount_inserts_false_values() {
-    for count in [0, 1, 31, 32, 33, 64, 65, 129] {
+    withEvery("count", in: [0, 1, 31, 32, 33, 64, 65, 129]) { count in
       let bools = randomBoolArray(count: count)
-      for amount in 1 ... (count &+ 2) {
+      withEvery("amount", in: 1 ... (count &+ 2)) { amount in
         var a = BitArray(bools)
         a.resizingShiftLeft(by: amount)
         expectEqual(a.count, count &+ amount, "count: \(count), amount: \(amount)")
@@ -1065,9 +1065,9 @@ final class BitArrayTests: CollectionTestCase {
   }
 
   func test_resizingShiftLeft_byNegativeAmount_matches_removeFirst() {
-    for count in [1, 2, 31, 32, 33, 63, 64, 65, 127, 128, 129, 200] {
+    withEvery("count", in: [1, 2, 31, 32, 33, 63, 64, 65, 127, 128, 129, 200]) { count in
       let bools = randomBoolArray(count: count)
-      for amount in stride(from: -1, through: 0 &- count &- 2, by: -1) {
+      withEvery("amount", in: stride(from: -1, through: 0 &- count &- 2, by: -1)) { amount in
         var a = BitArray(bools)
         a.resizingShiftLeft(by: amount)
         expectEqual(
