@@ -1519,8 +1519,6 @@ class RigidArrayTests: CollectionTestCase {
     let p = items.makeBorrowingIterator()
       .mapError(to: E.self)
       .map { (x: borrowing Int) -> Int in copy x }
-    // RigidArray.init(capacity:from:) calls _expectEnd, which calls skip(by:)
-    // on a producer already at its end.  This must return rather than hang.
     let result = try! RigidArray<Int>(capacity: c, from: p)
     expectEqual(result.count, c)
     expectRigidArrayContents(result, equalTo: 0 ..< c)
