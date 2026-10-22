@@ -1023,11 +1023,11 @@ final class BitArrayTests: CollectionTestCase {
   func test_resizingShiftRight_matches_removeFirst() {
     withEvery("count", in: [1, 2, 31, 32, 33, 63, 64, 65, 127, 128, 129, 200]) { count in
       let bools = randomBoolArray(count: count)
-      withEvery("amount", in: 0 ... (count &+ 2)) { amount in
+      withEvery("amount", in: 0 ... (count + 2)) { amount in
         var a = BitArray(bools)
         a.resizingShiftRight(by: amount)
         expectEqual(
-          a.count, Swift.max(count &- amount, 0),
+          a.count, Swift.max(count - amount, 0),
           "count: \(count), amount: \(amount)")
         expectEqualElements(
           a, bools.dropFirst(Swift.min(amount, count)),
@@ -1039,10 +1039,10 @@ final class BitArrayTests: CollectionTestCase {
   func test_resizingShiftRight_byNegativeAmount_matches_shiftLeft() {
     withEvery("count", in: [1, 31, 32, 33, 64, 65, 129]) { count in
       let bools = randomBoolArray(count: count)
-      withEvery("amount", in: stride(from: -1, through: 0 &- count &- 2, by: -1)) { count in
+      withEvery("amount", in: stride(from: -1, through: 0 - count - 2, by: -1)) { amount in
         var a = BitArray(bools)
         a.resizingShiftRight(by: amount)
-        expectEqual(a.count, count &- amount, "count: \(count), amount: \(amount)")
+        expectEqual(a.count, count - amount, "count: \(count), amount: \(amount)")
         expectEqualElements(
           a, Array(repeating: false, count: -amount) + bools,
           "count: \(count), amount: \(amount)")
@@ -1053,10 +1053,10 @@ final class BitArrayTests: CollectionTestCase {
   func test_resizingShiftLeft_byPositiveAmount_inserts_false_values() {
     withEvery("count", in: [0, 1, 31, 32, 33, 64, 65, 129]) { count in
       let bools = randomBoolArray(count: count)
-      withEvery("amount", in: 1 ... (count &+ 2)) { amount in
+      withEvery("amount", in: 1 ... (count + 2)) { amount in
         var a = BitArray(bools)
         a.resizingShiftLeft(by: amount)
-        expectEqual(a.count, count &+ amount, "count: \(count), amount: \(amount)")
+        expectEqual(a.count, count + amount, "count: \(count), amount: \(amount)")
         expectEqualElements(
           a, Array(repeating: false, count: amount) + bools,
           "count: \(count), amount: \(amount)")
@@ -1067,11 +1067,11 @@ final class BitArrayTests: CollectionTestCase {
   func test_resizingShiftLeft_byNegativeAmount_matches_removeFirst() {
     withEvery("count", in: [1, 2, 31, 32, 33, 63, 64, 65, 127, 128, 129, 200]) { count in
       let bools = randomBoolArray(count: count)
-      withEvery("amount", in: stride(from: -1, through: 0 &- count &- 2, by: -1)) { amount in
+      withEvery("amount", in: stride(from: -1, through: 0 - count - 2, by: -1)) { amount in
         var a = BitArray(bools)
         a.resizingShiftLeft(by: amount)
         expectEqual(
-          a.count, Swift.max(count &+ amount, 0),
+          a.count, Swift.max(count + amount, 0),
           "count: \(count), amount: \(amount)")
         expectEqualElements(
           a, bools.dropFirst(Swift.min(-amount, count)),
