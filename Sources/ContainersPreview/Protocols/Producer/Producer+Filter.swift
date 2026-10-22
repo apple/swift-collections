@@ -77,7 +77,8 @@ where
 {
   @inlinable
   public var underestimatedCount: Int {
-    _base.underestimatedCount
+    // We cannot know how many items the predicate will reject.
+    0
   }
 
   @inlinable
@@ -96,14 +97,15 @@ where
     into target: inout OutputSpan<Element>
   ) throws(Failure) -> Int {
     let startCount = target.count
+    var reachedEnd = false
     repeat {
       let prevCount = target.count
       defer {
         target._remove(from: prevCount, where: { !_isIncluded($0) })
       }
       try _base.generate(into: &target)
-      guard target.isFull else { break }
-    } while target.count == startCount
+      reachedEnd = !target.isFull
+    } while !reachedEnd && !target.isFull
     return target.count - startCount
   }
 
