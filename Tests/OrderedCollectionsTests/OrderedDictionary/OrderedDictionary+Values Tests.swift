@@ -74,6 +74,22 @@ class OrderedDictionaryValueTests: CollectionTestCase {
     expectEqual(d.values.debugDescription, "[1, 2]")
   }
 
+  func test_Equatable_Hashable() {
+    let samples: [[OrderedDictionary<Int, Int>]] = [
+      [[:], OrderedDictionary(minimumCapacity: 100, persistent: true)],
+      [[1: 100], [2: 100], [100: 100]],
+      [[100: 1], [1: 1]],
+      [[1: 100, 2: 200], [2: 100, 1: 200], [3: 100, 4: 200]],
+      [[2: 200, 1: 100], [1: 200, 2: 100]],
+      [[1: 100, 2: 100], [3: 100, 4: 100]],
+      [[1: 100, 2: 200, 3: 300], [3: 100, 2: 200, 1: 300]],
+      [OrderedDictionary(uniqueKeys: 0 ..< 20, values: 100 ..< 120),
+       OrderedDictionary(uniqueKeys: 20 ..< 40, values: 100 ..< 120)],
+      [OrderedDictionary(uniqueKeys: 0 ..< 20, values: 101 ..< 121)],
+    ]
+    checkHashable(equivalenceClasses: samples.map { $0.map { $0.values }})
+  }
+
   func test_values_RandomAccessCollection() {
     withEvery("count", in: 0 ..< 30) { count in
       let keys = 0 ..< count
