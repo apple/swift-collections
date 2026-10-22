@@ -404,7 +404,7 @@ extension InputSpan where Element: ~Copyable {
   public mutating func removeFirst(_ k: Int) {
     precondition(k >= 0, "Cannot remove a negative number of elements")
     precondition(k <= _count, "InputSpan underflow")
-    if k == 0 { return }
+    guard k > 0 else { return }
     unsafe _unsafeRawAddressOfSlot(
       uncheckedOffset: 0
     ).withMemoryRebound(to: Element.self, capacity: k) {
@@ -468,7 +468,7 @@ extension InputSpan /* where Element: Copyable */ {
   @_lifetime(self: copy self)
   public mutating func prepend(repeating repeatedValue: Element, count: Int) {
     precondition(count <= freeCapacity, "InputSpan capacity overflow")
-    if count == 0 { return }
+    guard count > 0 else { return }
     unsafe _unsafeRawAddressOfSlot(
       uncheckedOffset: -count
     ).initializeMemory(as: Element.self, repeating: repeatedValue, count: count)
@@ -617,7 +617,7 @@ extension InputSpan where Element: ~Copyable {
   public mutating func consumePrefix(upTo n: Int) -> InputSpan<Element> {
     precondition(n >= 0, "Cannot consume a negative number of elements")
     let c = Swift.min(n, self.count)
-    if c == 0 { return InputSpan() }
+    guard c > 0 else { return InputSpan() }
 
     let buffer = unsafe _unsafeRawAddressOfSlot(
       uncheckedOffset: 0
