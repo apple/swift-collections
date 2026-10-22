@@ -243,7 +243,7 @@ final class UniqueDequeTests: CollectionTestCase {
           for item in existing { deque.append(item) }
 
           var items = tracker.instances(for: 0 ..< newCount)
-          var producer = CustomProducer<LifetimeTracked<Int>, Never> { _ in
+          let producer = CustomProducer<LifetimeTracked<Int>, Never> { _ in
             guard !items.isEmpty else { return nil }
             return items.removeFirst()
           }

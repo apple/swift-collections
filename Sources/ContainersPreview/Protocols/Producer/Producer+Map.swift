@@ -93,18 +93,23 @@ extension ConsumingMapProducer: Producer where Base: ~Copyable & ~Escapable {
   public mutating func generate(
     into target: inout OutputSpan<Element>
   ) throws(Failure) -> Int {
-    let c = Swift.min(target.freeCapacity, _producerBufferSize)
-    return try withTemporaryAllocation(
-      of: Base.Element.self, capacity: c
-    ) { source throws(Failure) in
-      let result = try _base.generate(into: &source)
-      try source._consumeAll { src throws(Failure) in
-        while !src.isEmpty {
-          target.append(try _transform(src.removeFirst()))
+    let startCount = target.count
+    var done = false
+    while !target.isFull, !done {
+      let c = Swift.min(target.freeCapacity, _producerBufferSize)
+      try withTemporaryAllocation(
+        of: Base.Element.self, capacity: c
+      ) { source throws(Failure) in
+        try _base.generate(into: &source)
+        done = !source.isFull
+        try source._consumeAll { src throws(Failure) in
+          while !src.isEmpty {
+            target.append(try _transform(src.removeFirst()))
+          }
         }
       }
-      return result
     }
+    return target.count - startCount
   }
 
   @inlinable

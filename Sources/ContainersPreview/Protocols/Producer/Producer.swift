@@ -133,8 +133,8 @@ public protocol Producer<Element, Failure>: ~Copyable, ~Escapable {
   /// discarding them, except it may avoid the overhead of actually
   /// materializing the elements.
   ///
-  /// As soon as the producer has run out of items, all subsequent calls to
-  /// this method stop decrementing `n` and return false.
+  /// If the producer reaches its end midway through skipping, then `n` gets
+  /// decremented by the number of items successfully skipped before that.
   ///
   /// The default implementation of this method repeatedly calls
   /// `generate(into:)` with a small temporary buffer, immediately discarding
@@ -239,18 +239,20 @@ extension Producer where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   public mutating func skip(by n: inout Int) throws(Failure) {
     precondition(n > 0, "Cannot skip fewer than one item")
     let maxBufferSize = _producerBufferSize
-    return try withTemporaryAllocation(
-      of: Element.self,
-      capacity: Swift.min(maxBufferSize, n)
-    ) { buffer throws(Failure) in
-      repeat {
+    var done = false
+    while n > 0 && !done {
+      // Never generate more than the remaining count, so we don't skip too far.
+      try withTemporaryAllocation(
+        of: Element.self,
+        capacity: Swift.min(maxBufferSize, n)
+      ) { buffer throws(Failure) in
         defer {
           n &-= buffer.count
           buffer.removeAll()
         }
         try self.generate(into: &buffer)
-        if !buffer.isFull { return }
-      } while n > 0
+        done = !buffer.isFull
+      }
     }
   }
 
