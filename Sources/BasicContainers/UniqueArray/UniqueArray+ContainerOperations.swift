@@ -346,6 +346,14 @@ extension UniqueArray where Element: ~Copyable {
     _storage.nextSpan(after: &index, maxCount: maxCount, limitedBy: limit)
   }
 
+  @_alwaysEmitIntoClient
+  @_lifetime(&self)
+  public mutating func nextMutableSpan(
+    after index: inout Int
+  ) -> MutableSpan<Element> {
+    _storage.nextMutableSpan(after: &index)
+  }
+
   @inlinable
   @_lifetime(&self)
   public mutating func nextMutableSpan(
@@ -372,9 +380,26 @@ extension UniqueArray where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
   public func previousSpan(
+    before index: inout Int
+  ) -> Span<Element> {
+    // FIXME: Remove this in favor of the BidirectionalContainer algorithm.
+    _storage.previousSpan(before: &index)
+  }
+
+  @_alwaysEmitIntoClient
+  @_lifetime(borrow self)
+  public func previousSpan(
     before index: inout Int, maxCount: Int
   ) -> Span<Element> {
     // FIXME: Remove this in favor of the BidirectionalContainer algorithm.
     _storage.previousSpan(before: &index, maxCount: maxCount)
+  }
+
+  @_alwaysEmitIntoClient
+  @_lifetime(&self)
+  public mutating func previousMutableSpan(
+    before index: inout Int
+  ) -> MutableSpan<Element> {
+    _storage.previousMutableSpan(before: &index)
   }
 }

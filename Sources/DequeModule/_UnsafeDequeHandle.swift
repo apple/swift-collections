@@ -418,7 +418,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
       towards: startOffset <= wrapOffset ? 0 : wrapOffset,
       maxDistance: maxDistance,
       limitedBy: limitOffset)
-    return (p, p &- startOffset)
+    return (p, startOffset &- p)
   }
 
   @_alwaysEmitIntoClient

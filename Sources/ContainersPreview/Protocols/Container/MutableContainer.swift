@@ -159,6 +159,7 @@ where
     var i = start
     let span = self.nextMutableSpan(after: &i, limitedBy: index)
     precondition(i == index, "Invalid BidirectionalContainer")
+    index = start
     return span
   }
 

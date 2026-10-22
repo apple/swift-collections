@@ -538,6 +538,163 @@ final class RigidDequeTests: CollectionTestCase {
     }
   }
 
+  @available(SwiftStdlib 6.4, *)
+  func test_nextSpan_after() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      let d = RigidDeque(layout: layout, contents: layout.valueRange)
+      withEvery("i", in: 0 ... layout.count) { i in
+        var expected = layout.count
+        if let w = layout.wrapIndex, i < w {
+          expected = w
+        }
+
+        var actual = i
+        let span = d.nextSpan(after: &actual)
+        expectGreaterThanOrEqual(actual, i)
+        expectEqual(span.count, actual - i)
+        expectEqual(span.isEmpty, i == layout.count)
+        expectEqual(actual, expected)
+      }
+    }
+  }
+
+#if compiler(>=6.4) && UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
+  func test_nextSpan_after_maxCount() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      let d = RigidDeque(layout: layout, contents: layout.valueRange)
+      withEvery("i", in: 0 ... layout.count) { i in
+        withEvery(
+          "maxCount",
+          in: ([1, 2, layout.count / 2, layout.count, Int.max] as Set).filter { $0 > 0 }
+        ) { maxCount in
+          var expected = i + Swift.min(maxCount, layout.count - i)
+          if let w = layout.wrapIndex, i < w, expected >= w {
+            expected = w
+          }
+
+          var actual = i
+          let span = d.nextSpan(after: &actual, maxCount: maxCount)
+          expectGreaterThanOrEqual(actual, i)
+          expectLessThanOrEqual(span.count, maxCount)
+          expectEqual(span.count, actual - i)
+          expectEqual(span.isEmpty, i == layout.count)
+          expectEqual(actual, expected)
+        }
+      }
+    }
+  }
+#endif
+
+  @available(SwiftStdlib 6.4, *)
+  func test_nextSpan_after_maxCount_limitedBy() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      let d = RigidDeque(layout: layout, contents: layout.valueRange)
+      withEvery("i", in: 0 ... layout.count) { i in
+        withEvery(
+          "maxCount",
+          in: ([1, 2, layout.count / 2, layout.count, Int.max] as Set).filter { $0 > 0 }
+        ) { maxCount in
+          withEvery("limit", in: 0 ... layout.count) { limit in
+            var expected = i + Swift.min(maxCount, layout.count - i)
+            if limit >= i {
+              expected = Swift.min(limit, expected)
+            }
+            if let w = layout.wrapIndex, i < w, expected >= w {
+              expected = w
+            }
+
+            var actual = i
+            let span = d.nextSpan(after: &actual, maxCount: maxCount, limitedBy: limit)
+            expectGreaterThanOrEqual(actual, i)
+            expectLessThanOrEqual(span.count, maxCount)
+            expectEqual(span.count, actual - i)
+            expectEqual(span.isEmpty, i == layout.count || i == limit)
+            expectEqual(actual, expected)
+          }
+        }
+      }
+    }
+  }
+
+  @available(SwiftStdlib 6.4, *)
+  func test_spanBoundary_before() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      let d = RigidDeque(layout: layout, contents: layout.valueRange)
+      withEvery("i", in: 0 ... layout.count) { i in
+        let r = d.spanBoundary(before: i)
+        expectGreaterThanOrEqual(r.distance, 0)
+        expectEqual(r.distance, i - r.index)
+        expectEqual(r.distance == 0, i == 0)
+        if let w = layout.wrapIndex, i > w {
+          expectEqual(r.index, w)
+        } else {
+          expectEqual(r.index, 0)
+        }
+      }
+    }
+  }
+
+#if compiler(>=6.4) && UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
+  func test_spanBoundary_before_maxDistance() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      let d = RigidDeque(layout: layout, contents: layout.valueRange)
+      withEvery("i", in: 0 ... layout.count) { i in
+        withEvery(
+          "maxDistance",
+          in: ([1, 2, layout.count / 2, layout.count, Int.max] as Set).filter { $0 > 0 }
+        ) { maxDistance in
+          let r = d.spanBoundary(before: i, maxDistance: maxDistance)
+          expectGreaterThanOrEqual(r.distance, 0)
+          expectLessThanOrEqual(r.distance, maxDistance)
+          expectEqual(r.distance, i - r.index)
+          expectEqual(r.distance == 0, i == 0)
+          let j = Swift.max(i - maxDistance, 0)
+          if let w = layout.wrapIndex, i > w, j <= w {
+            expectEqual(r.index, w)
+          } else {
+            expectEqual(r.index, j)
+          }
+        }
+      }
+    }
+  }
+#endif
+
+  @available(SwiftStdlib 6.4, *)
+  func test_spanBoundary_before_maxDistance_limitedBy() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      let d = RigidDeque(layout: layout, contents: layout.valueRange)
+      withEvery("i", in: 0 ... layout.count) { i in
+        withEvery(
+          "maxDistance",
+          in: ([1, 2, layout.count / 2, layout.count, Int.max] as Set).filter { $0 > 0 }
+        ) { maxDistance in
+          withEvery("limit", in: 0 ... layout.count) { limit in
+            let r = d.spanBoundary(
+              before: i,
+              maxDistance: maxDistance,
+              limitedBy: limit)
+            expectGreaterThanOrEqual(r.distance, 0)
+            expectLessThanOrEqual(r.distance, maxDistance)
+            expectEqual(r.distance, i - r.index)
+            expectEqual(r.distance == 0, i == 0 || i == limit)
+            var j = Swift.max(i - maxDistance, 0)
+            if limit <= i {
+              j = Swift.max(limit, j)
+            }
+            if let w = layout.wrapIndex, i > w, j <= w {
+              expectEqual(r.index, w)
+            } else {
+              expectEqual(r.index, j)
+            }
+          }
+        }
+      }
+    }
+  }
+
   func test_popFirst() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withLifetimeTracking { tracker in
@@ -1575,7 +1732,7 @@ final class RigidDequeTests: CollectionTestCase {
     }
   }
 
-#if UnstableContainersPreview
+#if compiler(>=6.4) && UnstableContainersPreview
   func test_consume_subrange() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withEvery("from", in: 0 ... layout.count) { from in
@@ -1592,7 +1749,7 @@ final class RigidDequeTests: CollectionTestCase {
     }
   }
 
-  func test_nextMutableSpan_maxCount() {
+  func test_nextMutableSpan_maxCount_limitedBy() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withEvery("maxCount", in: [1, 2, 3, 5, 100]) { maxCount in
         var deque = RigidDeque(layout: layout, contents: layout.valueRange)
