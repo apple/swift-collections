@@ -56,7 +56,7 @@ extension BitSet {
   ///
   ///     var set: BitSet = [1, 2, 3, 4]
   ///     set.formIntersection(-10 ..< 3)
-  ///     // set is now [3, 4]
+  ///     // set is now [1, 2]
   ///
   /// - Parameter other: A range of integers.
   ///

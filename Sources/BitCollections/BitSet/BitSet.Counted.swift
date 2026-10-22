@@ -447,7 +447,7 @@ extension BitSet.Counted {
   ///
   ///     let a: BitSet.Counted = [1, 2, 3, 4]
   ///     let c = a.intersection(-10 ..< 3)
-  ///     // c is now [3, 4]
+  ///     // c is now [1, 2]
   ///
   /// - Parameter other: A range of integers.
   ///
@@ -721,7 +721,7 @@ extension BitSet.Counted {
   ///
   ///     var set: BitSet.Counted = [1, 2, 3, 4]
   ///     set.formIntersection(-10 ..< 3)
-  ///     // set is now [3, 4]
+  ///     // set is now [1, 2]
   ///
   /// - Parameter other: A range of integers.
   ///

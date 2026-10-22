@@ -58,7 +58,7 @@ extension BitSet {
   ///
   ///     let a: BitSet = [1, 2, 3, 4]
   ///     let c = a.intersection(-10 ..< 3)
-  ///     // c is now [3, 4]
+  ///     // c is now [1, 2]
   ///
   /// - Parameter other: A range of integers.
   ///
