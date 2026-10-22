@@ -64,7 +64,7 @@ extension UniqueSet where Element: ~Copyable {
   {
     let c = producer.underestimatedCount
     if let minimumCapacity {
-      self.init(minimumCapacity: Swift.min(minimumCapacity, c))
+      self.init(minimumCapacity: Swift.max(minimumCapacity, c))
     } else {
       self.init(minimumCapacity: c)
     }
