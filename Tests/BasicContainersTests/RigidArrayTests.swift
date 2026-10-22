@@ -1511,10 +1511,8 @@ class RigidArrayTests: CollectionTestCase {
 
 #if compiler(>=6.4) && UnstableContainersPreview
   @available(SwiftStdlib 6.4, *)
-  func test_borrowing_map_skip_terminates_at_end() {
-    // BorrowingMapProducer.skip(by:) used to loop forever once the base
-    // iterator was exhausted, because nextSpan returned an empty span and
-    // the counter never decremented.  Regression test for #773.
+  func test_init_capacity_from_Producer() {
+    // FIXME: Create a separate test suite for BorrowingIteratorProtocol.map, and devise a specific test for .init(capacity:from:)
     struct E: Error {}
     let c = 10
     let items = RigidArray<Int>(capacity: c, copying: 0 ..< c)
