@@ -134,6 +134,7 @@ where
     // the common case of containers, so let's do that.
     while n > 0 {
       let span = try _it.nextSpan(maxCount: n)
+      if span.count == 0 { break }
       n -= span.count
     }
 #endif

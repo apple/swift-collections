@@ -1621,6 +1621,22 @@ class RigidArrayTests: CollectionTestCase {
 
 #if compiler(>=6.4) && UnstableContainersPreview
   @available(SwiftStdlib 6.4, *)
+  func test_init_capacity_from_Producer() {
+    // FIXME: Create a separate test suite for BorrowingIteratorProtocol.map, and devise a specific test for .init(capacity:from:)
+    struct E: Error {}
+    let c = 10
+    let items = RigidArray<Int>(capacity: c, copying: 0 ..< c)
+    let p = items.makeBorrowingIterator()
+      .mapError(to: E.self)
+      .map { (x: borrowing Int) -> Int in copy x }
+    let result = try! RigidArray<Int>(capacity: c, from: p)
+    expectEqual(result.count, c)
+    expectRigidArrayContents(result, equalTo: 0 ..< c)
+  }
+#endif
+
+#if compiler(>=6.4) && UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
   func test_consume_subrange_drainNext() {
     withLifetimeTracking { tracker in
       var a = RigidArray<LifetimeTracked<Int>>(capacity: 4)
