@@ -87,6 +87,17 @@ class UniqueArrayTests: CollectionTestCase {
       }
     }
   }
+
+  @available(SwiftStdlib 6.4, *)
+  func test_validate_MutableContainer() {
+    withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
+      withLifetimeTracking { tracker in
+        var items = UniqueArray(consuming: tracker.rigidArray(layout: layout))
+        let expected = (0 ..< layout.count).map { tracker.instance(for: $0) }
+        checkMutableContainer(&items, expectedContents: expected)
+      }
+    }
+  }
 #endif
 
   func test_basics() {
