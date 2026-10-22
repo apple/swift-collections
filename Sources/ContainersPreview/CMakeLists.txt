@@ -70,6 +70,7 @@ target_sources(${module_name} PRIVATE
   "Conformances/UniqueArray+Container.swift"
   "Conformances/UniqueSet+Container.swift"
   "Conformances/UniqueDeque+Container.swift"
+  "Extensions/RigidSet+Extras.swift"
   "Protocols/Container/BidirectionalContainer.swift"
   "Protocols/Container/Container.swift"
   "Protocols/Container/Container+Filter.swift"
