@@ -295,10 +295,10 @@ class UniqueArrayTests: CollectionTestCase {
         let a = tracker.uniqueArray(layout: layout)
         let whole = a.span
         var i = 0
-        let first = a.span(after: &i)
+        let first = a.nextSpan(after: &i)
         expectEqual(i, layout.count)
         expectTrue(first.isIdentical(to: whole))
-        let second = a.span(after: &i)
+        let second = a.nextSpan(after: &i)
         expectEqual(i, layout.count)
         expectTrue(second.isEmpty)
       }
@@ -312,10 +312,10 @@ class UniqueArrayTests: CollectionTestCase {
         let a = tracker.uniqueArray(layout: layout)
         let whole = a.span
         var i = layout.count
-        let first = a.span(before: &i)
+        let first = a.previousSpan(before: &i)
         expectEqual(i, 0)
         expectTrue(first.isIdentical(to: whole))
-        let second = a.span(before: &i)
+        let second = a.previousSpan(before: &i)
         expectEqual(i, 0)
         expectTrue(second.isEmpty)
       }
@@ -328,10 +328,10 @@ class UniqueArrayTests: CollectionTestCase {
       withLifetimeTracking { tracker in
         var a = tracker.uniqueArray(layout: layout)
         var i = 0
-        var span = a.mutableSpan(after: &i)
+        var span = a.nextMutableSpan(after: &i)
         expectEqual(i, layout.count)
         expectEqual(span.count, layout.count)
-        span = a.mutableSpan(after: &i)
+        span = a.nextMutableSpan(after: &i)
         expectEqual(i, layout.count)
         expectTrue(span.isEmpty)
       }

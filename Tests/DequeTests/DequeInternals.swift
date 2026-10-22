@@ -80,6 +80,10 @@ internal struct DequeLayout: Hashable, CustomStringConvertible {
   var isWrapped: Bool {
     startSlot + count > capacity
   }
+
+  var wrapIndex: Int? {
+    isWrapped ? capacity - startSlot : nil
+  }
 }
 
 extension Deque {

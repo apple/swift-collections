@@ -76,7 +76,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable {
     self.spanBoundary(
       before: index,
       maxDistance: Int.max,
-      limitedBy: self.endIndex)
+      limitedBy: self.startIndex)
   }
 
   @_alwaysEmitIntoClient
@@ -88,7 +88,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable {
     self.spanBoundary(
       before: index,
       maxDistance: maxDistance,
-      limitedBy: self.endIndex)
+      limitedBy: self.startIndex)
   }
 
   @_alwaysEmitIntoClient
@@ -101,7 +101,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable {
     self.previousSpan(
       before: &index,
       maxCount: maxCount,
-      limitedBy: self.endIndex)
+      limitedBy: self.startIndex)
   }
 
   @_alwaysEmitIntoClient
@@ -147,9 +147,13 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable {
       }
       return index
     }
-    n = -n
+    n = 0 &- n
+    let start = self.startIndex
     while n > 0 {
-      let r = self.spanBoundary(before: index, maxDistance: n, limitedBy: end)
+      let r = self.spanBoundary(before: index, maxDistance: n, limitedBy: start)
+      precondition(
+        r.distance > 0,
+        "Cannot move index before the start of the container")
       index = r.index
       n &-= r.distance
     }
@@ -160,7 +164,6 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   public func formIndex(
     _ index: inout Index, offsetBy n: inout Int, limitedBy limit: Index
   ) {
-    var n = n
     if n >= 0 {
       while n > 0 {
         let c = self.nextSpan(after: &index, maxCount: n, limitedBy: limit).count
@@ -170,9 +173,9 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable {
       }
       return
     }
-    n = -n
-    while n > 0 {
-      let r = self.spanBoundary(before: index, maxDistance: n, limitedBy: limit)
+    while n < 0 {
+      let r = self.spanBoundary(
+        before: index, maxDistance: 0 &- n, limitedBy: limit)
       if r.distance == 0 {
         // We hit the limit (or the start)
         return

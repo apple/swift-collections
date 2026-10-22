@@ -255,50 +255,160 @@ class RigidArrayTests: CollectionTestCase {
     }
   }
 
-  func test_nextSpan() {
-    // RigidArray is expected to have exactly one span.
+  func test_nextSpan_after() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withLifetimeTracking { tracker in
         let a = tracker.rigidArray(layout: layout)
         let whole = a.span
-        var i = 0
-        let first = a.span(after: &i)
-        expectEqual(i, layout.count)
-        expectTrue(first.isIdentical(to: whole))
-        let second = a.span(after: &i)
-        expectEqual(i, layout.count)
-        expectTrue(second.isEmpty)
+        withEvery("i", in: 0 ... layout.count) { i in
+          var j = i
+          let span = a.nextSpan(after: &j)
+          expectEqual(j, layout.count)
+          expectTrue(span.isIdentical(to: whole.extracting(i...)))
+
+          let second = a.nextSpan(after: &j)
+          expectEqual(j, layout.count)
+          expectTrue(second.isEmpty)
+        }
       }
     }
   }
 
-  func test_previousSpan() {
-    // RigidArray is expected to have exactly one span.
+#if compiler(>=6.4) && UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
+  func test_nextSpan_after_maxCount() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withLifetimeTracking { tracker in
         let a = tracker.rigidArray(layout: layout)
         let whole = a.span
-        var i = layout.count
-        let first = a.span(before: &i)
-        expectEqual(i, 0)
-        expectTrue(first.isIdentical(to: whole))
-        let second = a.span(before: &i)
-        expectEqual(i, 0)
-        expectTrue(second.isEmpty)
+        withEvery("i", in: 0 ... layout.count) { i in
+          withEvery(
+            "maxCount",
+            in: ([1, 2, layout.count / 2, layout.count, Int.max] as Set).filter { $0 > 0 }
+          ) { maxCount in
+            let expected = i + Swift.min(maxCount, layout.count - i)
+
+            var j = i
+            let span = a.nextSpan(after: &j, maxCount: maxCount)
+            expectEqual(j, expected)
+            expectTrue(span.isIdentical(to: whole.extracting(i ..< expected)))
+          }
+        }
       }
     }
   }
+#endif
+
+  func test_nextSpan_after_maxCount_limitedBy() {
+    withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
+      withLifetimeTracking { tracker in
+        let a = tracker.rigidArray(layout: layout)
+        let whole = a.span
+        withEvery("i", in: 0 ... layout.count) { i in
+          withEvery(
+            "maxCount",
+            in: ([1, 2, layout.count / 2, layout.count, Int.max] as Set).filter { $0 > 0 }
+          ) { maxCount in
+            withEvery("limit", in: 0 ... layout.count) { limit in
+              var expected = i + Swift.min(maxCount, layout.count - i)
+              if limit >= i {
+                expected = Swift.min(limit, expected)
+              }
+
+              var j = i
+              let span = a.nextSpan(after: &j, maxCount: maxCount, limitedBy: limit)
+              expectEqual(j, expected)
+              expectTrue(span.isIdentical(to: whole.extracting(i ..< expected)))
+            }
+          }
+        }
+      }
+    }
+  }
+
+  func test_previousSpan_before() {
+    withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
+      withLifetimeTracking { tracker in
+        let a = tracker.rigidArray(layout: layout)
+        let whole = a.span
+        withEvery("i", in: 0 ... layout.count) { i in
+          var j = i
+          let first = a.previousSpan(before: &j)
+          expectEqual(j, 0)
+          expectTrue(first.isIdentical(to: whole.extracting(0 ..< i)))
+          let second = a.previousSpan(before: &j)
+          expectEqual(j, 0)
+          expectTrue(second.isEmpty)
+        }
+      }
+    }
+  }
+
+  func test_previousSpan_before_maxCount() {
+    withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
+      withLifetimeTracking { tracker in
+        let a = tracker.rigidArray(layout: layout)
+        let whole = a.span
+        withEvery("i", in: 0 ... layout.count) { i in
+          withEvery(
+            "maxCount",
+            in: ([1, 2, layout.count / 2, layout.count, Int.max] as Set).filter { $0 > 0 }
+          ) { maxCount in
+            let expected = Swift.max(0, i - maxCount)
+
+            var j = i
+            let span = a.previousSpan(before: &j, maxCount: maxCount)
+            expectEqual(j, expected)
+            expectTrue(span.isIdentical(to: whole.extracting(expected ..< i)))
+          }
+        }
+      }
+    }
+  }
+
+#if compiler(>=6.4) && UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
+  func test_previousSpan_before_maxCount_limitedBy() {
+    withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
+      withLifetimeTracking { tracker in
+        let a = tracker.rigidArray(layout: layout)
+        let whole = a.span
+        withEvery("i", in: 0 ... layout.count) { i in
+          withEvery(
+            "maxCount",
+            in: ([1, 2, layout.count / 2, layout.count, Int.max] as Set).filter { $0 > 0 }
+          ) { maxCount in
+            withEvery("limit", in: 0 ... layout.count) { limit in
+              var expected = Swift.max(0, i - maxCount)
+              if limit <= i {
+                expected = Swift.max(limit, expected)
+              }
+
+              var j = i
+              let span = a.previousSpan(before: &j, maxCount: maxCount, limitedBy: limit)
+              expectEqual(j, expected)
+              if expected == i {
+                expectTrue(span.isEmpty)
+              } else {
+                expectTrue(span.isIdentical(to: whole.extracting(expected ..< i)))
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+#endif
 
   func test_nextMutableSpan() {
-    // RigidArray is expected to have exactly one span.
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withLifetimeTracking { tracker in
         var a = tracker.rigidArray(layout: layout)
         var i = 0
-        var span = a.mutableSpan(after: &i)
+        var span = a.nextMutableSpan(after: &i)
         expectEqual(i, layout.count)
         expectEqual(span.count, layout.count)
-        span = a.mutableSpan(after: &i)
+        span = a.nextMutableSpan(after: &i)
         expectEqual(i, layout.count)
         expectTrue(span.isEmpty)
       }

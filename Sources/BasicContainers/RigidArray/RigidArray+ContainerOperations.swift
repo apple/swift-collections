@@ -410,7 +410,9 @@ extension RigidArray where Element: ~Copyable {
     after index: inout Int
   ) -> MutableSpan<Element> {
     _checkValidIndex(index)
-    return _mutableSpan(in: unsafe Range(uncheckedBounds: (index, count)))
+    let start = index
+    index = count
+    return _mutableSpan(in: unsafe Range(uncheckedBounds: (start, count)))
   }
 
   @inlinable
@@ -423,7 +425,9 @@ extension RigidArray where Element: ~Copyable {
     precondition(maxCount > 0, "maxCount must be positive")
     let end = index._clampedUp(
       towards: count, maxDistance: maxCount, limitedBy: limit)
-    return _mutableSpan(in: unsafe Range(uncheckedBounds: (index, end)))
+    let start = index
+    index = end
+    return _mutableSpan(in: unsafe Range(uncheckedBounds: (start, end)))
   }
 
   @_alwaysEmitIntoClient

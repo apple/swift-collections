@@ -19,7 +19,7 @@ extension Strideable {
     assert(self <= boundary)
     assert(maxDistance >= 0)
     let limit = (limit >= self ? Swift.min(limit, boundary) : boundary)
-    if limit.distance(to: self) <= maxDistance {
+    if self.distance(to: limit) <= maxDistance {
       return limit
     }
     return self.advanced(by: maxDistance)
@@ -32,7 +32,7 @@ extension Strideable {
     assert(self >= boundary)
     assert(maxDistance >= 0)
     let limit = (limit <= self ? Swift.max(limit, boundary) : boundary)
-    if self.distance(to: limit) <= maxDistance {
+    if limit.distance(to: self) <= maxDistance {
       return limit
     }
     return self.advanced(by: -maxDistance)
