@@ -673,7 +673,7 @@ extension Deque: RangeReplaceableCollection {
 
   /// Adds the elements of a sequence to the end of the deque.
   ///
-  /// Use this method to append the elements of a sequence to the front of this
+  /// Use this method to append the elements of a sequence to the end of this
   /// deque. This example appends the elements of a `Range<Int>` instance to a
   /// deque of integers.
   ///
@@ -715,7 +715,7 @@ extension Deque: RangeReplaceableCollection {
 
   /// Adds the elements of a collection to the end of the deque.
   ///
-  /// Use this method to append the elements of a collection to the front of
+  /// Use this method to append the elements of a collection to the end of
   /// this deque. This example appends the elements of a `Range<Int>` instance
   /// to a deque of integers.
   ///

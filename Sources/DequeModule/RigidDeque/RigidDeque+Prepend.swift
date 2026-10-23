@@ -318,7 +318,7 @@ extension RigidDeque /*where Element: Copyable*/ {
   /// This example prepends the elements of a `Range<Int>` instance
   /// to a rigid deque of integers.
   ///
-  ///     var numbers = RigidDeque<Int>(capacity: 10)
+  ///     var numbers = RigidDeque<Int>(capacity: 11)
   ///     numbers.append(copying: [1, 2, 3, 4, 5])
   ///     numbers.prepend(copying: 10...15)
   ///     // `numbers` now contains [10, 11, 12, 13, 14, 15, 1, 2, 3, 4, 5]
@@ -354,7 +354,7 @@ extension RigidDeque /*where Element: Copyable*/ {
   /// This example prepends the elements of a `Range<Int>` instance
   /// to a rigid deque of integers.
   ///
-  ///     var numbers = RigidDeque<Int>(capacity: 10)
+  ///     var numbers = RigidDeque<Int>(capacity: 11)
   ///     numbers.append(copying: [1, 2, 3, 4, 5])
   ///     numbers.prepend(copying: 10...15)
   ///     // `numbers` now contains [10, 11, 12, 13, 14, 15, 1, 2, 3, 4, 5]
