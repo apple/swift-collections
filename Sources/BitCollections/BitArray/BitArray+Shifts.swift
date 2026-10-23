@@ -20,12 +20,12 @@ extension BitArray {
   /// places to the right.
   ///
   ///     var bits: BitArray = "1110110"
-  ///     bits.maskingShiftLeft(by: 2)
+  ///     bits.resizingShiftLeft(by: 2)
   ///     // bits is now 111011000
-  ///     bits.maskingShiftLeft(by: -4)
+  ///     bits.resizingShiftLeft(by: -4)
   ///     // bits is now 11101
-  ///     bits.maskingShiftLeft(by: 8)
-  ///     // bits is now 111010000000
+  ///     bits.resizingShiftLeft(by: 8)
+  ///     // bits is now 1110100000000
   public mutating func resizingShiftLeft(by amount: Int) {
     guard amount != 0 else { return }
     if amount > 0 {
@@ -44,11 +44,11 @@ extension BitArray {
   /// then the resulting bit array will be empty.
   ///
   ///     var bits: BitArray = "1110110"
-  ///     bits.maskingShiftRight(by: 2)
+  ///     bits.resizingShiftRight(by: 2)
   ///     // bits is now 11101
-  ///     bits.maskingShiftRight(by: -4)
+  ///     bits.resizingShiftRight(by: -4)
   ///     // bits is now 111010000
-  ///     bits.maskingShiftRight(by: 10)
+  ///     bits.resizingShiftRight(by: 10)
   ///     // bits is now empty
   ///
   /// If `amount` is between 0 and `count`, then this has the same effect as
@@ -75,7 +75,7 @@ extension BitArray {
       return
     }
     self._copy(from: unsafe Range(uncheckedBounds: (amount, count)), to: 0)
-    self._removeLast(count &- amount)
+    self._removeLast(amount)
   }
 }
 
