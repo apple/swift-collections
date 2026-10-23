@@ -1071,6 +1071,28 @@ final class RigidDequeTests: CollectionTestCase {
     }
   }
 
+  func test_prepend_copying_multiSpanSource() {
+    // Regression test for #787: prepend(copying:) used to drop items from
+    // sources that distribute their elements across multiple spans.
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEvery("spanCounts", in: [
+        [1],
+        [2, 2],
+        [1, 3],
+        [3, 1],
+        [1, 1, 2],
+      ] as [[Int]]) { spanCounts in
+        let items = Array(layout.valueRange)
+        let source = StaccatoContainer(
+          contents: Array(items),
+          spanCounts: spanCounts)
+        var deque = UniqueDeque<Int>()
+        deque.prepend(copying: source)
+        expectEqual(Array(deque), items)
+      }
+    }
+  }
+
   func test_append_BridgedArray() {
     // https://github.com/apple/swift-collections/issues/27
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
