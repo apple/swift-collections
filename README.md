@@ -264,6 +264,8 @@ We make an effort to ensure that each new minor package version supports the mos
 
 (Note: the package has no minimum deployment target, so while it does require clients to use a recent Swift toolchain to build it, the code itself is able to run on any OS release that supports running Swift code.)
 
+When deploying standalone macOS executables or frameworks built with Swift 6.2 or later to systems older than macOS 26, you may need to install Swift backdeployment libraries alongside your binaries. In particular, a binary that links to `@rpath/libswiftCompatibilitySpan.dylib` needs that library in a location covered by its runtime search paths. Xcode handles this for app bundles, but standalone binaries need their deployment process to provide it. See the [maintainer's deployment guidance](https://github.com/apple/swift-collections/issues/732#issuecomment-5823499281) for details.
+
 Select features may require a more recent compiler than the minimum specified above. (For example, `RigidArray` only works on Swift 6.2 or better.)
 
 ## Using **Swift Collections** in your project
