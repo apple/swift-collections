@@ -92,7 +92,7 @@ extension Deque {
 
   /// Adds a new element at the front of the deque.
   ///
-  /// Use this method to append a single element to the front of a deque.
+  /// Use this method to prepend a single element to the front of a deque.
   ///
   ///     var numbers: Deque = [1, 2, 3, 4, 5]
   ///     numbers.prepend(100)
