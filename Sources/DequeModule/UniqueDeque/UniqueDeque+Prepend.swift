@@ -270,8 +270,11 @@ extension UniqueDeque /*where Element: Copyable*/ {
   where S.Element == Element {
     var it = items.makeBorrowingIterator()
     return try self.prepend(addingCount: exactCount) { (target) throws(S.Failure) in
-      let span = try it.nextSpan(maxCount: target.freeCapacity)
-      target._append(copying: span)
+      while !target.isFull {
+        let span = try it.nextSpan(maxCount: target.freeCapacity)
+        if span.isEmpty { break }
+        target._append(copying: span)
+      }
     }
   }
 
