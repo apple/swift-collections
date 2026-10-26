@@ -87,5 +87,5 @@ target_sources(${module_name} PRIVATE
   "OrderedSet/OrderedSet+UnorderedView.swift"
   "OrderedSet/OrderedSet+UnstableInternals.swift"
   "OrderedSet/OrderedSet.swift"
-  "Utilities/_UnsafeBitset.swift"
+  "Utilities/UnsafeBitset.swift"
   )
