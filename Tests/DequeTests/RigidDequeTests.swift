@@ -541,7 +541,7 @@ final class RigidDequeTests: CollectionTestCase {
   @available(SwiftStdlib 6.4, *)
   func test_nextSpan_after() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
-      let d = RigidDeque(layout: layout, contents: layout.valueRange)
+      let d = RigidDeque(layout: layout)
       withEvery("i", in: 0 ... layout.count) { i in
         var expected = layout.count
         if let w = layout.wrapIndex, i < w {
@@ -562,7 +562,7 @@ final class RigidDequeTests: CollectionTestCase {
   @available(SwiftStdlib 6.4, *)
   func test_nextSpan_after_maxCount() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
-      let d = RigidDeque(layout: layout, contents: layout.valueRange)
+      let d = RigidDeque(layout: layout)
       withEvery("i", in: 0 ... layout.count) { i in
         withEvery(
           "maxCount",
@@ -589,7 +589,7 @@ final class RigidDequeTests: CollectionTestCase {
   @available(SwiftStdlib 6.4, *)
   func test_nextSpan_after_maxCount_limitedBy() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
-      let d = RigidDeque(layout: layout, contents: layout.valueRange)
+      let d = RigidDeque(layout: layout)
       withEvery("i", in: 0 ... layout.count) { i in
         withEvery(
           "maxCount",
@@ -620,7 +620,7 @@ final class RigidDequeTests: CollectionTestCase {
   @available(SwiftStdlib 6.4, *)
   func test_spanBoundary_before() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
-      let d = RigidDeque(layout: layout, contents: layout.valueRange)
+      let d = RigidDeque(layout: layout)
       withEvery("i", in: 0 ... layout.count) { i in
         let r = d.spanBoundary(before: i)
         expectGreaterThanOrEqual(r.distance, 0)
@@ -639,7 +639,7 @@ final class RigidDequeTests: CollectionTestCase {
   @available(SwiftStdlib 6.4, *)
   func test_spanBoundary_before_maxDistance() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
-      let d = RigidDeque(layout: layout, contents: layout.valueRange)
+      let d = RigidDeque(layout: layout)
       withEvery("i", in: 0 ... layout.count) { i in
         withEvery(
           "maxDistance",
@@ -665,7 +665,7 @@ final class RigidDequeTests: CollectionTestCase {
   @available(SwiftStdlib 6.4, *)
   func test_spanBoundary_before_maxDistance_limitedBy() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
-      let d = RigidDeque(layout: layout, contents: layout.valueRange)
+      let d = RigidDeque(layout: layout)
       withEvery("i", in: 0 ... layout.count) { i in
         withEvery(
           "maxDistance",
@@ -976,7 +976,7 @@ final class RigidDequeTests: CollectionTestCase {
 
 #if compiler(>=6.4) && UnstableContainersPreview
   @available(SwiftStdlib 6.4, *)
-  func test_append_Producer() {
+  func test_append_Producer_full() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5]) { layout in
       withEvery("producerSize", in: 0 ..< layout.freeCapacity) { producerSize in
         withLifetimeTracking { tracker in
@@ -1011,11 +1011,11 @@ final class RigidDequeTests: CollectionTestCase {
 
           var extras = tracker.instances(for: 0 ..< producerSize)
 
-          data.contents.insert(contentsOf: extras.reversed(), at: 0)
+          data.contents.insert(contentsOf: extras, at: 0)
 
           var producer = CustomProducer<LifetimeTracked<Int>, TestError> { offset throws(TestError) in
             guard !extras.isEmpty else { throw TestError(23) }
-            return extras.removeLast()
+            return extras.removeFirst()
           }
           expectThrows { () throws(TestError) in
             try data.deque.prepend(addingCount: layout.freeCapacity, from: &producer)
@@ -1042,11 +1042,11 @@ final class RigidDequeTests: CollectionTestCase {
 
           var extras = tracker.instances(for: 0 ..< producerSize)
 
-          data.contents.append(contentsOf: extras.reversed())
+          data.contents.append(contentsOf: extras)
 
           var producer = CustomProducer<LifetimeTracked<Int>, TestError> { offset throws(TestError) in
             guard !extras.isEmpty else { throw TestError(23) }
-            return extras.removeLast()
+            return extras.removeFirst()
           }
 
           expectThrows { () throws(TestError) in
@@ -1205,51 +1205,59 @@ final class RigidDequeTests: CollectionTestCase {
     }
   }
 
-  func test_prepend_BridgedArray() {
-    // https://github.com/apple/swift-collections/issues/27
+#if compiler(>=6.4) && UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
+  func test_prepend_copying_StaccatoContainer() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
-      withEvery("c", in: 0 ..< layout.freeCapacity) { c in
-        var contents: [NSObject] = (0 ..< layout.count).map { _ in NSObject() }
-        var deque = RigidDeque(layout: layout, contents: contents)
-        guard c <= deque.freeCapacity else { return }
-        let extra: [NSObject] = (0 ..< c)
-          .map { _ in NSObject() }
-          .withUnsafeBufferPointer { buffer in
-            unsafe NSArray(objects: buffer.baseAddress, count: buffer.count) as! [NSObject]
-          }
-        contents.insert(contentsOf: extra, at: 0)
-        deque.prepend(copying: extra)
-        expectRigidDequeContents(
-          deque,
-          equivalentTo: contents,
-          by: ==,
-          printer: { "\($0)" })
-      }
-    }
-  }
+      withEvery("count", in: 0 ... layout.freeCapacity) { count in
+        withEvery("spanCounts", in: [
+          [1],
+          [1, 2, 3],
+          [3, 5, 7],
+          [Int.max],
+        ] as [[Int]]) { spanCounts in
+          var expected = Array(layout.valueRange)
+          expected.insert(contentsOf: layout.count ..< layout.count + count, at: 0)
 
-  func test_append_BridgedArray() {
-    // https://github.com/apple/swift-collections/issues/27
-    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
-      withEvery("c", in: 0 ..< layout.freeCapacity) { c in
-        var contents: [NSObject] = (0 ..< layout.count).map { _ in NSObject() }
-        var deque = RigidDeque(layout: layout, contents: contents)
-        guard c <= deque.freeCapacity else { return }
-        let extra: [NSObject] = (0 ..< c)
-          .map { _ in NSObject() }
-          .withUnsafeBufferPointer { buffer in
-            unsafe NSArray(objects: buffer.baseAddress, count: buffer.count) as! [NSObject]
+          var actual = RigidDeque(layout: layout)
+          let additions = StaccatoContainer(count: count, spanCounts: spanCounts) {
+            layout.count + $0
           }
-        contents.append(contentsOf: extra)
-        deque.append(copying: extra)
-        expectRigidDequeContents(
-          deque,
-          equivalentTo: contents,
-          by: ==,
-          printer: { "\($0)" })
+          actual.prepend(copying: additions)
+
+          expectRigidDequeContents(actual, equalTo: expected)
+        }
       }
     }
   }
+#endif
+
+#if compiler(>=6.4) && UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
+  func test_append_copying_StaccatoContainer() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEvery("count", in: 0 ... layout.freeCapacity) { count in
+        withEvery("spanCounts", in: [
+          [1],
+          [1, 2, 3],
+          [3, 5, 7],
+          [Int.max],
+        ] as [[Int]]) { spanCounts in
+          var expected = Array(layout.valueRange)
+          expected.append(contentsOf: layout.count ..< layout.count + count)
+
+          var actual = RigidDeque(layout: layout)
+          let additions = StaccatoContainer(count: count, spanCounts: spanCounts) {
+            layout.count + $0
+          }
+          actual.append(copying: additions)
+
+          expectRigidDequeContents(actual, equalTo: expected)
+        }
+      }
+    }
+  }
+#endif
 
   func test_insert() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
@@ -1752,7 +1760,7 @@ final class RigidDequeTests: CollectionTestCase {
   func test_nextMutableSpan_maxCount_limitedBy() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withEvery("maxCount", in: [1, 2, 3, 5, 100]) { maxCount in
-        var deque = RigidDeque(layout: layout, contents: layout.valueRange)
+        var deque = RigidDeque(layout: layout)
         var index = deque.startIndex
         var totalSeen = 0
         while index < deque.endIndex {

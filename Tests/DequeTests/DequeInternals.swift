@@ -52,52 +52,10 @@ internal struct UniqueTestData<Element>: ~Copyable {
   }
 }
 
-internal struct DequeLayout: Hashable, CustomStringConvertible {
-  let capacity: Int
-  let startSlot: Int
-  let count: Int
-  let startValue: Int
-
-  init(capacity: Int, startSlot: Int, count: Int, startValue: Int = 0) {
-    self.capacity = capacity
-    self.startSlot = startSlot
-    self.count = count
-    self.startValue = startValue
-  }
-
-  var freeCapacity: Int { capacity - count }
-  var valueRange: Range<Int> { startValue ..< startValue + count }
-
-  var description: String {
-    var result = "DequeLayout(capacity: \(capacity), startSlot: \(startSlot), count: \(count)"
-    if count > 0 {
-      result += ", startValue: \(startValue)"
-    }
-    result += ")"
-    return result
-  }
-
-  var isWrapped: Bool {
-    startSlot + count > capacity
-  }
-
-  var wrapIndex: Int? {
-    isWrapped ? capacity - startSlot : nil
-  }
-}
-
 extension Deque {
   init<C: Collection>(layout: DequeLayout, contents: C) where C.Element == Element {
     precondition(contents.count == layout.count)
     self.init(_capacity: layout.capacity, startSlot: layout.startSlot, contents: Array(contents))
-  }
-}
-
-@available(SwiftStdlib 5.0, *)
-extension RigidDeque {
-  init<C: Collection>(layout: DequeLayout, contents: C) where C.Element == Element {
-    precondition(contents.count == layout.count)
-    self.init(_capacity: layout.capacity, startSlot: layout.startSlot, copying: contents)
   }
 }
 
@@ -115,7 +73,8 @@ extension LifetimeTracker {
     with layout: DequeLayout
   ) -> RigidTestData<LifetimeTracked<Int>> {
     let contents = self.instances(for: layout.valueRange)
-    let deque = RigidDeque(layout: layout, contents: contents)
+    var it = contents.makeIterator()
+    let deque = RigidDeque(layout: layout) { _ in it.next()! }
     return RigidTestData(deque, contents)
   }
 
@@ -124,31 +83,8 @@ extension LifetimeTracker {
     with layout: DequeLayout
   ) -> UniqueTestData<LifetimeTracked<Int>> {
     let contents = self.instances(for: layout.valueRange)
-    let deque = RigidDeque(layout: layout, contents: contents)
+    var it = contents.makeIterator()
+    let deque = RigidDeque(layout: layout) { _ in it.next()! }
     return UniqueTestData(deque, contents)
-  }
-}
-
-func withEveryDeque<C: Collection>(
-  _ label: String,
-  ofCapacities capacities: C,
-  startValue: Int = 0,
-  file: StaticString = #filePath, line: UInt = #line,
-  _ body: (DequeLayout) throws -> Void
-) rethrows -> Void where C.Element == Int {
-  // Exhaustive tests for all deque layouts of various capacities
-  for capacity in capacities {
-    for startSlot in 0 ..< capacity {
-      for count in 0 ... capacity {
-        let layout = DequeLayout(
-          capacity: capacity,
-          startSlot: startSlot,
-          count: count,
-          startValue: startValue)
-        let entry = TestContext.current.push("\(label): \(layout)", file: file, line: line)
-        defer { TestContext.current.pop(entry) }
-        try body(layout)
-      }
-    }
   }
 }

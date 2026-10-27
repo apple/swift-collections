@@ -219,6 +219,7 @@ let targets: [CustomTarget] = [
       "InternalCollectionsUtilities",
       "ContainersPreview",
       "BasicContainers",
+      "DequeModule",
       "SpanPreview",
     ]),
   .target(

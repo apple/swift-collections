@@ -1336,8 +1336,11 @@ class RigidArrayTests: CollectionTestCase {
 
             var a = tracker.rigidArray(layout: layout)
             let rigidAddition = StaccatoContainer(
-              contents: tracker.instances(for: addition),
-              spanCounts: [spanCount])
+              count: addition.count,
+              spanCounts: [spanCount]
+            ) {
+              tracker.instance(for: addition[$0])
+            }
             a.insert(copying: rigidAddition, at: i)
 
             expectRigidArrayContents(
@@ -1571,8 +1574,11 @@ class RigidArrayTests: CollectionTestCase {
 
               var a = tracker.rigidArray(layout: layout)
               let trackedAddition = StaccatoContainer(
-                contents: RigidArray(copying: addition.map { tracker.instance(for: $0) }),
-                spanCounts: [spanCount])
+                count: addition.count,
+                spanCounts: [spanCount]
+              ) {
+                tracker.instance(for: addition[$0])
+              }
               a.replaceSubrange(range, copying: trackedAddition)
 
               expectRigidArrayContents(
