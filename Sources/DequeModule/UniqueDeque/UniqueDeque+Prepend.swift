@@ -362,6 +362,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   ///     invocations on the same deque.
   @inlinable
   @_alwaysEmitIntoClient
+  @discardableResult
   public mutating func prepend(
     copying items: some Collection<Element>
   ) -> Range<Int> {

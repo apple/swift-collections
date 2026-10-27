@@ -270,4 +270,505 @@ final class UniqueDequeTests: CollectionTestCase {
     }
     expectEqualElements(actualCapacities.sorted(), expectedCapacities)
   }
+
+  func test_prepend() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withLifetimeTracking { tracker in
+        var data = tracker.uniqueDeque(with: layout)
+        let extra = tracker.instance(for: layout.count)
+        data.contents.insert(extra, at: 0)
+        data.deque.prepend(extra)
+        expectUniqueDequeContents(data.deque, equalTo: data.contents)
+      }
+    }
+  }
+
+  func test_append() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withLifetimeTracking { tracker in
+        var data = tracker.uniqueDeque(with: layout)
+        let extra = tracker.instance(for: layout.count)
+        data.contents.append(extra)
+        data.deque.append(extra)
+        expectUniqueDequeContents(data.deque, equalTo: data.contents)
+      }
+    }
+  }
+
+  func test_prepend_initializingWith_full() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEvery("prependCount", in: 0 ..< layout.freeCapacity) { prependCount in
+        withLifetimeTracking { tracker in
+          var data = tracker.uniqueDeque(with: layout)
+
+          let extras = tracker.instances(for: layout.count ..< layout.count + prependCount)
+
+          data.contents.insert(contentsOf: extras, at: 0)
+
+          var i = 0
+          data.deque.prepend(addingCount: prependCount) { target in
+            while !target.isFull {
+              target.append(extras[i])
+              i += 1
+            }
+          }
+
+          expectUniqueDequeContents(data.deque, equalTo: data.contents)
+        }
+      }
+    }
+  }
+
+  func test_append_initializingWith_full() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEvery("prependCount", in: 0 ..< layout.freeCapacity) { prependCount in
+        withLifetimeTracking { tracker in
+          var data = tracker.uniqueDeque(with: layout)
+
+          let extras = tracker.instances(for: layout.count ..< layout.count + prependCount)
+
+          data.contents.append(contentsOf: extras)
+
+          var i = 0
+          data.deque.append(addingCount: prependCount) { target in
+            while !target.isFull {
+              target.append(extras[i])
+              i += 1
+            }
+          }
+
+          expectUniqueDequeContents(data.deque, equalTo: data.contents)
+        }
+      }
+    }
+  }
+
+  func test_prepend_initializingWith_partial() {
+    withEveryDeque("layout", ofCapacities: [1, 2, 3, 5, 10]) { layout in
+      withEvery("prependCount", in: 0 ..< layout.freeCapacity) { prependCount in
+        withLifetimeTracking { tracker in
+          var data = tracker.uniqueDeque(with: layout)
+
+          let extras = tracker.instances(for: layout.count ..< layout.count + prependCount)
+
+          data.contents.insert(contentsOf: extras, at: 0)
+
+          var i = 0
+          data.deque.prepend(addingCount: layout.freeCapacity) { target in
+            while !target.isFull, i < prependCount {
+              target.append(extras[i])
+              i += 1
+            }
+          }
+          expectEqual(i, extras.count)
+          expectUniqueDequeContents(data.deque, equalTo: data.contents)
+        }
+      }
+    }
+  }
+
+  func test_append_initializingWith_partial() {
+    withEveryDeque("layout", ofCapacities: [1, 2, 3, 5, 10]) { layout in
+      withEvery("prependCount", in: 0 ..< layout.freeCapacity) { prependCount in
+        withLifetimeTracking { tracker in
+          var data = tracker.uniqueDeque(with: layout)
+
+          let extras = tracker.instances(for: layout.count ..< layout.count + prependCount)
+
+          data.contents.append(contentsOf: extras)
+
+          var i = 0
+          data.deque.append(addingCount: layout.freeCapacity) { target in
+            while !target.isFull, i < prependCount {
+              target.append(extras[i])
+              i += 1
+            }
+          }
+          expectEqual(i, extras.count)
+          expectUniqueDequeContents(data.deque, equalTo: data.contents)
+        }
+      }
+    }
+  }
+
+  func test_prepend_initializingWith_failing() {
+    withEveryDeque("layout", ofCapacities: [1, 2, 3, 5, 10]) { layout in
+      if layout.freeCapacity == 0 { return }
+      withEvery("prependCount", in: 0 ..< layout.freeCapacity) { prependCount in
+        withLifetimeTracking { tracker in
+          var data = tracker.uniqueDeque(with: layout)
+
+          let extras = tracker.instances(for: layout.count ..< layout.count + prependCount)
+
+          data.contents.insert(contentsOf: extras, at: 0)
+
+          expectThrows { () throws(TestError) in
+            var i = 0
+            try data.deque.prepend(
+              addingCount: layout.freeCapacity
+            ) { target throws(TestError) in
+              while !target.isFull, i < prependCount {
+                target.append(extras[i])
+                i += 1
+              }
+              if i == prependCount {
+                throw TestError(42)
+              }
+            }
+          }
+          errorHandler: { error in
+            expectEqual(error.value, 42)
+          }
+          expectUniqueDequeContents(data.deque, equalTo: data.contents)
+        }
+      }
+    }
+  }
+
+
+  func test_append_initializingWith_failing() {
+    withEveryDeque("layout", ofCapacities: [1, 2, 3, 5, 10]) { layout in
+      if layout.freeCapacity == 0 { return }
+      withEvery("prependCount", in: 0 ..< layout.freeCapacity) { prependCount in
+        withLifetimeTracking { tracker in
+          var data = tracker.uniqueDeque(with: layout)
+
+          let extras = tracker.instances(for: layout.count ..< layout.count + prependCount)
+
+          data.contents.append(contentsOf: extras)
+
+          expectThrows { () throws(TestError) in
+            var i = 0
+            try data.deque.append(
+              addingCount: layout.freeCapacity
+            ) { target throws(TestError) in
+              while !target.isFull, i < prependCount {
+                target.append(extras[i])
+                i += 1
+              }
+              if i == prependCount {
+                throw TestError(42)
+              }
+            }
+          }
+          errorHandler: { error in
+            expectEqual(error.value, 42)
+          }
+          expectUniqueDequeContents(data.deque, equalTo: data.contents)
+        }
+      }
+    }
+  }
+
+#if compiler(>=6.4) && UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
+  func test_prepend_Producer_full() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5]) { layout in
+      withEvery("producerSize", in: 0 ..< 6) { producerSize in
+        withLifetimeTracking { tracker in
+          var data = tracker.uniqueDeque(with: layout)
+
+          var extras = tracker.instances(for: 0 ..< producerSize)
+
+          data.contents.insert(contentsOf: extras, at: 0)
+
+          var producer = CustomProducer<LifetimeTracked<Int>, Never> { offset in
+            guard !extras.isEmpty else { return nil }
+            return extras.removeFirst()
+          }
+
+          data.deque.prepend(addingCount: extras.count, from: &producer)
+          expectEqual(extras.count, 0)
+          expectUniqueDequeContents(data.deque, equalTo: data.contents)
+        }
+      }
+    }
+  }
+#endif
+
+#if compiler(>=6.4) && UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
+  func test_append_Producer_full() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5]) { layout in
+      withEvery("producerSize", in: 0 ..< 6) { producerSize in
+        withLifetimeTracking { tracker in
+          var data = tracker.uniqueDeque(with: layout)
+
+          var extras = tracker.instances(for: 0 ..< producerSize)
+
+          data.contents.append(contentsOf: extras)
+
+          var producer = CustomProducer<LifetimeTracked<Int>, Never> { offset in
+            guard !extras.isEmpty else { return nil }
+            return extras.removeFirst()
+          }
+
+          data.deque.append(addingCount: extras.count, from: &producer)
+          expectEqual(extras.count, 0)
+          expectUniqueDequeContents(data.deque, equalTo: data.contents)
+        }
+      }
+    }
+  }
+#endif
+
+#if compiler(>=6.4) && UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
+  func test_prepend_Producer_failing() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5]) { layout in
+      guard layout.freeCapacity > 0 else { return }
+      withEvery("producerSize", in: 0 ..< 6) { producerSize in
+        withLifetimeTracking { tracker in
+          var data = tracker.uniqueDeque(with: layout)
+
+          var extras = tracker.instances(for: 0 ..< producerSize)
+
+          data.contents.insert(contentsOf: extras, at: 0)
+
+          var producer = CustomProducer<LifetimeTracked<Int>, TestError> { offset throws(TestError) in
+            guard !extras.isEmpty else { throw TestError(23) }
+            return extras.removeFirst()
+          }
+          expectThrows { () throws(TestError) in
+            try data.deque.prepend(addingCount: extras.count + 1, from: &producer)
+          }
+          errorHandler: { error in
+            expectEqual(error.value, 23)
+          }
+          expectEqual(extras.count, 0)
+          expectUniqueDequeContents(data.deque, equalTo: data.contents)
+        }
+      }
+    }
+  }
+#endif
+
+#if compiler(>=6.4) && UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
+  func test_append_Producer_failing() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5]) { layout in
+      guard layout.freeCapacity > 0 else { return }
+      withEvery("producerSize", in: 0 ..< 6) { producerSize in
+        withLifetimeTracking { tracker in
+          var data = tracker.uniqueDeque(with: layout)
+
+          var extras = tracker.instances(for: 0 ..< producerSize)
+
+          data.contents.append(contentsOf: extras)
+
+          var producer = CustomProducer<LifetimeTracked<Int>, TestError> { offset throws(TestError) in
+            guard !extras.isEmpty else { throw TestError(23) }
+            return extras.removeFirst()
+          }
+
+          expectThrows { () throws(TestError) in
+            try data.deque.append(addingCount: extras.count + 1, from: &producer)
+          }
+          errorHandler: { error in
+            expectEqual(error.value, 23)
+          }
+          expectEqual(extras.count, 0)
+          expectUniqueDequeContents(data.deque, equalTo: data.contents)
+        }
+      }
+    }
+  }
+#endif
+
+  func test_prepend_MinimalSequence() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEvery("c", in: 0 ..< layout.freeCapacity) { c in
+        withEvery("underestimatedCount", in: [UnderestimatedCountBehavior.precise, .half, .value(min(1, c))]) { underestimatedCount in
+          withLifetimeTracking { tracker in
+            var data = tracker.uniqueDeque(with: layout)
+            let extras = tracker.instances(for: layout.count ..< layout.count + c)
+            let sequence = MinimalSequence(elements: extras, underestimatedCount: underestimatedCount)
+            data.contents.insert(contentsOf: extras, at: 0)
+            data.deque.prepend(copying: sequence)
+            expectUniqueDequeContents(data.deque, equalTo: data.contents)
+          }
+        }
+      }
+    }
+  }
+
+  func test_append_MinimalSequence() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEvery("c", in: 0 ..< layout.freeCapacity) { c in
+        withEvery("underestimatedCount", in: [UnderestimatedCountBehavior.precise, .half, .value(min(1, c))]) { underestimatedCount in
+          withLifetimeTracking { tracker in
+            var data = tracker.uniqueDeque(with: layout)
+            let extras = tracker.instances(for: layout.count ..< layout.count + c)
+            let sequence = MinimalSequence(elements: extras, underestimatedCount: underestimatedCount)
+            data.contents.append(contentsOf: extras)
+            data.deque.append(copying: sequence)
+            expectUniqueDequeContents(data.deque, equalTo: data.contents)
+          }
+        }
+      }
+    }
+  }
+
+  func test_prepend_MinimalCollection() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEvery("c", in: 0 ..< layout.freeCapacity) { c in
+        withLifetimeTracking { tracker in
+          var data = tracker.uniqueDeque(with: layout)
+          let extra = tracker.instances(for: layout.count ..< layout.count + c)
+          let minimal = MinimalCollection(extra)
+          data.contents.insert(contentsOf: extra, at: 0)
+          data.deque.prepend(copying: minimal)
+          expectUniqueDequeContents(data.deque, equalTo: data.contents)
+        }
+      }
+    }
+  }
+
+  func test_append_MinimalCollection() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEvery("c", in: 0 ..< layout.freeCapacity) { c in
+        withLifetimeTracking { tracker in
+          var data = tracker.uniqueDeque(with: layout)
+          let extra = tracker.instances(for: layout.count ..< layout.count + c)
+          let minimal = MinimalCollection(extra)
+          data.contents.append(contentsOf: extra)
+          data.deque.append(copying: minimal)
+          expectUniqueDequeContents(data.deque, equalTo: data.contents)
+        }
+      }
+    }
+  }
+
+  func test_prepend_ContiguousArray_asCollection() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEvery("c", in: 0 ..< layout.freeCapacity) { c in
+        withLifetimeTracking { tracker in
+          var data = tracker.uniqueDeque(with: layout)
+          let extraRange = layout.count ..< layout.count + c
+          let extra = ContiguousArray(tracker.instances(for: extraRange))
+          data.contents.insert(contentsOf: extra, at: 0)
+          data.deque.prepend(copying: extra)
+          expectUniqueDequeContents(data.deque, equalTo: data.contents)
+        }
+      }
+    }
+  }
+
+  func test_append_ContiguousArray_asCollection() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEvery("c", in: 0 ..< layout.freeCapacity) { c in
+        withLifetimeTracking { tracker in
+          var data = tracker.uniqueDeque(with: layout)
+          let extraRange = layout.count ..< layout.count + c
+          let extra = ContiguousArray(tracker.instances(for: extraRange))
+          data.contents.append(contentsOf: extra)
+          data.deque.append(copying: extra)
+          expectUniqueDequeContents(data.deque, equalTo: data.contents)
+        }
+      }
+    }
+  }
+
+  func test_prepend_ContiguousArray_asSequence() {
+    // This calls the Sequence-based `Deque.prepend` overload, even if
+    // `elements` happens to be of a Collection type.
+    func prependSequence<S: Sequence>(
+      contentsOf elements: S,
+      to deque: inout UniqueDeque<S.Element>
+    ) {
+      deque.prepend(copying: elements)
+    }
+
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEvery("c", in: 0 ..< layout.freeCapacity) { c in
+        withLifetimeTracking { tracker in
+          var data = tracker.uniqueDeque(with: layout)
+          let extraRange = layout.count ..< layout.count + c
+          let extra = ContiguousArray(tracker.instances(for: extraRange))
+          data.contents.insert(contentsOf: extra, at: 0)
+          prependSequence(contentsOf: extra, to: &data.deque)
+          expectUniqueDequeContents(data.deque, equalTo: data.contents)
+        }
+      }
+    }
+  }
+
+  func test_append_ContiguousArray_asSequence() {
+    // This calls the Sequence-based `Deque.append` overload, even if
+    // `elements` happens to be of a Collection type.
+    func appendSequence<S: Sequence>(
+      contentsOf elements: S,
+      to deque: inout UniqueDeque<S.Element>
+    ) {
+      deque.append(copying: elements)
+    }
+
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEvery("c", in: 0 ..< layout.freeCapacity) { c in
+        withLifetimeTracking { tracker in
+          var data = tracker.uniqueDeque(with: layout)
+          let extraRange = layout.count ..< layout.count + c
+          let extra = ContiguousArray(tracker.instances(for: extraRange))
+          data.contents.append(contentsOf: extra)
+          appendSequence(contentsOf: extra, to: &data.deque)
+          expectUniqueDequeContents(data.deque, equalTo: data.contents)
+        }
+      }
+    }
+  }
+
+#if compiler(>=6.4) && UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
+  func test_prepend_copying_StaccatoContainer() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEvery("count", in: 0 ... 15) { count in
+        withEvery("spanCounts", in: [
+          [1],
+          [1, 2, 3],
+          [3, 5, 7],
+          [Int.max],
+        ] as [[Int]]) { spanCounts in
+          var expected = Array(layout.valueRange)
+          expected.insert(contentsOf: layout.count ..< layout.count + count, at: 0)
+
+          var actual = UniqueDeque(layout: layout)
+          let additions = StaccatoContainer(count: count, spanCounts: spanCounts) {
+            layout.count + $0
+          }
+          actual.prepend(copying: additions)
+
+          expectUniqueDequeContents(actual, equalTo: expected)
+        }
+      }
+    }
+  }
+#endif
+
+#if compiler(>=6.4) && UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
+  func test_append_copying_StaccatoContainer() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEvery("count", in: 0 ... 15) { count in
+        withEvery("spanCounts", in: [
+          [1],
+          [1, 2, 3],
+          [3, 5, 7],
+          [Int.max],
+        ] as [[Int]]) { spanCounts in
+          var expected = Array(layout.valueRange)
+          expected.append(contentsOf: layout.count ..< layout.count + count)
+
+          var actual = UniqueDeque(layout: layout)
+          let additions = StaccatoContainer(count: count, spanCounts: spanCounts) {
+            layout.count + $0
+          }
+          actual.append(copying: additions)
+
+          expectUniqueDequeContents(actual, equalTo: expected)
+        }
+      }
+    }
+  }
+#endif
+
 }

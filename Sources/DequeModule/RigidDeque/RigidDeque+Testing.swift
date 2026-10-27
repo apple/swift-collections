@@ -33,7 +33,7 @@ extension RigidDeque where Element: ~Copyable {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension RigidDeque {
+extension RigidDeque where Element: ~Copyable {
   /// Constructs a deque instance of the specified contents and layout. Exposed
   /// as public to allow exhaustive input/output tests for `RigidDeque` members.
   ///
@@ -43,15 +43,12 @@ extension RigidDeque {
   package init(
     _capacity capacity: Int,
     startSlot: Int,
-    copying contents: some Sequence<Element>
+    initializingWith initializer: (inout OutputSpan<Element>) -> Void
   ) {
-    let contents = Array(contents)
-
     self.init(capacity: capacity)
     unsafe _handle._startSlot = _handle.slot(_handle.startSlot, offsetBy: startSlot)
-    self.append(copying: contents)
+    self.append(addingCount: capacity, initializingWith: initializer)
     assert(self.capacity == capacity)
     assert(self._startSlot == startSlot)
-    assert(self.count == contents.count)
   }
 }

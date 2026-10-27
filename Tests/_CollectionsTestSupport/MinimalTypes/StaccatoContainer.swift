@@ -22,29 +22,40 @@ import ContainersPreview
 #if compiler(>=6.4) && UnstableContainersPreview
 /// A container type with user-defined contents and storage chunks.
 /// Useful for testing.
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 public struct StaccatoContainer<Element: ~Copyable>: ~Copyable {
-  internal let _contents: RigidArray<Element>
+  internal let _contents: UniqueArray<Element>
   internal let _params: _StaccatoParameters
 
-  public init(contents: consuming RigidArray<Element>, spanCounts: [Int]) {
-    // FIXME: Make this take an arbitrary consumable container
+  public init(
+    count: Int,
+    spanCounts: [Int],
+    generator: (Int) -> Element
+  ) {
+    var contents = UniqueArray<Element>()
+    while contents.count < count {
+      contents.append(generator(contents.count))
+    }
     self._contents = contents
     self._params = _StaccatoParameters(
       count: _contents.count, spanCounts: spanCounts)
   }
-}
 
-@available(SwiftStdlib 5.0, *)
-extension StaccatoContainer {
-  public init(contents: Array<Element>, spanCounts: [Int]) {
-    self._contents = RigidArray(copying: contents)
+  public init<
+    Source: Producer & ~Copyable & ~Escapable
+  >(
+    spanCounts: [Int],
+    contents: consuming Source
+  ) throws(Source.Failure)
+  where Source.Element: ~Copyable, Element == Source.Element
+  {
+    self._contents = try UniqueArray(from: contents)
     self._params = _StaccatoParameters(
       count: _contents.count, spanCounts: spanCounts)
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 package struct _StaccatoParameters {
   internal let _count: Int
   internal let _spanCounts: [Int]
@@ -76,7 +87,7 @@ package struct _StaccatoParameters {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 public struct _StaccatoBorrowingIterator<Element: ~Copyable>: BorrowingIteratorProtocol, ~Escapable {
   internal let _contents: Span<Element>
   internal let _params: _StaccatoParameters
@@ -112,7 +123,7 @@ public struct _StaccatoBorrowingIterator<Element: ~Copyable>: BorrowingIteratorP
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 public struct _StaccatoIndex: Comparable, Hashable{
   var _offset: Int
   init(_offset: Int) {
@@ -132,7 +143,7 @@ public struct _StaccatoIndex: Comparable, Hashable{
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension StaccatoContainer: Iterable where Element: ~Copyable {
   public typealias BorrowingIterator = _StaccatoBorrowingIterator<Element> // FIXME rdar://150240032
   
@@ -143,7 +154,7 @@ extension StaccatoContainer: Iterable where Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension StaccatoContainer: Container where Element: ~Copyable {
   public typealias Index = _StaccatoIndex
 
