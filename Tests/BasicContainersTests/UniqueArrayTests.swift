@@ -87,6 +87,15 @@ class UniqueArrayTests: CollectionTestCase {
       }
     }
   }
+
+  @available(SwiftStdlib 6.4, *)
+  func test_validate_DrainableContainer() {
+    withSomeArrayLayouts("layout", ofCapacities: [0, 1, 3, 6]) { layout in
+      checkDrainableContainer(count: layout.count) { contents in
+        UniqueArray(layout: layout) { contents[$0] }
+      }
+    }
+  }
 #endif
 
   func test_basics() {
