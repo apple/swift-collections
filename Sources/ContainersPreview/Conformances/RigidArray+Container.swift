@@ -169,7 +169,10 @@ extension RigidArray: RangeReplaceableContainer where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_lifetime(&self)
   public mutating func _customConsumeLast(_ n: Int) -> SubrangeConsumer? {
-    self.consumeLast(n)
+    precondition(
+      n >= 0 && n <= self.count,
+      "Count of elements to consume is out of bounds")
+    return self.consumeSubrange(self.count &- n ..< self.count)
   }
 
   @_alwaysEmitIntoClient
