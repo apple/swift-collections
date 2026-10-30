@@ -329,7 +329,7 @@ extension OrderedDictionary {
   ///
   ///     hues["Aquamarine"] = nil
   ///     print(hues)
-  ///     // Prints "["Coral": 18, "Heliotrope": 296, "Cerise": 330]"
+  ///     // Prints "["Heliotrope": 296, "Coral": 18, "Cerise": 330]"
   ///
   /// - Parameter key: The key to find in the dictionary.
   ///
@@ -601,11 +601,11 @@ extension OrderedDictionary {
   ///         "Heliotrope": 296,
   ///         "Coral": 16,
   ///         "Aquamarine": 156]
-  ///     let newIndex = hues.startIndex
+  ///     let newIndex = hues.elements.startIndex
   ///     let (old, index) =
   ///         hues.updateValue(18, forKey: "Coral", insertingAt: newIndex)
   ///     if let old = old {
-  ///         print("The value '\(old)' at offset \(index.offset) was replaced.")
+  ///         print("The value '\(old)' at offset \(index) was replaced.")
   ///     }
   ///     // Prints "The value '16' at offset 1 was replaced."
   ///
@@ -615,11 +615,11 @@ extension OrderedDictionary {
   ///     let (old, index) =
   ///         hues.updateValue(330, forKey: "Cerise", insertingAt: newIndex)
   ///     if let old = old {
-  ///         print("The value '\(old)' at offset \(index.offset) was replaced.")
+  ///         print("The value '\(old)' at offset \(index) was replaced.")
   ///     } else {
-  ///         print("A new value was inserted at offset \(index.offset).")
+  ///         print("A new value was inserted at offset \(index).")
   ///     }
-  ///     // Prints "A new value was inserted at offset 0.")
+  ///     // Prints "A new value was inserted at offset 0."
   ///
   /// - Parameters:
   ///   - value: The new value to add to the dictionary.
