@@ -344,12 +344,12 @@ extension BitArray {
   /// the `index` parameter, then the new element is appended to the
   /// collection.
   ///
-  ///     var bits = [false, true, true, false, true]
+  ///     var bits: BitArray = [false, true, true, false, true]
   ///     bits.insert(true, at: 3)
-  ///     bits.insert(false, at: numbers.endIndex)
+  ///     bits.insert(false, at: bits.endIndex)
   ///
   ///     print(bits)
-  ///     // Prints "[false, true, true, true, false, true, false]"
+  ///     // Prints "<0101110>"
   ///
   /// - Parameter newElement: The new element to insert into the bit array.
   /// - Parameter i: The position at which to insert the new element.
