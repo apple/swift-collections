@@ -146,6 +146,15 @@ final class RigidDequeTests: CollectionTestCase {
   }
 
   @available(SwiftStdlib 6.4, *)
+  func test_validate_DrainableContainer() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5]) { layout in
+      checkDrainableContainer(count: layout.count) { contents in
+        RigidDeque(layout: layout) { contents[$0] }
+      }
+    }
+  }
+
+  @available(SwiftStdlib 6.4, *)
   func test_validate_MutableContainer() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withLifetimeTracking { tracker in
