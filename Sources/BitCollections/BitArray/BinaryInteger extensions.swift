@@ -23,7 +23,9 @@ extension BitArray {
     value: T,
     isNegative: Bool
   ) {
-    var value: T = .zero
+    // Negative values start out with all bits set, so that they remain sign
+    // extended in types that are wider than the words we shift in.
+    var value: T = T.isSigned && self.last == true ? ~.zero : .zero
     let isNegative = self._foreachTwosComplementWordDownward(
       isSigned: T.isSigned
     ) { _, word in
@@ -62,7 +64,7 @@ extension BitArray {
   package func _convertForced<T: BinaryInteger>(to type: T.Type) -> T {
     guard let value = _convertExactly(to: T.self) else {
       fatalError("""
-        BitArray value cannot be converted to \(Self.self) because it is \
+        BitArray value cannot be converted to \(T.self) because it is \
         outside the representable range
         """)
     }
