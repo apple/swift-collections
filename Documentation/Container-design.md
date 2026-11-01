@@ -96,7 +96,7 @@ As of Swift 6.4, we have implemented a small but quickly growing list of useful 
 [Iterable]: https://github.com/swiftlang/swift-evolution/blob/main/proposals/0516-borrowing-sequence.md
 [RefAndMutableRef]: https://github.com/swiftlang/swift-evolution/blob/main/proposals/0519-ref-mutableref-types.md
 [UniqueArray]: https://github.com/swiftlang/swift-evolution/blob/main/proposals/0527-rigidarray-uniquearray.md
-[InputSpan]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Types/InputSpan.swift
+[InputSpan]: https://github.com/apple/swift-collections/blob/main/Sources/SpanPreview/InputSpan.swift
 [RigidArray]: https://swiftpackageindex.com/apple/swift-collections/main/documentation/basiccontainers/rigidarray
 [RigidSet]: https://github.com/apple/swift-collections/tree/main/Sources/BasicContainers/RigidSet
 [UniqueSet]: https://github.com/apple/swift-collections/tree/main/Sources/BasicContainers/UniqueSet

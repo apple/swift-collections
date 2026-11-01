@@ -154,11 +154,13 @@ This trait enables the following types in the [`ContainersPreview`][ContainersPr
 - [`protocol RangeReplaceableContainer<Element>`][RangeReplaceableContainer] models a (potentially fixed capacity) container with insert/append/replace operations.
 - [`protocol DynamicContainer<Element>`][DynamicContainer] refines `RangeReplaceableContainer` to add operations that require dynamic storage sizing.
 - [`protocol Producer<Element, Failure>`][Producer] models a generative iterator -- an abstraction for producing items on demand.
-- [`protocol CountedProducer<Element, Failure>`][Producer] refines `Producer` to add a precise count of remaining elements.
+- [`protocol CountedProducer<Element, Failure>`][CountedProducer] refines `Producer` to add a precise count of remaining elements.
 - [`protocol Drain<Element>`][Drain] refines `CountedProducer` to model a source of in-place consumable elements -- primarily for use around container types.
 - [`protocol ContainerDrain<Element>`][ContainerDrain] refines `Drain` to allow retrieving a valid index after the items have been drained.
 - [`protocol RangeExpression2<Bound>`][RangeExpression2] refines the standard `RangeExpression` to support container subranges.
 
+[SpanPreview]: https://github.com/apple/swift-collections/tree/main/Sources/SpanPreview
+[InputSpan]: https://github.com/apple/swift-collections/blob/main/Sources/SpanPreview/InputSpan.swift
 [Container]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Container/Container.swift
 [BidirectionalContainer]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Container/Container.swift
 [RandomAccessContainer]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Container/RandomAccessContainer.swift
@@ -167,11 +169,11 @@ This trait enables the following types in the [`ContainersPreview`][ContainersPr
 [DrainableContainer]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Container/DrainableContainer.swift
 [RangeReplaceableContainer]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Container/RangeReplaceableContainer.swift
 [DynamicContainer]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Container/DynamicContainer.swift
-[Producer]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Producer.swift
-[CountedProducer]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/CountedProducer.swift
-[Drain]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Drain.swift
-[ContainerDrain]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/ContainerDrain.swift
-[RangeExpression2]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/RangeExpression2.swift
+[Producer]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Producer/Producer.swift
+[CountedProducer]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Producer/CountedProducer.swift
+[Drain]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Drain/Drain.swift
+[ContainerDrain]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Drain/ContainerDrain.swift
+[RangeExpression2]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Container/RangeExpression2.swift
 
 The trait also enables a large list of new APIs throughout the package that make use of these constructs -- such as generic methods for transferring items between container types, and implementations of the classic `map`/`reduce`/`filter`/etc algorithms.
 
