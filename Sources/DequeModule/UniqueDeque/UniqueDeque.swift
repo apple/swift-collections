@@ -113,7 +113,7 @@ public struct UniqueDeque<Element: ~Copyable>: ~Copyable {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension UniqueDeque: @unchecked Sendable where Element: Sendable & ~Copyable {}
+extension UniqueDeque: Sendable where Element: Sendable & ~Copyable {}
 
 @available(SwiftStdlib 5.0, *)
 extension UniqueDeque where Element: ~Copyable {
