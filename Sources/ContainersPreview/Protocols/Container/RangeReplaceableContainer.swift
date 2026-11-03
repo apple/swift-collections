@@ -723,9 +723,12 @@ where
   ) -> Range<Index> {
     let res: Range<Index>? = items.withContiguousStorageIfAvailable { buffer in
       precondition(buffer.count == newCount, "Broken Collection: mismatching count")
-      return self.insert(addingCount: buffer.count, at: index) { target in
-        unsafe target._append(copying: buffer)
+      var buffer = unsafe buffer
+      let res = self.insert(addingCount: newCount, at: index) { target in
+        unsafe target._append(copying: buffer._trim(first: target.freeCapacity))
       }
+      precondition(buffer.count == 0, "Invalid RangeReplaceableContainer")
+      return res
     }
     if let res { return res }
     var it = items.makeIterator()
@@ -866,8 +869,11 @@ where
   @_alwaysEmitIntoClient
   public mutating func append(copying newElements: some Sequence<Element>) {
     let done: Void? = newElements.withContiguousStorageIfAvailable { buffer in
-      unsafe self.append(copying: buffer)
-      return
+      var buffer = unsafe buffer
+      self.append(addingCount: buffer.count) { target in
+        unsafe target._append(copying: buffer._trim(first: target.freeCapacity))
+      }
+      precondition(buffer.count == 0, "Invalid RangeReplaceableContainer")
     }
     if done != nil { return }
 
