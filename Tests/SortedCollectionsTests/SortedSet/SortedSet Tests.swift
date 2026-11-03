@@ -188,6 +188,30 @@ class SortedSetTests: CollectionTestCase {
     }
   }
 
+  func test_repeatedRemoveAtIndex() {
+    // Removing by index has to keep rebalancing the tree, or a leaf eventually
+    // runs out of elements. (https://github.com/apple/swift-collections/issues/809)
+    func pickFirst(_ count: Int) -> Int { 0 }
+    func pickLast(_ count: Int) -> Int { count - 1 }
+    func pickMiddle(_ count: Int) -> Int { count / 2 }
+
+    withEvery("count", in: 0 ..< 60) { count in
+      withEvery("pick", in: [pickFirst, pickLast, pickMiddle]) { pick in
+        var sorted = SortedSet(0 ..< count)
+        var comparisonKeys = Array(0 ..< count)
+
+        while !comparisonKeys.isEmpty {
+          let offset = pick(comparisonKeys.count)
+          let removed = sorted.remove(at: sorted.index(sorted.startIndex, offsetBy: offset))
+
+          expectEqual(removed, comparisonKeys.remove(at: offset))
+          expectEqual(sorted.count, comparisonKeys.count)
+          expectEqualElements(sorted, comparisonKeys)
+        }
+      }
+    }
+  }
+
   func test_CustomStringConvertible() {
     let a: SortedSet<Int> = []
     expectEqual(a.description, "[]")

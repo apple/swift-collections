@@ -117,6 +117,10 @@ extension _Node.UnsafeHandle {
         // Reduce the subtree count.
         unsafe self.subtreeCount -= 1
 
+        // Balance the child slot, as the removal may have brought it out of
+        // balance.
+        unsafe self.balance(atSlot: childSlot)
+
         return element
       } else if offset == endIndex {
         let predecessor = unsafe self[childAt: childSlot].update {

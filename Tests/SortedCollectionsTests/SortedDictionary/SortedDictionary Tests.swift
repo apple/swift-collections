@@ -240,6 +240,33 @@ final class SortedDictionaryTests: CollectionTestCase {
     }
   }
 
+  func test_repeatedRemoveAtIndex() {
+    // Removing by index has to keep rebalancing the tree, or a leaf eventually
+    // runs out of elements. (https://github.com/apple/swift-collections/issues/809)
+    func pickFirst(_ count: Int) -> Int { 0 }
+    func pickLast(_ count: Int) -> Int { count - 1 }
+    func pickMiddle(_ count: Int) -> Int { count / 2 }
+
+    withEvery("count", in: 0 ..< 60) { count in
+      withEvery("pick", in: [pickFirst, pickLast, pickMiddle]) { pick in
+        var sorted = SortedDictionary(keysWithValues: (0 ..< count).map { ($0, $0 * 2) })
+        var comparisonKeys = Array(0 ..< count)
+
+        while !comparisonKeys.isEmpty {
+          let offset = pick(comparisonKeys.count)
+          let removed = sorted.remove(at: sorted.index(sorted.startIndex, offsetBy: offset))
+          let key = comparisonKeys.remove(at: offset)
+
+          expectEqual(removed.key, key)
+          expectEqual(removed.value, key * 2)
+          expectEqual(sorted.count, comparisonKeys.count)
+          expectEqualElements(sorted.map { $0.key }, comparisonKeys)
+          expectEqualElements(sorted.map { $0.value }, comparisonKeys.map { $0 * 2 })
+        }
+      }
+    }
+  }
+
   func test_modifySubscriptRemoval() {
     func modify(_ value: inout Int?, setTo newValue: Int?) {
       value = newValue
