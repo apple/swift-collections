@@ -137,7 +137,7 @@ extension SortedDictionary {
   /// For example, to find the key for a particular value in a sorted dictionary, use
   /// the `firstIndex(where:)` method.
   ///
-  ///     let countryCodes: SortedDictionary<Int, Int> = ["BR": "Brazil", "GH": "Ghana", "JP": "Japan"]
+  ///     let countryCodes: SortedDictionary<String, String> = ["BR": "Brazil", "GH": "Ghana", "JP": "Japan"]
   ///     if let index = countryCodes.firstIndex(where: { $0.value == "Japan" }) {
   ///         print(countryCodes[index])
   ///         print("Japan's country code is '\(countryCodes[index].key)'.")
