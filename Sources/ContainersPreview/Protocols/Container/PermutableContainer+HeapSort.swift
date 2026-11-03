@@ -15,7 +15,7 @@
 @available(SwiftStdlib 6.4, *)
 extension PermutableContainer
 where
-  Self: RandomAccessContainer,
+  Self: RandomAccessContainer & ~Copyable & ~Escapable,
   Element: ~Copyable
 {
   @inlinable
@@ -74,7 +74,7 @@ where
 @available(SwiftStdlib 6.4, *)
 extension PermutableContainer
 where
-  Self: RandomAccessContainer,
+  Self: RandomAccessContainer & ~Copyable & ~Escapable,
   Element: Comparable & ~Copyable
 {
   @export(implementation)

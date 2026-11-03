@@ -15,7 +15,10 @@
 
 @available(SwiftStdlib 6.4, *)
 extension PermutableContainer
-where Self: RandomAccessContainer, Element: ~Copyable {
+where
+  Self: RandomAccessContainer & ~Copyable & ~Escapable,
+  Element: ~Copyable
+{
   /// Shuffles the container in place, using the given generator as a source
   /// for randomness.
   ///

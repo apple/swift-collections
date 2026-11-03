@@ -16,7 +16,7 @@
 @available(SwiftStdlib 6.4, *)
 extension PermutableContainer
 where
-  Self: BidirectionalContainer,
+  Self: BidirectionalContainer & ~Copyable & ~Escapable,
   Element: ~Copyable
 {
   @inlinable
@@ -25,7 +25,9 @@ where
     _ subrange: Range<Index>,
     to insertionPoint: Index
   ) -> Range<Index> {
-    if subrange.contains(insertionPoint) {
+    if
+      subrange.contains(insertionPoint) || insertionPoint == subrange.upperBound
+    {
       return subrange
     }
     let c = self.distance(from: subrange.lowerBound, to: subrange.upperBound)
