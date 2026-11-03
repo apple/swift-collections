@@ -144,6 +144,16 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
+
+  @available(SwiftStdlib 6.4, *)
+  func test_validate_MutableContainer() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withLifetimeTracking { tracker in
+        var data = tracker.rigidDeque(with: layout)
+        checkMutableContainer(&data.deque, expectedContents: data.contents)
+      }
+    }
+  }
 #endif
 
   func test_basicProperties() {
