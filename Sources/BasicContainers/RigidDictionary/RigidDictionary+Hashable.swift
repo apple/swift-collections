@@ -18,11 +18,11 @@ import InternalCollectionsUtilities
 #if compiler(>=6.4) && UnstableHashedContainers
 
 @available(SwiftStdlib 6.4, *)
-extension RigidDictionary: Hashable where Value: Hashable & ~Copyable {
+extension RigidDictionary: Hashable where Key: ~Copyable, Value: Hashable & ~Copyable {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension RigidDictionary where Value: Hashable & ~Copyable {
+extension RigidDictionary where Key: ~Copyable, Value: Hashable & ~Copyable {
   @inlinable
   public func hash(into hasher: inout Hasher) {
     var commutativeHash = 0

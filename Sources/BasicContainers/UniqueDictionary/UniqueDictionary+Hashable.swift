@@ -17,8 +17,11 @@ import InternalCollectionsUtilities
 
 #if compiler(>=6.4) && UnstableHashedContainers
 
+@available(SwiftStdlib 6.4, *)
+extension UniqueDictionary: Hashable where Key: ~Copyable, Value: Hashable & ~Copyable {}
+
 @available(SwiftStdlib 5.0, *)
-extension UniqueDictionary: Hashable where Value: Hashable {
+extension UniqueDictionary where Key: ~Copyable, Value: Hashable & ~Copyable {
   @inlinable
   @inline(__always)
   public func hash(into hasher: inout Hasher) {
