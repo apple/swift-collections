@@ -106,6 +106,8 @@ class RigidArrayTests: CollectionTestCase {
         var items = tracker.rigidArray(layout: layout)
         let expected = (0 ..< layout.count).map { tracker.instance(for: $0) }
         checkPermutableContainer(&items, expectedContents: expected)
+        var span = items.mutableSpan
+        checkPermutableContainer(&span, expectedContents: expected)
       }
     }
   }
