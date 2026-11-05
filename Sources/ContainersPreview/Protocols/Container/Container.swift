@@ -295,6 +295,14 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   public func makeBorrowingIterator(from start: Index) -> BorrowingIterator {
     self.makeBorrowingIterator(from: start, to: self.endIndex)
   }
+
+  @_alwaysEmitIntoClient
+  @_transparent
+  @_lifetime(borrow self)
+  public func makeBorrowingIterator(in subrange: Range<Index>) -> BorrowingIterator {
+    // FIXME: Now that Index is Comparable, this should probably become the protocol requirement.
+    self.makeBorrowingIterator(from: subrange.lowerBound, to: subrange.upperBound)
+  }
 }
 
 @available(SwiftStdlib 6.4, *)

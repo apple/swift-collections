@@ -25,9 +25,10 @@ import InternalCollectionsUtilities
 extension Container where Self: ~Copyable /*& ~Escapable*/, Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
-  public func _filter(
+  public func filter( // FIXME: Ambiguity with Sequence.filter
     _ isIncluded: @escaping (borrowing Element) -> Bool
   ) -> ContainerFilter<Self> {
+    // FIXME: isIncluded should be allowed to throw
     ContainerFilter<Self>(_base: self, isIncluded: isIncluded)
   }
 }
@@ -39,7 +40,12 @@ extension ContainerIterator where Base.Element: ~Copyable {
   public func filter(
     _ isIncluded: @escaping (borrowing Element) -> Bool
   ) -> ContainerFilter<Base> {
-    ContainerFilter<Base>(_base: _base, index: _position, isIncluded: isIncluded)
+    // FIXME: isIncluded should be allowed to throw
+    ContainerFilter<Base>(
+      _base: _base,
+      index: _position,
+      end: _end,
+      isIncluded: isIncluded)
   }
 }
 
@@ -58,6 +64,9 @@ where Base.Element: ~Copyable
   public let _base: Ref<Base> // FIXME: This does not allow escapable Bases
 
   @_alwaysEmitIntoClient
+  public let _end: Base.Index
+
+  @_alwaysEmitIntoClient
   public var _position: Base.Index
 
   @_alwaysEmitIntoClient
@@ -68,11 +77,13 @@ where Base.Element: ~Copyable
   internal init(
     _base: Ref<Base>,
     index: Base.Index,
+    end: Base.Index,
     isIncluded: @escaping (borrowing Element) -> Bool
   ) {
     self._isIncluded = isIncluded
     self._base = _base
     self._position = index
+    self._end = end
     self._remainder = .init()
   }
 
@@ -85,6 +96,7 @@ where Base.Element: ~Copyable
     self._isIncluded = isIncluded
     self._base = Ref(_base)
     self._position = _base.startIndex
+    self._end = _base.endIndex
     self._remainder = .init()
   }
 }
@@ -92,7 +104,34 @@ where Base.Element: ~Copyable
 // FIXME: Sendable
 
 @available(SwiftStdlib 6.4, *)
-extension ContainerFilter: BorrowingIteratorProtocol where Element: ~Copyable {
+extension ContainerFilter: Iterable
+where
+  Base: ~Copyable /* & ~Escapable */,
+  Element: ~Copyable
+{
+  @_lifetime(copy self)
+  package func _clone() -> Self {
+    var copy = ContainerFilter(
+      _base: self._base,
+      index: self._position,
+      end: self._end,
+      isIncluded: self._isIncluded)
+    copy._remainder = self._remainder
+    return copy
+  }
+
+  @_lifetime(borrow self)
+  public func makeBorrowingIterator() -> Self {
+    self._clone()
+  }
+}
+
+@available(SwiftStdlib 6.4, *)
+extension ContainerFilter: BorrowingIteratorProtocol
+where
+  Base: ~Copyable /* & ~Escapable */,
+  Element: ~Copyable
+{
   @_lifetime(&self)
   public mutating func nextSpan(maxCount: Int) -> Span<Element> {
     precondition(maxCount > 0)
@@ -111,7 +150,7 @@ extension ContainerFilter: BorrowingIteratorProtocol where Element: ~Copyable {
         }
         return _remainder._trim(first: i)
       }
-      _remainder = _base.value.nextSpan(after: &_position)
+      _remainder = _base.value.nextSpan(after: &_position, limitedBy: _end)
       if _remainder.isEmpty { return .init() }
     }
   }

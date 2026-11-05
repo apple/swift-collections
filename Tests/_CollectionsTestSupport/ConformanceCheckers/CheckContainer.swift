@@ -491,13 +491,25 @@ public func validateContainer<
 }
 
 @available(SwiftStdlib 6.4, *)
+extension Iterable
+where
+  Self: ~Copyable & ~Escapable,
+  Element: ~Copyable
+{
+  @inlinable
+  package borrowing func _spanCounts() throws(Failure) -> [Int] {
+    try makeBorrowingIterator()._spanCounts()
+  }
+}
+
+@available(SwiftStdlib 6.4, *)
 extension BorrowingIteratorProtocol
 where
   Self: ~Copyable & ~Escapable,
   Element: ~Copyable
 {
   @inlinable
-  internal consuming func _spanCounts() throws(Failure) -> [Int] {
+  package consuming func _spanCounts() throws(Failure) -> [Int] {
     var result: [Int] = []
     var it = consume self
     while true {
@@ -506,6 +518,18 @@ where
       result.append(c)
     }
     return result
+  }
+}
+
+@available(SwiftStdlib 6.4, *)
+extension BorrowingIteratorProtocol
+where
+  Self: Iterable & ~Copyable & ~Escapable,
+  Element: ~Copyable
+{
+  @inlinable
+  package borrowing func _spanCounts() throws(Failure) -> [Int] {
+    try makeBorrowingIterator()._spanCounts()
   }
 }
 

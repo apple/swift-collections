@@ -24,6 +24,7 @@ import InternalCollectionsUtilities
 @available(SwiftStdlib 5.0, *)
 extension Producer where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   @_lifetime(copy self)
+  @inlinable
   public consuming func filter(
     // Note: The predicate is not throwing to avoid difficult exception safety problems
     _ isIncluded: @escaping (borrowing Element) -> Bool
@@ -42,6 +43,7 @@ where Base.Element: ~Copyable {
 
   @_alwaysEmitIntoClient
   public var _base: Base
+
   @_alwaysEmitIntoClient
   public let _isIncluded: (borrowing Element) -> Bool
 

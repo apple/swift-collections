@@ -23,13 +23,14 @@ where
   @_lifetime(copy self)
   public consuming func filter(
     _ isIncluded: @escaping (borrowing Element) -> Bool
-  ) -> BorrowingFilter<Self> {
-    BorrowingFilter(_base: self, isIncluded: isIncluded)
+  ) -> BorrowingFilterIterator<Self> {
+    // FIXME: isIncluded should be allowed to throw
+    BorrowingFilterIterator(_base: self, isIncluded: isIncluded)
   }
 }
 
 @available(SwiftStdlib 6.4, *)
-public struct BorrowingFilter<
+public struct BorrowingFilterIterator<
   Base: BorrowingIteratorProtocol & ~Copyable & ~Escapable
 >: ~Copyable, ~Escapable
 where Base.Element: ~Copyable {
@@ -37,7 +38,7 @@ where Base.Element: ~Copyable {
   public typealias Failure = Base.Failure
 
   @_alwaysEmitIntoClient
-  public let _isIncluded: (borrowing Element) throws(Failure) -> Bool
+  public let _isIncluded: (borrowing Element) -> Bool
 
   @_alwaysEmitIntoClient
   public var _base: Base
@@ -56,8 +57,9 @@ where Base.Element: ~Copyable {
 // FIXME: Sendable
 
 @available(SwiftStdlib 6.4, *)
-extension BorrowingFilter: BorrowingIteratorProtocol
+extension BorrowingFilterIterator: BorrowingIteratorProtocol
 where Base: ~Copyable & ~Escapable, Base.Element: ~Copyable {
+  @inlinable
   @_lifetime(&self)
   public mutating func nextSpan(maxCount: Int) throws(Failure) -> Span<Element> {
     // FIXME: This is quite inefficient compared to Container's filter
@@ -65,7 +67,7 @@ where Base: ~Copyable & ~Escapable, Base.Element: ~Copyable {
       let span = try _base.nextSpan(maxCount: 1)
       if span.isEmpty { return span }
       precondition(span.count == 1, "Invalid BorrowingIterator")
-      if unsafe try _isIncluded(span[unchecked: 0]) { return span }
+      if unsafe _isIncluded(span[unchecked: 0]) { return span }
     }
   }
 }

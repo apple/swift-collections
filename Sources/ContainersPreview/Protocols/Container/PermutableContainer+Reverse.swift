@@ -15,7 +15,9 @@
 
 @available(SwiftStdlib 6.4, *)
 extension PermutableContainer
-where Self: BidirectionalContainer, Element: ~Copyable
+where
+  Self: BidirectionalContainer & ~Copyable & ~Escapable,
+  Element: ~Copyable
 {
   @inlinable
   public mutating func reverse() {
@@ -33,7 +35,7 @@ where Self: BidirectionalContainer, Element: ~Copyable
 @available(SwiftStdlib 6.4, *)
 extension PermutableContainer
 where
-  Self: BidirectionalContainer,
+  Self: BidirectionalContainer & ~Copyable & ~Escapable,
   Element: ~Copyable
 {
   @inlinable
