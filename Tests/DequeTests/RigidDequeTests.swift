@@ -206,6 +206,25 @@ final class RigidDequeTests: CollectionTestCase {
     }
   }
 
+  @available(SwiftStdlib 6.4, *)
+  func test_iteration() {
+    func underestimatedCount<T: Iterable & ~Copyable>(of items: borrowing T) -> Int {
+      items.underestimatedCount
+    }
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withLifetimeTracking { tracker in
+        let data = tracker.rigidDeque(with: layout)
+        expectEqual(underestimatedCount(of: data.deque), layout.count)
+        var i = 0
+        for item in data.deque {
+          expectEqual(item, data.contents[i])
+          i += 1
+        }
+        expectEqual(i, layout.count)
+      }
+    }
+  }
+
   func test_subscriptMutate() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withEvery("i", in: 0 ..< layout.count) { i in

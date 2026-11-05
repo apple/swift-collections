@@ -80,6 +80,9 @@ extension RigidDeque: Iterable where Element: ~Copyable {
     }
   }
 
+  @inlinable
+  public var underestimatedCount: Int { count }
+
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
   public borrowing func makeBorrowingIterator() -> BorrowingIterator {
