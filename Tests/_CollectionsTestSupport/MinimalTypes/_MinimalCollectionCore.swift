@@ -319,7 +319,7 @@ extension _MinimalCollectionCore {
       "Cannot remove last element of an empty collection",
       trapping: true)
     ensureUniqueState()
-    state.remove(count: 1, at: state.count)
+    state.remove(count: 1, at: state.count - 1)
     return elements.removeLast()
   }
 

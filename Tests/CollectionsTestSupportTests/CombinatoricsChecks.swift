@@ -52,4 +52,12 @@ class CombinatoricsTests: CollectionTestCase {
       collectPermutations(of: [0, 1, 2]),
       [[0, 1, 2], [0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0]])
   }
+
+  func testEveryDeque_capacityZero() {
+    var layouts: [DequeLayout] = []
+    withEveryDeque("layout", ofCapacities: [0]) { layouts.append($0) }
+    withEveryFullDeque("layout", ofCapacities: [0]) { layouts.append($0) }
+    let empty = DequeLayout(capacity: 0, startSlot: 0, count: 0)
+    expectEqual(layouts, [empty, empty])
+  }
 }

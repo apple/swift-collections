@@ -29,5 +29,13 @@ final class UtilitiesTests: CollectionTestCase {
       }
     }
   }
+
+  func testCheckEquatable_sampledPairsOutOfOrder() {
+    // With `maxSamples`, pairs can arrive in an order that used to trip a
+    // precondition in the transitivity check, even for a valid oracle.
+    for _ in 0 ..< 200 {
+      checkEquatable([0, 0, 0], oracle: { _, _ in true }, maxSamples: 5)
+    }
+  }
 }
 #endif

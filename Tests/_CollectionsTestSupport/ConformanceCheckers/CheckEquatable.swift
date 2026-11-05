@@ -131,7 +131,16 @@ public func checkEquatable<Instance: Equatable>(
         // No need to check equality between actual values, we will check
         // them with the checks above.
       }
-      precondition(transitivityScoreboard[j].value.isEmpty)
+      for k in transitivityScoreboard[j].value {
+        expectTrue(
+          oracle(i, k),
+            """
+            bad oracle: transitivity violation
+            x (at index \(i)): \(String(reflecting: x))
+            y (at index \(j)): \(String(reflecting: y))
+            z (at index \(k)): \(String(reflecting: instances[k]))
+            """)
+      }
       transitivityScoreboard[j] = transitivityScoreboard[i]
     }
   }

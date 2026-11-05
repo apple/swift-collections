@@ -45,4 +45,18 @@ final class MinimalTypeTests: CollectionTestCase {
   func testMinimalBidirectionalCollection() {
     checkBidirectionalCollection(MinimalBidirectionalCollection(0 ..< 50), expectedContents: 0 ..< 50)
   }
+
+  func testMinimalRangeReplaceableRandomAccessCollection_removeLast() {
+    var a = MinimalRangeReplaceableRandomAccessCollection([1, 2, 3])
+    expectEqual(a.removeLast(), 3)
+    expectEqual(a.popLast(), 2)
+    expectEqualElements(a, [1])
+  }
+
+  func testMinimalMutableRangeReplaceableRandomAccessCollection_removeLast() {
+    var a = MinimalMutableRangeReplaceableRandomAccessCollection([1, 2, 3])
+    expectEqual(a.removeLast(), 3)
+    expectEqual(a.popLast(), 2)
+    expectEqualElements(a, [1])
+  }
 }

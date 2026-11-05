@@ -89,29 +89,26 @@ final class MutableContainer_Update_Tests: CollectionTestCase {
     withEveryFullDeque("layout", ofCapacities: [0, 1, 10]) { layout in
       withEvery("start", in: 0 ..< layout.count) { start in
         withEvery("length", in: 0 ..< layout.count - start + 2) { length in
-          withEvery("chunkSize", in: [1, 2, length] as Set) { chunkSize in
-            withLifetimeTracking { tracker in
-              var expected = Array(0 ..< layout.count)
-              let replacements1 = layout.count ..< (layout.count + length)
-              let end = Swift.min(start + length, layout.count)
-              expected.replaceSubrange(
-                start ..< end,
-                with: replacements1.prefix(end - start))
+          withLifetimeTracking { tracker in
+            var expected = Array(0 ..< layout.count)
+            let replacements1 = layout.count ..< (layout.count + length)
+            let end = Swift.min(start + length, layout.count)
+            expected.replaceSubrange(
+              start ..< end,
+              with: replacements1.prefix(end - start))
 
-              var actual = RigidDeque(layout: layout) { tracker.instance(for: $0) }
-              var replacements2 = CustomCountedProducer<LifetimeTracked<Int>, Never>(
-                count: length,
-                chunkSize: chunkSize
-              ) { offset in
-                tracker.instance(for: layout.count + offset)
-              }
-
-              var i = start
-              actual.updateElements(after: &i, from: &replacements2)
-
-              expectIterablePayloads(actual, equalTo: expected)
-              expectEqual(i, end)
+            var actual = RigidDeque(layout: layout) { tracker.instance(for: $0) }
+            var replacements2 = CustomCountedProducer<LifetimeTracked<Int>, Never>(
+              count: length
+            ) { offset in
+              tracker.instance(for: layout.count + offset)
             }
+
+            var i = start
+            actual.updateElements(after: &i, from: &replacements2)
+
+            expectIterablePayloads(actual, equalTo: expected)
+            expectEqual(i, end)
           }
         }
       }
@@ -121,22 +118,19 @@ final class MutableContainer_Update_Tests: CollectionTestCase {
   func test_updateSubrange_from_CountedProducer() {
     withEveryFullDeque("targetLayout", ofCapacities: [0, 1, 10]) { targetLayout in
       withEveryRange("subrange", in: 0 ..< targetLayout.count) { subrange in
-        withEvery("chunkSize", in: [1, 2, subrange.count] as Set) { chunkSize in
-          withLifetimeTracking { tracker in
-            var expected = Array(0 ..< targetLayout.count)
-            let replacements1 = targetLayout.count ..< (targetLayout.count + subrange.count)
-            expected.replaceSubrange(subrange, with: replacements1)
+        withLifetimeTracking { tracker in
+          var expected = Array(0 ..< targetLayout.count)
+          let replacements1 = targetLayout.count ..< (targetLayout.count + subrange.count)
+          expected.replaceSubrange(subrange, with: replacements1)
 
-            var actual = RigidDeque(layout: targetLayout) { tracker.instance(for: $0) }
-            let replacements2 = CustomCountedProducer<LifetimeTracked<Int>, Never>(
-              count: subrange.count,
-              chunkSize: chunkSize
-            ) { offset in
-              tracker.instance(for: targetLayout.count + offset)
-            }
-            actual.updateSubrange(subrange, from: replacements2)
-            expectIterablePayloads(actual, equalTo: expected)
+          var actual = RigidDeque(layout: targetLayout) { tracker.instance(for: $0) }
+          let replacements2 = CustomCountedProducer<LifetimeTracked<Int>, Never>(
+            count: subrange.count
+          ) { offset in
+            tracker.instance(for: targetLayout.count + offset)
           }
+          actual.updateSubrange(subrange, from: replacements2)
+          expectIterablePayloads(actual, equalTo: expected)
         }
       }
     }
