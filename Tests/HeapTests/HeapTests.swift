@@ -43,6 +43,13 @@ extension Heap {
 }
 
 final class HeapTests: CollectionTestCase {
+  func test_checkInvariants() {
+    // This test uses a plain `import HeapModule`, so it only compiles with
+    // COLLECTIONS_INTERNAL_CHECKS if `_checkInvariants()` is public there too.
+    let heap = Heap([3, 1, 4, 1, 5, 9, 2, 6])
+    heap._checkInvariants()
+  }
+
   func test_isEmpty() {
     var heap = Heap<Int>()
     expectTrue(heap.isEmpty)

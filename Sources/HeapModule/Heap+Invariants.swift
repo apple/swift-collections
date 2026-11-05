@@ -31,7 +31,7 @@ extension Heap {
   /// contents satisfy the min-max heap property.
   @inlinable
   @inline(never)
-  internal func _checkInvariants() {
+  public func _checkInvariants() {
     guard count > 1 else { return }
     _checkInvariants(node: .root, min: nil, max: nil)
   }
