@@ -187,6 +187,24 @@ final class UniqueDequeTests: CollectionTestCase {
     }
   }
 
+#if compiler(>=6.4)
+  @available(SwiftStdlib 6.4, *)
+  func test_iteration() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withLifetimeTracking { tracker in
+        let data = tracker.uniqueDeque(with: layout)
+        expectEqual(data.deque.underestimatedCount, layout.count)
+        var i = 0
+        for item in data.deque {
+          expectEqual(item, data.contents[i])
+          i += 1
+        }
+        expectEqual(i, layout.count)
+      }
+    }
+  }
+#endif
+
   func test_subscriptMutate() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withEvery("i", in: 0 ..< layout.count) { i in

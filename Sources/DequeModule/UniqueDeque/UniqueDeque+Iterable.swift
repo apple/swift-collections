@@ -14,8 +14,11 @@
 #if compiler(>=6.4)
 
 @available(SwiftStdlib 5.0, *)
-extension UniqueDeque where Element: ~Copyable {
+extension UniqueDeque: Iterable where Element: ~Copyable {
   public typealias BorrowingIterator = RigidDeque<Element>.BorrowingIterator
+
+  @inlinable
+  public var underestimatedCount: Int { count }
 
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
