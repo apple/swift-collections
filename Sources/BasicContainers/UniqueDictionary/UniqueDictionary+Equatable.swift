@@ -18,7 +18,7 @@ import InternalCollectionsUtilities
 #if compiler(>=6.4) && UnstableHashedContainers
 
 @available(SwiftStdlib 5.0, *)
-extension UniqueDictionary {
+extension UniqueDictionary where Key: ~Copyable, Value: ~Copyable {
   @inlinable
   @inline(__always)
   public func isTriviallyIdentical(to other: borrowing Self) -> Bool {
@@ -27,7 +27,7 @@ extension UniqueDictionary {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension UniqueDictionary {
+extension UniqueDictionary where Key: ~Copyable, Value: ~Copyable {
   @inlinable
   @inline(__always)
   public func isEqual(
@@ -38,8 +38,11 @@ extension UniqueDictionary {
   }
 }
 
+@available(SwiftStdlib 6.4, *)
+extension UniqueDictionary: Equatable where Key: ~Copyable, Value: Equatable & ~Copyable {}
+
 @available(SwiftStdlib 5.0, *)
-extension UniqueDictionary: Equatable where Value: Equatable {
+extension UniqueDictionary where Key: ~Copyable, Value: Equatable & ~Copyable {
   @inlinable
   @inline(__always)
   public static func ==(left: borrowing Self, right: borrowing Self) -> Bool {

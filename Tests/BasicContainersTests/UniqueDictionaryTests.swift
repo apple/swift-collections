@@ -404,6 +404,86 @@ class UniqueDictionaryTests: CollectionTestCase {
     }
   }
 
+  func test_equatable() {
+    typealias Key = LifetimeTrackedStruct<Int>
+    typealias Value = LifetimeTrackedStruct<Int>
+    let contents: [[Int: Int]] = [
+      [:], [0: 0], [1: 0], [0: 1], [0: 0, 1: 1], [0: 1, 1: 0], [0: 0, 1: 1, 2: 2],
+      Dictionary(uniqueKeysWithValues: (0 ..< 50).map { ($0, 2 * $0) }),
+    ]
+    withEvery("i", in: contents.indices) { i in
+      withEvery("j", in: contents.indices) { j in
+        withLifetimeTracking { tracker in
+          var a = UniqueDictionary<Key, Value>()
+          for (key, value) in contents[i].sorted(by: { $0.key < $1.key }) {
+            a.insertValue(
+              tracker.structInstance(for: value),
+              forKey: tracker.structInstance(for: key))
+          }
+          var b = UniqueDictionary<Key, Value>(minimumCapacity: 100)
+          for (key, value) in contents[j].sorted(by: { $0.key > $1.key }) {
+            b.insertValue(
+              tracker.structInstance(for: value),
+              forKey: tracker.structInstance(for: key))
+          }
+          expectTrue(a.isTriviallyIdentical(to: a))
+          expectFalse(a.isTriviallyIdentical(to: b))
+          expectEqual(a == b, contents[i] == contents[j])
+          expectEqual(
+            a.isEqual(to: b, by: { $0.payload == $1.payload }),
+            contents[i] == contents[j])
+        }
+      }
+    }
+  }
+
+  func test_hashable() {
+    typealias Key = LifetimeTrackedStruct<Int>
+    typealias Value = LifetimeTrackedStruct<Int>
+    let contents: [[Int: Int]] = [
+      [:], [0: 0], [1: 0], [0: 1], [0: 0, 1: 1], [0: 1, 1: 0], [0: 0, 1: 1, 2: 2],
+      Dictionary(uniqueKeysWithValues: (0 ..< 50).map { ($0, 2 * $0) }),
+    ]
+    withEvery("i", in: contents.indices) { i in
+      withEvery("j", in: contents.indices) { j in
+        withLifetimeTracking { tracker in
+          var a = UniqueDictionary<Key, Value>()
+          for (key, value) in contents[i].sorted(by: { $0.key < $1.key }) {
+            a.insertValue(
+              tracker.structInstance(for: value),
+              forKey: tracker.structInstance(for: key))
+          }
+          var b = UniqueDictionary<Key, Value>(minimumCapacity: 100)
+          for (key, value) in contents[j].sorted(by: { $0.key > $1.key }) {
+            b.insertValue(
+              tracker.structInstance(for: value),
+              forKey: tracker.structInstance(for: key))
+          }
+          // FIXME: Use checkHashable when possible
+          var goodHash = false
+          for seed in 0 ..< 10 {
+            var ha = Hasher()
+            ha.combine(seed)
+            a.hash(into: &ha)
+            let hashValueA = ha.finalize()
+
+            var hb = Hasher()
+            hb.combine(seed)
+            b.hash(into: &hb)
+            let hashValueB = hb.finalize()
+
+            if contents[i] == contents[j] {
+              expectEqual(hashValueA, hashValueB)
+              goodHash = true
+            } else if hashValueA != hashValueB {
+              goodHash = true
+            }
+          }
+          expectTrue(goodHash, "Hashing does not differentiate between inequal containers")
+        }
+      }
+    }
+  }
 }
 
 #endif
