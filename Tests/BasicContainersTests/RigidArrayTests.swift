@@ -111,6 +111,9 @@ class RigidArrayTests: CollectionTestCase {
         tracker.withInputSpan(layout: layout, using: { $0 }) { span in
           checkPermutableContainer(&span, expectedContents: expected)
         }
+        tracker.withOutputSpan(layout: layout, using: { $0 }) { span in
+          checkPermutableContainer(&span, expectedContents: expected)
+        }
       }
     }
   }
