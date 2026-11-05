@@ -101,6 +101,7 @@ target_sources(${module_name} PRIVATE
   "Protocols/Iterable/BorrowingIteratorProtocol+Reduce.swift"
   "Protocols/Iterable/BorrowingIteratorProtocol+SpanwiseZip.swift"
   "Protocols/Iterable/Iterable+ElementsEqual.swift"
+  "Protocols/Iterable/Iterable+Filter.swift"
   "Protocols/Iterable/Iterable+Reduce.swift"
   "Protocols/Producer/CountedProducer.swift"
   "Protocols/Producer/Producer.swift"
