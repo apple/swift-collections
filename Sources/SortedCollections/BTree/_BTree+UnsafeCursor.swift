@@ -352,25 +352,25 @@ extension _BTree {
       // Balance the parents
       var depth = unsafe path.depth - 2
       while depth >= 0 {
-        var (newNode, _) = unsafe self.updateNode(atDepth: depth) { (handle, slot) in
+        (node, _) = unsafe self.updateNode(atDepth: depth) { (handle, slot) in
           unsafe handle.exchangeChild(atSlot: slot, with: node)
           unsafe handle.subtreeCount -= 1
           unsafe handle.balance(atSlot: slot)
         }
-        
-        if unsafe depth == 0 && newNode.read({ unsafe $0.elementCount == 0 && !$0.isLeaf }) {
-          // If the root has no elements, we drop it and promote the child.
-          node = unsafe newNode.update(isUnique: true) { handle in
-            let newRoot = unsafe handle.moveChild(atSlot: 0)
-            unsafe handle.drop()
-            return newRoot
-          }
-        } else {
-          node = newNode
-        }
         depth -= 1
       }
-      
+
+      // `node` is now the root. Balancing may have merged its last two
+      // children, including when the removed element was in the root itself.
+      if unsafe node.read({ unsafe $0.elementCount == 0 && !$0.isLeaf }) {
+        // If the root has no elements, we drop it and promote the child.
+        node = unsafe node.update(isUnique: true) { handle in
+          let newRoot = unsafe handle.moveChild(atSlot: 0)
+          unsafe handle.drop()
+          return newRoot
+        }
+      }
+
       self._root = node.storage
     }
   }
