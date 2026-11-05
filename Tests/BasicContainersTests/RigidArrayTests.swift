@@ -108,6 +108,9 @@ class RigidArrayTests: CollectionTestCase {
         checkPermutableContainer(&items, expectedContents: expected)
         var span = items.mutableSpan
         checkPermutableContainer(&span, expectedContents: expected)
+        tracker.withInputSpan(layout: layout, using: { $0 }) { span in
+          checkPermutableContainer(&span, expectedContents: expected)
+        }
       }
     }
   }
