@@ -25,10 +25,10 @@ public func withEvery<Element>(
     let entry = context.push("\(label): \(item)", file: file, line: line)
     var done = false
     defer {
-      context.pop(entry)
       if !done {
         print(context.currentTrace(title: "Throwing trace"))
       }
+      context.pop(entry)
     }
     try body(item)
     done = true
@@ -49,10 +49,10 @@ public func withEvery<S: Sequence>(
     let entry = context.push("\(label): \(item)", file: file, line: line)
     var done = false
     defer {
-      context.pop(entry)
       if !done {
         print(context.currentTrace(title: "Throwing trace"))
       }
+      context.pop(entry)
     }
     try body(item)
     done = true
@@ -73,10 +73,10 @@ public func withEveryRange<T: Strideable>(
       let entry = context.push("\(label): \(range)", file: file, line: line)
       var done = false
       defer {
-        context.pop(entry)
         if !done {
           print(context.currentTrace(title: "Throwing trace"))
         }
+        context.pop(entry)
       }
       try body(range)
       done = true

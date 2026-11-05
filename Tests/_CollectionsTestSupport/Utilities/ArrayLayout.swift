@@ -72,10 +72,10 @@ package func withSomeArrayLayouts<E: Error>(
 
       var done = false
       defer {
-        context.pop(entry)
         if !done {
           print(context.currentTrace(title: "Throwing trace"))
         }
+        context.pop(entry)
       }
       try body(layout)
       done = true

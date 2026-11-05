@@ -61,7 +61,7 @@ public func withEveryDeque<C: Collection>(
 ) rethrows -> Void where C.Element == Int {
   // Exhaustive tests for all deque layouts of various capacities
   for capacity in capacities {
-    for startSlot in 0 ..< capacity {
+    for startSlot in 0 ..< max(capacity, 1) {
       for count in 0 ... capacity {
         let layout = DequeLayout(
           capacity: capacity,
@@ -85,7 +85,7 @@ public func withEveryFullDeque<C: Collection>(
 ) rethrows -> Void where C.Element == Int {
   // Exhaustive tests for all deque layouts of various capacities
   for capacity in capacities {
-    for startSlot in 0 ..< capacity {
+    for startSlot in 0 ..< max(capacity, 1) {
       let layout = DequeLayout(
         capacity: capacity,
         startSlot: startSlot,

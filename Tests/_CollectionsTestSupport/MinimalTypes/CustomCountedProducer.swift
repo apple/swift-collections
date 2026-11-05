@@ -24,22 +24,18 @@ import ContainersPreview
 package struct CustomCountedProducer<Element: ~Copyable, Failure: Error>: ~Copyable {
   package let count: Int
   package let underestimatedCount: Int
-  package let _chunkSize: Int
   package let _generator: (Int) throws(Failure) -> Element
   package var _offset: Int
 
   package init(
     count: Int = 0,
     underestimatedCount: Int? = nil,
-    chunkSize: Int = Int.max,
     generatingWith generator: borrowing @escaping (Int) throws(Failure) -> Element
   ) {
     precondition(count >= 0)
     self.count = count
     self.underestimatedCount = underestimatedCount ?? count
     precondition(self.underestimatedCount >= 0 && self.underestimatedCount <= count)
-    precondition(count == 0 || chunkSize > 0)
-    self._chunkSize = chunkSize
     self._generator = copy generator
     self._offset = 0
   }

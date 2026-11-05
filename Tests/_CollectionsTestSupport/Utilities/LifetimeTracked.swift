@@ -47,7 +47,7 @@ public class LifetimeTracked<Payload> {
   }
 
   deinit {
-    precondition(serialNumber != 0, "Double deinit")
+    precondition(serialNumber > 0, "Double deinit")
     tracker._instances -= 1
     serialNumber = -serialNumber
   }
