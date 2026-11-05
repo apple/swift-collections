@@ -187,15 +187,13 @@ final class UniqueDequeTests: CollectionTestCase {
     }
   }
 
+#if compiler(>=6.4)
   @available(SwiftStdlib 6.4, *)
   func test_iteration() {
-    func underestimatedCount<T: Iterable & ~Copyable>(of items: borrowing T) -> Int {
-      items.underestimatedCount
-    }
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withLifetimeTracking { tracker in
         let data = tracker.uniqueDeque(with: layout)
-        expectEqual(underestimatedCount(of: data.deque), layout.count)
+        expectEqual(data.deque.underestimatedCount, layout.count)
         var i = 0
         for item in data.deque {
           expectEqual(item, data.contents[i])
@@ -205,6 +203,7 @@ final class UniqueDequeTests: CollectionTestCase {
       }
     }
   }
+#endif
 
   func test_subscriptMutate() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
