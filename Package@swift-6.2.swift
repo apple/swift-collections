@@ -113,8 +113,6 @@ let extraSettings: [SwiftSetting] = [
   .enableExperimentalFeature("BuiltinModule"),
   .enableExperimentalFeature("Lifetimes"),
   .enableExperimentalFeature("InoutLifetimeDependence"),
-  .enableExperimentalFeature("AddressableParameters"),
-  .enableExperimentalFeature("AddressableTypes"),
   // Note: if you touch these, please make sure to also update the similar lists in
   // CMakeLists.txt and Xcode/Shared.xcconfig.
 ]

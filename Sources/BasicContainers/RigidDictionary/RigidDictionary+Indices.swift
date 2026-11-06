@@ -20,12 +20,16 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
   @safe
   public struct Indices: ~Escapable {
     @_alwaysEmitIntoClient
-    package let _base: Ref<_HTable>
+    package let _it: _HTable.BucketIterator
+
+    @_alwaysEmitIntoClient
+    package let _count: Int
 
     @_alwaysEmitIntoClient
     @_lifetime(borrow _base)
-    package init(_base: borrowing @_addressable _HTable) {
-      self._base = Ref(_base)
+    package init(_base: borrowing _HTable) {
+      self._it = _base.makeBucketIterator()
+      self._count = _base.count
     }
   }
 
@@ -66,14 +70,11 @@ where Key: ~Copyable, Value: ~Copyable
   }
 
   @inlinable
-  public var underestimatedCount: Int { self._base.value.count }
+  public var underestimatedCount: Int { _count }
 
   @_lifetime(borrow self)
   public func makeBorrowingIterator() -> BorrowingIterator {
-    let bit = self._base.value.makeBucketIterator()
-    // FIXME: This override really should not be necessary. Check if the real `struct Borrow` fixes it.
-    let override = unsafe _overrideLifetime(bit, copying: self)
-    return BorrowingIterator(_it: override)
+    BorrowingIterator(_it: _it)
   }
 }
 

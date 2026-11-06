@@ -31,7 +31,6 @@ public struct RigidDictionary<
 #else
 @available(SwiftStdlib 5.0, *)
 @frozen
-@_addressableForDependencies
 @safe
 public struct RigidDictionary<
   Key: Hashable & ~Copyable,

@@ -25,7 +25,6 @@ public struct UniqueDictionary<
 #else
 @available(SwiftStdlib 5.0, *)
 @frozen
-@_addressableForDependencies
 public struct UniqueDictionary<
   Key: Hashable & ~Copyable,
   Value: ~Copyable
