@@ -274,6 +274,7 @@ class RigidDictionaryTests: CollectionTestCase {
     }
   }
 
+  @available(SwiftStdlib 6.4, *)
   func test_memoizedValue_returnsNewlyInsertedValue() {
     // Inserting a new key can displace existing entries (by swapping them
     // around in both small and hashed storage); `memoizedValue` must still
