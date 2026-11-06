@@ -310,6 +310,7 @@ class HashedContainersFuzzTests: CollectionTestCase {
               }
             case 5:
               guard canAdd else { break }
+              guard #available(SwiftStdlib 6.4, *) else { break }
               let expected = model[k] ?? step
               let ref = d.memoizedValue(forKey: key) { _ in
                 tracker.instance(for: step)
@@ -398,6 +399,7 @@ class HashedContainersFuzzTests: CollectionTestCase {
               default: break
               }
             case 5:
+              guard #available(SwiftStdlib 6.4, *) else { break }
               let expected = model[k] ?? step
               let ref = d.memoizedValue(forKey: key) { _ in
                 tracker.instance(for: step)
