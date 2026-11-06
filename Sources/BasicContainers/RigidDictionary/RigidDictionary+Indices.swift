@@ -20,12 +20,16 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
   @safe
   public struct Indices: ~Escapable {
     @_alwaysEmitIntoClient
-    package let _base: Ref<_HTable>
+    package let _it: _HTable.BucketIterator
+
+    @_alwaysEmitIntoClient
+    package let _count: Int
 
     @_alwaysEmitIntoClient
     @_lifetime(borrow _base)
     package init(_base: borrowing _HTable) {
-      self._base = Ref(_base)
+      self._it = _base.makeBucketIterator()
+      self._count = _base.count
     }
   }
 
@@ -66,11 +70,11 @@ where Key: ~Copyable, Value: ~Copyable
   }
 
   @inlinable
-  public var underestimatedCount: Int { self._base.value.count }
+  public var underestimatedCount: Int { _count }
 
   @_lifetime(borrow self)
   public func makeBorrowingIterator() -> BorrowingIterator {
-    BorrowingIterator(_it: self._base.value.makeBucketIterator())
+    BorrowingIterator(_it: _it)
   }
 }
 
