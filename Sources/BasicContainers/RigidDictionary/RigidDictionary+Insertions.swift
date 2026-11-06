@@ -17,10 +17,6 @@
 extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
   /// Inserts a new key-value pair whose key isn't already in the dictionary,
   /// and returns the bucket where the new pair ended up.
-  ///
-  /// Note that the insertion may displace existing items: the bucket returned
-  /// by the underlying hash table is where the _last displaced_ item went,
-  /// which is only the same as the new item's bucket if nothing was swapped.
   @inlinable
   @inline(__always)
   @discardableResult

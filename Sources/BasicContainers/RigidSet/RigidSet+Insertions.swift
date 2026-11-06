@@ -43,10 +43,6 @@ extension RigidSet where Element: ~Copyable {
   
   /// Inserts a new item that isn't already in the set, and returns the bucket
   /// where the new item ended up.
-  ///
-  /// Note that the insertion may displace existing items: the bucket returned
-  /// by the underlying hash table is where the _last displaced_ item went,
-  /// which is only the same as the new item's bucket if nothing was swapped.
   @inlinable
   @inline(__always)
   @discardableResult
