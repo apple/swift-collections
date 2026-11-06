@@ -41,6 +41,8 @@ extension RigidSet where Element: ~Copyable {
     package var found: Bool { remnant != nil }
   }
   
+  /// Inserts a new item that isn't already in the set, and returns the bucket
+  /// where the new item ended up.
   @inlinable
   @inline(__always)
   @discardableResult
@@ -51,16 +53,18 @@ extension RigidSet where Element: ~Copyable {
     precondition(!isFull, "RigidSet capacity overflow")
     let storage = unsafe _memberBuf
     if _isSmall {
+      var newBucket: _Bucket? = nil
       let bucket = unsafe _table.insertNew_Small(
         swapper: {
+          if newBucket == nil { newBucket = $0 }
           unsafe swap(&item, &storage[$0])
         })
       unsafe storage._initializeElement(at: bucket, to: item)
-      return bucket
+      return newBucket ?? bucket
     }
     return _insertNew_Large(item, hashValue: hashValue)
   }
-  
+
   @inlinable
   @discardableResult
   package mutating func _insertNew_Large(
@@ -69,16 +73,19 @@ extension RigidSet where Element: ~Copyable {
   ) -> _Bucket {
     let storage = unsafe _memberBuf
     let seed = self._seed
+    var newBucket: _Bucket? = nil
     let bucket = unsafe _table.insertNew_Large(
       hashValue: hashValue,
       hashGenerator: {
         unsafe storage[$0]._rawHashValue(seed: seed)
       },
       swapper: {
+        // The first swap puts the new item in its final place.
+        if newBucket == nil { newBucket = $0 }
         unsafe swap(&item, &storage[$0])
       })
     unsafe storage.initializeElement(at: bucket.offset, to: item)
-    return bucket
+    return newBucket ?? bucket
   }
   
   /// Inserts the given element into the set unconditionally. If the set already
