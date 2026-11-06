@@ -364,6 +364,39 @@ class UniqueDictionaryTests: CollectionTestCase {
     }
   }
   
+  func test_updateValue_closure_removal() {
+    // Removing an entry by setting the value to nil in
+    // `updateValue(forKey:with:)` must not destroy the (already moved-out)
+    // value a second time. Removing everything also exercises shrinking.
+    typealias Key = LifetimeTracked<Int>
+    typealias Value = LifetimeTracked<String>
+    withEvery("count", in: [1, 2, 10, 100, 200]) { count in
+      withLifetimeTracking { tracker in
+        var d = UniqueDictionary<Key, Value>()
+        for i in 0 ..< count {
+          d.insertValue(tracker.instance(for: "\(i)"), forKey: tracker.instance(for: i))
+        }
+        withEvery("key", in: 0 ..< count) { key in
+          let old = d.updateValue(forKey: tracker.instance(for: key)) { value in
+            let old = value?.payload
+            value = nil
+            return old
+          }
+          expectEqual(old, "\(key)")
+          expectEqual(d.count, count - key - 1)
+          expectTrue(d._checkInvariants())
+          for other in key + 1 ..< count {
+            expectEqual(
+              d.withValue(forKey: tracker.instance(for: other)) { $0.payload },
+              "\(other)")
+          }
+        }
+        expectEqual(d.count, 0)
+        expectEqual(tracker.instances, 0)
+      }
+    }
+  }
+
   func test_removeAll() {
     typealias Key = LifetimeTracked<Int>
     typealias Value = LifetimeTracked<String>

@@ -93,7 +93,8 @@ extension UniqueDictionary where Key: ~Copyable, Value: ~Copyable {
         if let value = value.take() { // Simple update
           unsafe _storage._valuePtr(at: bucket).initialize(to: value)
         } else { // Removal
-          _ = unsafe _removeValue(at: bucket)
+          // The value has already been moved out of its slot above.
+          unsafe _removeEntry(withMovedValueAt: bucket)
         }
       } else if let value = value.take() {
         // Insertion.
