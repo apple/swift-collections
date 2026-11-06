@@ -15,6 +15,12 @@
 
 @available(SwiftStdlib 5.0, *)
 extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
+  /// Inserts a new key-value pair whose key isn't already in the dictionary,
+  /// and returns the bucket where the new pair ended up.
+  ///
+  /// Note that the insertion may displace existing items: the bucket returned
+  /// by the underlying hash table is where the _last displaced_ item went,
+  /// which is only the same as the new item's bucket if nothing was swapped.
   @inlinable
   @inline(__always)
   @discardableResult
@@ -28,18 +34,20 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
     let keys = unsafe _keyBuf
     let values = unsafe _valueBuf
     if self._keys._isSmall {
+      var newBucket: _Bucket? = nil
       let bucket = unsafe self._keys._table.insertNew_Small(
         swapper: {
+          if newBucket == nil { newBucket = $0 }
           unsafe swap(&key, &keys[$0])
           unsafe swap(&value, &values[$0])
         })
       unsafe keys._initializeElement(at: bucket, to: key)
       unsafe values._initializeElement(at: bucket, to: value)
-      return bucket
+      return newBucket ?? bucket
     }
     return unsafe _insertNew_Large(key, hashValue: hashValue, value)
   }
-  
+
   @_alwaysEmitIntoClient
   @inline(__always)
   @unsafe
@@ -51,18 +59,21 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
     let keys = unsafe _keyBuf
     let values = unsafe _valueBuf
     let seed = self._keys._seed
+    var newBucket: _Bucket? = nil
     let bucket = unsafe self._keys._table.insertNew_Large(
       hashValue: hashValue,
       hashGenerator: {
         unsafe keys[$0]._rawHashValue(seed: seed)
       },
       swapper: { bucket in
+        // The first swap puts the new item in its final place.
+        if newBucket == nil { newBucket = bucket }
         unsafe swap(&key, &keys[bucket])
         unsafe swap(&value, &values[bucket])
       })
     unsafe keys.initializeElement(at: bucket.offset, to: key)
     unsafe values.initializeElement(at: bucket.offset, to: value)
-    return bucket
+    return newBucket ?? bucket
   }
 
   
