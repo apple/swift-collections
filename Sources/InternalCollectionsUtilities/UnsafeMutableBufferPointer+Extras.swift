@@ -396,3 +396,24 @@ extension Slice {
     unsafe target.moveInitializeAll(fromContentsOf: source)
   }
 }
+
+extension UnsafeMutableBufferPointer where Element: ~Copyable {
+  /// Deinitialize every element in this buffer. (See
+  /// `UnsafeMutablePointer._deinitializeElements(count:)` for details on why
+  /// this is needed.)
+  @_alwaysEmitIntoClient
+  @_transparent
+  @unsafe
+  package func _deinitializeElements() {
+    /// Swift 6.2 optimizer bug: when specialized for a noncopyable type with a
+    /// `deinit`, `deinitialize(count:)` over multiple elements can get compiled
+    /// into a no-op, leaking the elements. Destroying elements one by one avoids
+    /// this.
+#if compiler(<6.3)
+    guard let base = baseAddress else { return }
+    unsafe base._deinitializeElements(count: count)
+#else
+    unsafe self.deinitialize()
+#endif
+  }
+}
