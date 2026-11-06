@@ -98,6 +98,25 @@ class RigidArrayTests: CollectionTestCase {
       }
     }
   }
+
+  @available(SwiftStdlib 6.4, *)
+  func test_validate_PermutableContainer() {
+    withSomeArrayLayouts("layout", ofCapacities: [0, 10]) { layout in
+      withLifetimeTracking { tracker in
+        var items = tracker.rigidArray(layout: layout)
+        let expected = (0 ..< layout.count).map { tracker.instance(for: $0) }
+        checkPermutableContainer(&items, expectedContents: expected)
+        var span = items.mutableSpan
+        checkPermutableContainer(&span, expectedContents: expected)
+        tracker.withInputSpan(layout: layout, using: { $0 }) { span in
+          checkPermutableContainer(&span, expectedContents: expected)
+        }
+        tracker.withOutputSpan(layout: layout, using: { $0 }) { span in
+          checkPermutableContainer(&span, expectedContents: expected)
+        }
+      }
+    }
+  }
 #endif
 
   func test_empty() {
