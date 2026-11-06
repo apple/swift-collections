@@ -34,6 +34,21 @@ extension UniqueDictionary where Key: ~Copyable, Value: ~Copyable {
     _resize(minimumCapacity: self.count)
     return result
   }
+
+  /// Remove the entry at `bucket`, assuming its value slot has already been
+  /// moved out (e.g., by `updateValue(forKey:with:)`). Shrinks storage the
+  /// same way as `_removeValue(at:)`.
+  @inlinable
+  @unsafe
+  package mutating func _removeEntry(withMovedValueAt bucket: _Bucket) {
+    let shrink = self.count <= _HTable.minimumCapacity(forScale: self._scale)
+    unsafe _storage._keyPtr(at: bucket).deinitialize(count: 1)
+    // FIXME: Avoid fully resolving the hole when `shrink` is true -- see `_punchHole`
+    unsafe _storage._resolveHole(at: bucket)
+    if shrink {
+      _resize(minimumCapacity: self.count)
+    }
+  }
   
   @inlinable
   @inline(__always)
