@@ -44,10 +44,12 @@ Ownership-aware reimplementations of the standard generic collection types `Arra
 
 - [`struct UniqueArray<Element>`][UniqueArray] is a uniquely held, dynamically resizing array.
 - [`struct RigidArray<Element>`][RigidArray] is a fixed-capacity array.
+- [`struct StringCollection`][StringCollection] is a collection for strings, forfeiting random-access and direct-mutation support for storing every strings' data in a single memory buffer.
 
 [BasicContainers]: https://swiftpackageindex.com/apple/swift-collections/documentation/basiccontainers
 [RigidArray]: https://swiftpackageindex.com/apple/swift-collections/documentation/basiccontainers/rigidarray
 [UniqueArray]: https://swiftpackageindex.com/apple/swift-collections/documentation/basiccontainers/uniquearray
+[StringCollection]: https://swiftpackageindex.com/apple/swift-collections/documentation/basiccontainers/stringcollection
 
 #### [`DequeModule`][DequeModule] module
 
