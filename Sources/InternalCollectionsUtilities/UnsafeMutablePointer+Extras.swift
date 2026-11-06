@@ -50,10 +50,12 @@ extension UnsafeMutablePointer where Pointee: ~Copyable {
     /// Swift 6.2 optimizer bug: when specialized for a noncopyable type with a
     /// `deinit`, `deinitialize(count:)` over multiple elements can get compiled
     /// into a no-op, leaking the elements. Destroying elements one by one avoids
-    /// this.
+    /// this, but only if we do it by moving them out: a loop of
+    /// `deinitialize(count: 1)` calls gets miscompiled the same way when the
+    /// element type's `deinit` is inlined across module boundaries.
 #if compiler(<6.3)
     for i in 0 ..< count {
-      unsafe (self + i).deinitialize(count: 1)
+      _ = unsafe (self + i).move()
     }
 #else
     unsafe self.deinitialize(count: count)
