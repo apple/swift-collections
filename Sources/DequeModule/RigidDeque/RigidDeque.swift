@@ -15,20 +15,6 @@
 import InternalCollectionsUtilities
 #endif
 
-#if compiler(<6.2)
-
-/// A fixed capacity, heap allocated, noncopyable double-ended queue of
-/// potentially noncopyable elements.
-@frozen
-@available(*, unavailable, message: "RigidDeque requires a Swift 6.2 toolchain")
-public struct RigidDeque<Element: ~Copyable>: ~Copyable {
-  public init() {
-    fatalError()
-  }
-}
-
-#else
-
 /// A fixed capacity, heap allocated, noncopyable double-ended queue of
 /// potentially noncopyable elements. A deque (pronounced "deck")
 /// is an ordered random-access container that supports efficient
@@ -379,5 +365,3 @@ extension RigidDeque {
     unsafe RigidDeque(_handle: _handle.allocateCopy(capacity: capacity))
   }
 }
-
-#endif // compiler(<6.2)

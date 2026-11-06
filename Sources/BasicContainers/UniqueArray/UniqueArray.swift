@@ -15,24 +15,6 @@
 import InternalCollectionsUtilities
 #endif
 
-#if compiler(<6.2)
-
-/// A dynamically self-resizing, heap allocated, noncopyable array
-/// of potentially noncopyable elements.
-@frozen
-@available(*, unavailable, message: "UniqueArray requires a Swift 6.2 toolchain")
-public struct UniqueArray<Element: ~Copyable>: ~Copyable {
-  @usableFromInline
-  package var _storage: RigidArray<Element>
-
-  @inlinable
-  public init() {
-    fatalError()
-  }
-}
-
-#else
-
 /// A dynamically self-resizing, heap allocated, noncopyable array of
 /// potentially noncopyable elements.
 ///
@@ -245,4 +227,3 @@ extension UniqueArray {
     UniqueArray(consuming: _storage.clone(capacity: capacity))
   }
 }
-#endif

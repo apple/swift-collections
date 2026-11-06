@@ -15,22 +15,6 @@
 import InternalCollectionsUtilities
 #endif
 
-#if compiler(<6.2)
-
-/// A dynamically self-resizing, heap allocated, noncopyable double-ended
-/// queue of potentially noncopyable elements. A deque (pronounced "deck")
-/// is an ordered random-access container that supports efficient
-/// insertions and removals from both ends.
-@frozen
-@available(*, unavailable, message: "UniqueDeque requires a Swift 6.2 toolchain")
-public struct UniqueDeque<Element: ~Copyable>: ~Copyable {
-  public init() {
-    fatalError()
-  }
-}
-
-#else
-
 /// A dynamically self-resizing, heap allocated, noncopyable double-ended
 /// queue of potentially noncopyable elements. A deque (pronounced "deck")
 /// is an ordered random-access container that supports efficient
@@ -336,6 +320,3 @@ extension UniqueDeque {
     UniqueDeque(_storage: _storage.clone(capacity: capacity))
   }
 }
-
-
-#endif // compiler(<6.2)
