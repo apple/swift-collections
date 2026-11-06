@@ -26,9 +26,9 @@ jobs:
     uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.17
     with:
       enable_macos_checks: true
-      macos_exclude_xcode_versions: '[{"xcode_version": "swift_6.1"}, {"xcode_version": "swift_6.2"}]'
-      linux_exclude_swift_versions: '[{"swift_version": "5.9"}, {"swift_version": "5.10"}, {"swift_version": 6.0}, {"swift_version": 6.1}, {"swift_version": 6.2}]'
-      windows_exclude_swift_versions: '[{"swift_version": "5.9"}, {"swift_version": 6.0}, {"swift_version": 6.1}, {"swift_version": 6.2}]'
+      macos_exclude_xcode_versions: '[{"xcode_version": "swift_6.1"}]'
+      linux_exclude_swift_versions: '[{"swift_version": "5.9"}, {"swift_version": "5.10"}, {"swift_version": 6.0}, {"swift_version": 6.1}]'
+      windows_exclude_swift_versions: '[{"swift_version": "5.9"}, {"swift_version": 6.0}, {"swift_version": 6.1}]'
       enable_wasm_sdk_build: true
       swift_flags: -c release
 
@@ -66,7 +66,7 @@ jobs:
     name: All Unstable Package Traits (Release)
     uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.17
     with:
-      linux_swift_versions: '["6.3", "6.4", "nightly-main"]'
+      linux_swift_versions: '["6.2", "6.3", "6.4", "nightly-main"]'
       enable_macos_checks: false
       enable_linux_checks: true
       enable_windows_checks: false
