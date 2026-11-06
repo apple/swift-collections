@@ -11,18 +11,10 @@
 ##
 ##===----------------------------------------------------------------------===##
 
-cmake_minimum_required(VERSION 3.16)
-
-if(POLICY CMP0157)
-  cmake_policy(SET CMP0157 NEW)
-endif()
+cmake_minimum_required(VERSION 3.29)
 
 project(SwiftCollections
   LANGUAGES C Swift)
-
-if(POLICY CMP0157 AND PROJECT_IS_TOP_LEVEL)
-  set(CMAKE_Swift_COMPILATION_MODE "$<IF:$<CONFIG:Release,RelWithDebInfo,MinSizeRel>,wholemodule,incremental>")
-endif()
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
 
