@@ -228,8 +228,8 @@ extension RigidDeque where Element: ~Copyable {
 
     @inlinable
     deinit {
-      unsafe self._buffer1.deinitialize()
-      unsafe self._buffer2.deinitialize()
+      unsafe self._buffer1._deinitializeElements()
+      unsafe self._buffer2._deinitializeElements()
       // FIXME: This needs to be written as
       //    self._base[]._handle.closeGap(offsets: self._offsetRange)
       // but unfortunately we cannot mutate self in deinit yet.

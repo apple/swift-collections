@@ -105,7 +105,7 @@ public struct RigidArray<Element: ~Copyable>: ~Copyable {
       return
     }
 
-    unsafe _ptr.deinitialize(count: count)
+    unsafe _ptr._deinitializeElements(count: count)
     unsafe _ptr.deallocate()
   }
 

@@ -40,3 +40,23 @@ extension UnsafeMutablePointer where Pointee: ~Copyable {
     return unsafe Self(mutating: ._dangling())
   }
 }
+
+extension UnsafeMutablePointer where Pointee: ~Copyable {
+  /// Deinitialize `count` consecutive elements starting at this address.
+  @_alwaysEmitIntoClient
+  @_transparent
+  @unsafe
+  package func _deinitializeElements(count: Int) {
+    /// Swift 6.2 optimizer bug: when specialized for a noncopyable type with a
+    /// `deinit`, `deinitialize(count:)` over multiple elements can get compiled
+    /// into a no-op, leaking the elements. Destroying elements one by one avoids
+    /// this.
+#if compiler(<6.3)
+    for i in 0 ..< count {
+      unsafe (self + i).deinitialize(count: 1)
+    }
+#else
+    unsafe self.deinitialize(count: count)
+#endif
+  }
+}

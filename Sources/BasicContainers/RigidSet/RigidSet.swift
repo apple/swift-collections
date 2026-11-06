@@ -73,7 +73,7 @@ public struct RigidSet<Element: Hashable & ~Copyable>: ~Copyable {
     let storage = unsafe _memberBuf
     var it = unsafe _table.makeBucketIterator()
     while let range = it.nextOccupiedRegion() {
-      unsafe storage._extracting(unchecked: range._offsets).deinitialize()
+      unsafe storage._extracting(unchecked: range._offsets)._deinitializeElements()
     }
   }
 }
