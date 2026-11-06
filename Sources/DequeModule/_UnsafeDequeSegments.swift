@@ -194,8 +194,8 @@ extension _UnsafeMutableDequeSegments where Element: ~Copyable {
   @_transparent
   @unsafe
   internal func deinitialize() {
-    unsafe first.deinitialize()
-    unsafe second?.deinitialize()
+    unsafe first._deinitializeElements()
+    unsafe second?._deinitializeElements()
   }
 }
 

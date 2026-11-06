@@ -274,6 +274,26 @@ class RigidDictionaryTests: CollectionTestCase {
     }
   }
 
+  func test_memoizedValue_returnsNewlyInsertedValue() {
+    // Inserting a new key can displace existing entries (by swapping them
+    // around in both small and hashed storage); `memoizedValue` must still
+    // return the value that was just inserted.
+    withEvery("capacity", in: [1, 2, 5, 7, 8, 20, 100]) { capacity in
+      var d = RigidDictionary<Int, String>(capacity: capacity)
+      withEvery("key", in: 0 ..< capacity) { key in
+        let v = d.memoizedValue(forKey: key) { "\($0)" }
+        expectEqual(v.value, "\(key)")
+      }
+      withEvery("key", in: 0 ..< capacity) { key in
+        let v = d.memoizedValue(forKey: key) { _ in
+          expectFailure("Cached value not found")
+          return ""
+        }
+        expectEqual(v.value, "\(key)")
+      }
+    }
+  }
+
   func test_keys() {
     typealias Key = LifetimeTracked<Int>
     typealias Value = LifetimeTracked<String>

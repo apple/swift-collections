@@ -31,7 +31,6 @@ public struct RigidDictionary<
 #else
 @available(SwiftStdlib 5.0, *)
 @frozen
-@_addressableForDependencies
 @safe
 public struct RigidDictionary<
   Key: Hashable & ~Copyable,
@@ -76,7 +75,7 @@ public struct RigidDictionary<
     let values = unsafe _valueBuf
     var it = unsafe _keys._table.makeBucketIterator()
     while let range = it.nextOccupiedRegion() {
-      unsafe values.extracting(range._offsets).deinitialize()
+      unsafe values.extracting(range._offsets)._deinitializeElements()
     }
   }
 }

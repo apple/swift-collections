@@ -11,34 +11,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(<6.2)
-
-@available(*, unavailable, renamed: "UniqueBox", message: "struct UniqueBox requires a Swift 6.2 toolchain")
-public typealias Box = UniqueBox
-
-/// A wrapper type that forms a noncopyable, heap allocated box around an
-/// arbitrary value.
-///
-/// This can be used to form a noncopyable, uniquely referenced box around any
-/// Swift value.
-@available(*, unavailable, message: "struct Box requires a Swift 6.2 toolchain")
-@frozen
-public struct UniqueBox<Value: ~Copyable>: ~Copyable {
-  @available(*, deprecated, renamed: "Value")
-  public typealias T = Value
-
-  @usableFromInline
-  internal let _pointer: UnsafeMutablePointer<Value>
-
-  @_alwaysEmitIntoClient
-  @_transparent
-  public init(_ value: consuming Value) {
-    fatalError()
-  }
-}
-
-#else
-
 @available(*, deprecated, renamed: "UniqueBox")
 public typealias Box = UniqueBox
 
@@ -216,5 +188,3 @@ extension UniqueBox where Value: ~Copyable {
   }
 #endif
 }
-
-#endif

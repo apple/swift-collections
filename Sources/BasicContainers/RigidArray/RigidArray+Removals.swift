@@ -22,7 +22,7 @@ extension RigidArray where Element: ~Copyable {
   /// - Complexity: O(*n*), where *n* is the original count of the array.
   @inlinable
   public mutating func removeAll() {
-    unsafe _items.deinitialize()
+    unsafe _items._deinitializeElements()
     unsafe _count = 0
   }
 
@@ -100,7 +100,7 @@ extension RigidArray where Element: ~Copyable {
       "Count of elements to remove is out of bounds")
     unsafe _storage.extracting(
       Range(uncheckedBounds: (self.count - k, self.count))
-    ).deinitialize()
+    )._deinitializeElements()
     unsafe _count &-= k
   }
 
@@ -119,7 +119,7 @@ extension RigidArray where Element: ~Copyable {
   public mutating func removeSubrange(_  bounds: Range<Int>) -> Int {
     _checkValidBounds(bounds)
     guard !bounds.isEmpty else { return bounds.lowerBound }
-    unsafe _storage.extracting(bounds).deinitialize()
+    unsafe _storage.extracting(bounds)._deinitializeElements()
     unsafe _closeGap(at: bounds.lowerBound, count: bounds.count)
     unsafe _count -= bounds.count
     return bounds.lowerBound

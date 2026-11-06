@@ -396,6 +396,24 @@ class UniqueDictionaryTests: CollectionTestCase {
       }
     }
   }
+  
+  func test_memoizedValue_returnsNewlyInsertedValue() {
+    // Inserting a new key can displace existing entries (by swapping them
+    // around in both small and hashed storage); `memoizedValue` must still
+    // return the value that was just inserted.
+    var d = UniqueDictionary<Int, String>()
+    withEvery("key", in: 0 ..< 200) { key in
+      let v = d.memoizedValue(forKey: key) { "\($0)" }
+      expectEqual(v.value, "\(key)")
+    }
+    withEvery("key", in: 0 ..< 200) { key in
+      let v = d.memoizedValue(forKey: key) { _ in
+        expectFailure("Cached value not found")
+        return ""
+      }
+      expectEqual(v.value, "\(key)")
+    }
+  }
 
   func test_removeAll() {
     typealias Key = LifetimeTracked<Int>

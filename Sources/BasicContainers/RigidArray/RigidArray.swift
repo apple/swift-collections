@@ -15,37 +15,6 @@
 import InternalCollectionsUtilities
 #endif
 
-#if compiler(<6.2)
-
-/// A fixed capacity, heap allocated, noncopyable array of potentially
-/// noncopyable elements.
-@frozen
-@available(*, unavailable, message: "RigidArray requires a Swift 6.2 toolchain")
-@safe
-public struct RigidArray<Element: ~Copyable>: ~Copyable {
-  @usableFromInline
-  internal var _ptr: UnsafeMutablePointer<Element>
-
-  @usableFromInline
-  internal var _capacity: Int
-
-  @usableFromInline
-  internal var _count: Int
-
-  deinit {
-    if _capacity != 0 {
-      _ptr.deinitialize(count: _count)
-      _ptr.deallocate()
-    }
-  }
-
-  public init() {
-    fatalError()
-  }
-}
-
-#else
-
 /// A fixed capacity, heap allocated, noncopyable array of potentially
 /// noncopyable elements.
 ///
@@ -105,7 +74,7 @@ public struct RigidArray<Element: ~Copyable>: ~Copyable {
       return
     }
 
-    unsafe _ptr.deinitialize(count: count)
+    unsafe _ptr._deinitializeElements(count: count)
     unsafe _ptr.deallocate()
   }
 
@@ -404,5 +373,3 @@ extension RigidArray where Element: ~Copyable {
     return unsafe _storage.extracting(gapRange)
   }
 }
-
-#endif

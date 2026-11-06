@@ -185,7 +185,7 @@ extension RigidArray where Element: ~Copyable {
 
     @inlinable
     deinit {
-      unsafe self._remainder.deinitialize()
+      unsafe self._remainder._deinitializeElements()
 
       // FIXME: This needs to be written as
       //    self._base.value.closeGap(offsets: self._offsetRange)
