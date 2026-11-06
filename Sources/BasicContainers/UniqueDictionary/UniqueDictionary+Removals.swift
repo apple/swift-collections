@@ -41,13 +41,16 @@ extension UniqueDictionary where Key: ~Copyable, Value: ~Copyable {
   @inlinable
   @unsafe
   package mutating func _removeEntry(withMovedValueAt bucket: _Bucket) {
-    let shrink = self.count <= _HTable.minimumCapacity(forScale: self._scale)
-    unsafe _storage._keyPtr(at: bucket).deinitialize(count: 1)
-    // FIXME: Avoid fully resolving the hole when `shrink` is true -- see `_punchHole`
-    unsafe _storage._resolveHole(at: bucket)
-    if shrink {
-      _resize(minimumCapacity: self.count)
+    guard self.count <= _HTable.minimumCapacity(forScale: self._scale) else {
+      unsafe _storage._keyPtr(at: bucket).deinitialize(count: 1)
+      unsafe _storage._resolveHole(at: bucket)
+      return
     }
+
+    // Shrink storage. There is no need to restore hash table invariants first,
+    // as resizing rehashes every item anyway.
+    unsafe _storage._punchHole(withMovedValueAt: bucket)
+    _resize(minimumCapacity: self.count)
   }
   
   @inlinable

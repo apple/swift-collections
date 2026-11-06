@@ -61,10 +61,22 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
   @unsafe
   package mutating func _punchHole(at bucket: _Bucket) -> Value {
     assert(unsafe self._keys._table.isOccupied(bucket))
+    let oldValue = unsafe self._valuePtr(at: bucket).move()
+    unsafe _punchHole(withMovedValueAt: bucket)
+    return oldValue
+  }
+
+  /// Like `_punchHole(at:)`, but assumes the value slot at `bucket` has
+  /// already been moved out (e.g., by `updateValue(forKey:with:)`).
+  ///
+  /// This operation is intended to be used just before resizing the table.
+  @inlinable
+  @unsafe
+  package mutating func _punchHole(withMovedValueAt bucket: _Bucket) {
+    assert(unsafe self._keys._table.isOccupied(bucket))
     unsafe self._keys._table.createHole(at: bucket)
     unsafe self._keyPtr(at: bucket).deinitialize(count: 1)
 
-    let oldValue = unsafe self._valuePtr(at: bucket).move()
     let keys = unsafe self._keys._members.unsafelyUnwrapped
     unsafe self._keys._table.finalizeHole(
       at: bucket,
@@ -72,7 +84,6 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
         unsafe (keys + $1.offset).initialize(to: (keys + $0.offset).move())
         unsafe (_values + $1.offset).initialize(to: (_values + $0.offset).move())
       })
-    return oldValue
   }
   
   @inlinable
