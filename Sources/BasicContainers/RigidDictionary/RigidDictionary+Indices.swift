@@ -24,7 +24,7 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
 
     @_alwaysEmitIntoClient
     @_lifetime(borrow _base)
-    package init(_base: borrowing @_addressable _HTable) {
+    package init(_base: borrowing _HTable) {
       self._base = Ref(_base)
     }
   }
@@ -70,10 +70,7 @@ where Key: ~Copyable, Value: ~Copyable
 
   @_lifetime(borrow self)
   public func makeBorrowingIterator() -> BorrowingIterator {
-    let bit = self._base.value.makeBucketIterator()
-    // FIXME: This override really should not be necessary. Check if the real `struct Borrow` fixes it.
-    let override = unsafe _overrideLifetime(bit, copying: self)
-    return BorrowingIterator(_it: override)
+    BorrowingIterator(_it: self._base.value.makeBucketIterator())
   }
 }
 
