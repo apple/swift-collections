@@ -154,14 +154,14 @@ extension RigidSet where Element: ~Copyable {
             }
           }
           #else
-          output.withUnsafeMutableBufferPointer { buffer, count in
+          unsafe output.withUnsafeMutableBufferPointer { buffer, count in
             if count < c {
               remainder = 0
             } else {
               remainder &-= count
             }
             for i in 0 ..< count {
-              self.insert(buffer.moveElement(from: i))
+              unsafe self.insert(buffer.moveElement(from: i))
             }
             count = 0
           }
