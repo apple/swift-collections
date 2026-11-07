@@ -35,6 +35,7 @@ target_sources(${module_name} PRIVATE
   "BorrowingIteratorProtocol+Extras.swift"
   "Debugging.swift"
   "Descriptions.swift"
+  "Immortalize.swift"
   "Iterable+CopyContents.swift"
   "Iterable+Equality.swift"
   "LifetimeOverride.swift"
