@@ -22,8 +22,13 @@ extension UniqueDictionary where Key: ~Copyable, Value: ~Copyable {
     }
   }
 
-  // FIXME: Remove
-  @available(*, deprecated, renamed: "keys")
+  /// Calls the given closure with a borrowed view of the keys in this
+  /// dictionary.
+  ///
+  /// Until the compiler issue behind
+  /// https://github.com/apple/swift-collections/issues/841 is fixed, prefer
+  /// this method over the `keys` property: in some builds, `keys` can return
+  /// a view into a deallocated temporary.
   @_alwaysEmitIntoClient
   public func withKeys<E: Error, R: ~Copyable>(
   _ body: (borrowing RigidSet<Key>) throws(E) -> R
