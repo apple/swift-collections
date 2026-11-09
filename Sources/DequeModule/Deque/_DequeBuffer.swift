@@ -11,6 +11,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
+import InternalCollectionsUtilities
+#endif
+
 @_fixed_layout
 @usableFromInline
 internal final class _DequeBuffer<Element>: ManagedBuffer<_DequeBufferHeader, Element> {
@@ -45,9 +49,10 @@ extension _DequeBuffer: CustomStringConvertible {
 
 /// The type-punned empty singleton storage instance.
 @usableFromInline
-nonisolated(unsafe) internal let _emptyDequeStorage
-  = _DequeBuffer<Void>.create(
-    minimumCapacity: 0,
-    makingHeaderWith: { _ in
-      _DequeBufferHeader(capacity: 0, count: 0, startSlot: .init(at: 0))
-    })
+nonisolated(unsafe) internal let _emptyDequeStorage = (
+  _immortalize(
+    _DequeBuffer<Void>.create(
+      minimumCapacity: 0,
+      makingHeaderWith: { _ in
+        _DequeBufferHeader(capacity: 0, count: 0, startSlot: .init(at: 0))
+      })))
