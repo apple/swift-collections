@@ -91,7 +91,7 @@ where
     // FIXME: If we aren't modeling bidirectional iterators, then this should
     // trap on negative maximumOffsets
     var n = maximumOffset
-    let limit = (n < 0 ? _base.value.startIndex : _base.value.endIndex)
+    let limit = (n < 0 ? _base.value.startIndex : _end)
     var i = self._position
     self._base.value.formIndex(&i, offsetBy: &n, limitedBy: limit)
     self._position = i

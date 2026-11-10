@@ -54,6 +54,33 @@ final class Container_Algorithms_Tests: CollectionTestCase {
     }
   }
 
+  func test_skip_RigidArray_slices() {
+    let count = 10
+    withLifetimeTracking { tracker in
+      let items = MinimalBidirectionalContainer(
+        RigidArray(copying: tracker.instances(for: 0 ..< count))
+      )
+
+      withEveryRange("subrange", in: 0 ..< count) { subrange in
+        withEvery("maximumOffset", in: 0 ... count + 2) { maximumOffset in
+          var iterator = items.makeBorrowingIterator(
+            from: subrange.lowerBound,
+            to: subrange.upperBound
+          )
+          let skipped = iterator.skip(by: maximumOffset)
+          let expectedSkipped = min(maximumOffset, subrange.count)
+
+          expectEqual(skipped, expectedSkipped)
+          expectBorrowingIteratorPayloads(
+            iterator,
+            equalTo: (subrange.lowerBound + expectedSkipped)
+              ..< subrange.upperBound
+          )
+        }
+      }
+    }
+  }
+
   func test_filter_RigidArray_slices() {
     // Note: this dispatches to Iterable.filter, not ContainerIterator.filter.
     // FIXME: Add a specialized `filter` on Span.BorrowingIterator.
