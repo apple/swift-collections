@@ -89,6 +89,15 @@ class RigidArrayTests: CollectionTestCase {
 
 #if compiler(>=6.4) && UnstableContainersPreview
   @available(SwiftStdlib 6.4, *)
+  func test_validate_DrainableContainer() {
+    withSomeArrayLayouts("layout", ofCapacities: [0, 1, 3, 6]) { layout in
+      checkDrainableContainer(count: layout.count) { contents in
+        RigidArray(layout: layout) { contents[$0] }
+      }
+    }
+  }
+
+  @available(SwiftStdlib 6.4, *)
   func test_validate_MutableContainer() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withLifetimeTracking { tracker in
