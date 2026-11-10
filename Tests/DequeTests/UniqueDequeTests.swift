@@ -137,6 +137,16 @@ final class UniqueDequeTests: CollectionTestCase {
       }
     }
   }
+
+  @available(SwiftStdlib 6.4, *)
+  func test_validate_PermutableContainer() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withLifetimeTracking { tracker in
+        var data = tracker.uniqueDeque(with: layout)
+        checkPermutableContainer(&data.deque, expectedContents: data.contents)
+      }
+    }
+  }
 #endif
 
   func test_basicProperties() {
