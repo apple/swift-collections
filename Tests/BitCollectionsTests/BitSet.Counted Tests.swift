@@ -29,6 +29,20 @@ extension BitSet.Counted: SetAPIExtras {
 extension BitSet.Counted: SortedCollectionAPIChecker {}
 
 final class BitSetCountedTests: CollectionTestCase {
+  func test_bitPattern_initializer() {
+    let s1 = BitSet.Counted(bitPattern: 42 as UInt8)
+    expectEqualElements(s1, [1, 3, 5])
+    expectEqual(s1.count, 3)
+
+    let s2 = BitSet.Counted(bitPattern: -1 as Int8)
+    expectEqualElements(s2, 0 ..< 8)
+    expectEqual(s2.count, 8)
+
+    let s3 = BitSet.Counted(bitPattern: -2 as Int16)
+    expectEqualElements(s3, 1 ..< 16)
+    expectEqual(s3.count, 15)
+  }
+
   func test_collection_strides() {
     withEvery("stride", in: [1, 2, 3, 5, 7, 8, 11, 13, 63, 79, 300]) { stride in
       withEvery("count", in: [0, 1, 2, 5, 10, 20, 25]) { count in

@@ -68,7 +68,14 @@ extension BitSet {
   /// - Complexity: O(`x.bitWidth`)
   @inlinable
   public init(bitPattern x: some BinaryInteger) {
-    self.init(words: x.words)
+    // `x.words` sign-extends negative values to fill a whole word; only keep
+    // the low `x.bitWidth` bits, which are the actual bits of `x`.
+    var words = Array(x.words)
+    let extraBits = x.bitWidth % UInt.bitWidth
+    if extraBits != 0, !words.isEmpty {
+      words[words.count - 1] &= (1 &<< UInt(extraBits)) &- 1
+    }
+    self.init(words: words)
   }
 
   /// Initialize a new bit set from the storage bits of the given bit array.
