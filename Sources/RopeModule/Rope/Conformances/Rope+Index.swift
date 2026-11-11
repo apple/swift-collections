@@ -106,4 +106,15 @@ extension Rope.Index {
   internal mutating func _clear(below height: UInt8) {
     _path.clear(below: height)
   }
+
+  /// Returns true if `self` and `other` address items in the same leaf
+  /// position of the tree, i.e., their paths only differ in the leaf slot.
+  @inlinable
+  internal func _isInSameLeaf(as other: Self) -> Bool {
+    var a = self._path
+    var b = other._path
+    a.clear(below: 1)
+    b.clear(below: 1)
+    return a == b
+  }
 }

@@ -238,6 +238,31 @@ class TestRope: CollectionTestCase {
     }
   }
 
+  func test_distance_with_shared_leaves() {
+    // Appending a rope to itself makes the two halves share the same nodes,
+    // so the same leaf appears at multiple positions in the tree.
+    let ref = (0 ..< 100).map {
+      Chunk(length: ($0 % 4) + 1, value: $0)
+    }
+    var rope = Rope<Chunk>(ref)
+    rope.append(rope)
+    rope._invariantCheck()
+    let all = ref + ref
+
+    let indices = Array(rope.indices) + [rope.endIndex]
+    expectEqual(indices.count, all.count + 1)
+    for i in indices.indices {
+      for j in indices.indices {
+        let d = rope.distance(from: indices[i], to: indices[j], in: Chunk.Metric())
+        let r = (
+          i <= j
+          ? all[i..<j].reduce(into: 0) { $0 += $1.length }
+          : all[j..<i].reduce(into: 0) { $0 -= $1.length })
+        expectEqual(d, r, "i: \(i), j: \(j)")
+      }
+    }
+  }
+
   func test_find() {
     let c = 500
 
