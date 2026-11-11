@@ -133,6 +133,10 @@ extension TrailingPadding where Header: Copyable {
         // Tell the tail-allocated buffer not to free the storage.
         let finalPointer = unsafe tailAllocated.leakStorage()
         precondition(unsafe finalPointer == pointer)
+
+        // Deinitialize the header. The temporary storage itself is freed
+        // when we return.
+        unsafe finalPointer.deinitialize(count: 1)
       }
       return try body(&tailAllocated!)
     }
