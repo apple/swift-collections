@@ -59,6 +59,28 @@ struct ManyBytesWithPointers: @unsafe TrailingElements {
   var trailingCount: Int { Int(bytes.0) }
 }
 
+final class LiveCounter {
+  var count = 0
+}
+
+final class Tracked {
+  let counter: LiveCounter
+
+  init(_ counter: LiveCounter) {
+    self.counter = counter
+    counter.count += 1
+  }
+
+  deinit { counter.count -= 1 }
+}
+
+struct TrackedList: TrailingElements {
+  typealias Element = Tracked
+  var trailingCount: Int
+}
+
+struct InitializationError: Error {}
+
 @Suite("Trailing elements tests")
 struct TrailingElementsTests {
   @Test func simpleCoordinates() {
@@ -182,5 +204,65 @@ struct TrailingElementsTests {
         #expect(unsafe UnsafeMutableRawPointer(p1) == UnsafeMutableRawPointer(p2))
       }
     }
+  }
+
+  @Test(arguments: 0 ... 3)
+  func throwingInitializerOnHeap(initializedCount: Int) {
+    let counter = LiveCounter()
+    #expect(throws: InitializationError.self) {
+      _ = try TrailingArray(
+        header: TrackedList(trailingCount: 3)
+      ) { (outputSpan) throws(InitializationError) in
+        for _ in 0 ..< initializedCount {
+          outputSpan.append(Tracked(counter))
+        }
+        throw InitializationError()
+      }
+    }
+    #expect(counter.count == 0)
+  }
+
+  @Test(arguments: 0 ... 3)
+  func throwingInitializerOnStack(initializedCount: Int) {
+    let counter = LiveCounter()
+    let initializer: (inout OutputSpan<Tracked>) throws(InitializationError) -> Void = {
+      outputSpan throws(InitializationError) in
+      for _ in 0 ..< initializedCount {
+        outputSpan.append(Tracked(counter))
+      }
+      throw InitializationError()
+    }
+    let body: (inout TrailingArray<TrackedList>) throws(InitializationError) -> Void = { _ in
+      Issue.record("body shouldn't be called")
+    }
+    #expect(throws: InitializationError.self) {
+      try TrailingArray<TrackedList>.withTemporaryValue(
+        header: TrackedList(trailingCount: 3),
+        initializingTrailingElementsWith: initializer,
+        body: body)
+    }
+    #expect(counter.count == 0)
+  }
+
+  @Test func trackedElementsAreReleased() {
+    let counter = LiveCounter()
+    do {
+      let tracked = TrailingArray(header: TrackedList(trailingCount: 3)) { outputSpan in
+        for _ in 0 ..< 3 {
+          outputSpan.append(Tracked(counter))
+        }
+      }
+      #expect(counter.count == 3)
+      #expect(tracked.count == 3)
+    }
+    #expect(counter.count == 0)
+
+    TrailingArray.withTemporaryValue(header: TrackedList(trailingCount: 2)) { outputSpan in
+      outputSpan.append(Tracked(counter))
+      outputSpan.append(Tracked(counter))
+    } body: { tracked in
+      #expect(counter.count == 2)
+    }
+    #expect(counter.count == 0)
   }
 }
