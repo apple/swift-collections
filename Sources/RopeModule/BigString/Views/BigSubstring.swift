@@ -120,16 +120,7 @@ extension BigSubstring: Comparable {
     // FIXME: Even if we keep doing characterwise comparisons, we should skip over shared subtrees.
     var it1 = left.makeIterator()
     var it2 = right.makeIterator()
-    while true {
-      switch (it1.next(), it2.next()) {
-      case (nil, nil): return false
-      case (nil, .some): return true
-      case (.some, nil): return false
-      case let (a?, b?):
-        if a == b { continue }
-        return a < b
-      }
-    }
+    return BigString._characterwiseIsLess(&it1, &it2)
   }
 }
 
