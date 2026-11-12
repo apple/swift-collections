@@ -2108,4 +2108,52 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
+
+  func test_append_moving() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEvery("c", in: 0 ... layout.freeCapacity) { c in
+        withEvery("source", in: MoveSource.allCases) { source in
+          withLifetimeTracking { tracker in
+            let added = layout.count ..< layout.count + c
+            let expected = Array(layout.valueRange) + Array(added)
+            var deque = RigidDeque(layout: layout) {
+              tracker.instance(for: $0)
+            }
+            let range: Range<Int>
+            switch source {
+            case .unsafeMutableBufferPointer:
+              let buffer = UnsafeMutableBufferPointer<LifetimeTracked<Int>>
+                .allocate(capacity: c)
+              _ = unsafe buffer.initialize(
+                fromContentsOf: tracker.instances(for: added))
+              range = unsafe deque.append(moving: buffer)
+              unsafe buffer.deallocate()
+            case .outputSpan:
+              var items = RigidArray(
+                capacity: c + 2, copying: tracker.instances(for: added))
+              range = items.edit { deque.append(moving: &$0) }
+              expectTrue(items.isEmpty)
+#if UnstableContainersPreview
+            case .inputSpan:
+              let buffer = UnsafeMutableBufferPointer<LifetimeTracked<Int>>
+                .allocate(capacity: c + 2)
+              _ = unsafe buffer.extracting(2...).initialize(
+                fromContentsOf: tracker.instances(for: added))
+              var items = unsafe InputSpan(buffer: buffer, initializedCount: c)
+              range = deque.append(moving: &items)
+              expectTrue(items.isEmpty)
+              _ = consume items
+              unsafe buffer.deallocate()
+#endif
+            }
+            expectEqual(range, layout.count ..< layout.count + c)
+            expectEqual(deque.capacity, layout.capacity)
+            expectEqual(tracker.instances, expected.count)
+            expectRigidDequeContents(
+              deque, equivalentTo: expected, by: { $0.payload == $1 })
+          }
+        }
+      }
+    }
+  }
 }
