@@ -818,4 +818,50 @@ final class UniqueDequeTests: CollectionTestCase {
   }
 #endif
 
+  enum CopySource: CaseIterable {
+    case array
+    case minimalCollection
+    case span
+    case unsafeBufferPointer
+    case unsafeMutableBufferPointer
+  }
+
+  func test_insert_copying() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEvery("index", in: 0 ... layout.count) { index in
+        withEvery("c", in: [0, 1, 2, 5, 12]) { c in
+          withEvery("source", in: CopySource.allCases) { source in
+            withLifetimeTracking { tracker in
+              var data = tracker.uniqueDeque(with: layout)
+              var extras = tracker.instances(
+                for: layout.count ..< layout.count + c)
+              let range: Range<Int>
+              switch source {
+              case .array:
+                range = data.deque.insert(copying: extras, at: index)
+              case .minimalCollection:
+                range = data.deque.insert(
+                  copying: MinimalCollection(extras), at: index)
+              case .span:
+                let rigid = RigidArray(copying: extras)
+                range = data.deque.insert(copying: rigid.span, at: index)
+              case .unsafeBufferPointer:
+                range = extras.withUnsafeBufferPointer { buffer in
+                  unsafe data.deque.insert(copying: buffer, at: index)
+                }
+              case .unsafeMutableBufferPointer:
+                range = extras.withUnsafeMutableBufferPointer { buffer in
+                  unsafe data.deque.insert(copying: buffer, at: index)
+                }
+              }
+              data.contents.insert(contentsOf: extras, at: index)
+              expectEqual(range, index ..< index + c)
+              expectUniqueDequeContents(data.deque, equalTo: data.contents)
+            }
+          }
+        }
+      }
+    }
+  }
+
 }
