@@ -1960,4 +1960,40 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
+
+  func test_prepend_copying() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEvery("c", in: 0 ... layout.freeCapacity) { c in
+        withEvery("source", in: CopySource.allCases) { source in
+          withLifetimeTracking { tracker in
+            var data = tracker.rigidDeque(with: layout)
+            var extras = tracker.instances(
+              for: layout.count ..< layout.count + c)
+            let range: Range<Int>
+            switch source {
+            case .array:
+              range = data.deque.prepend(copying: extras)
+            case .minimalCollection:
+              range = data.deque.prepend(copying: MinimalCollection(extras))
+            case .span:
+              let rigid = RigidArray(copying: extras)
+              range = data.deque.prepend(copying: rigid.span)
+            case .unsafeBufferPointer:
+              range = extras.withUnsafeBufferPointer { buffer in
+                unsafe data.deque.prepend(copying: buffer)
+              }
+            case .unsafeMutableBufferPointer:
+              range = extras.withUnsafeMutableBufferPointer { buffer in
+                unsafe data.deque.prepend(copying: buffer)
+              }
+            }
+            data.contents.insert(contentsOf: extras, at: 0)
+            expectEqual(range, 0 ..< c)
+            expectEqual(data.deque.capacity, layout.capacity)
+            expectRigidDequeContents(data.deque, equalTo: data.contents)
+          }
+        }
+      }
+    }
+  }
 }
