@@ -1154,4 +1154,51 @@ final class UniqueDequeTests: CollectionTestCase {
     }
   }
 
+  func test_prepend_moving() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEvery("c", in: [0, 1, 2, 5, 12]) { c in
+        withEvery("source", in: MoveSource.allCases) { source in
+          withLifetimeTracking { tracker in
+            let added = layout.count ..< layout.count + c
+            let expected = Array(added) + Array(layout.valueRange)
+            var deque = UniqueDeque(layout: layout) {
+              tracker.instance(for: $0)
+            }
+            let range: Range<Int>
+            switch source {
+            case .unsafeMutableBufferPointer:
+              let buffer = UnsafeMutableBufferPointer<LifetimeTracked<Int>>
+                .allocate(capacity: c)
+              _ = unsafe buffer.initialize(
+                fromContentsOf: tracker.instances(for: added))
+              range = unsafe deque.prepend(moving: buffer)
+              unsafe buffer.deallocate()
+            case .outputSpan:
+              var items = RigidArray(
+                capacity: c + 2, copying: tracker.instances(for: added))
+              range = items.edit { deque.prepend(moving: &$0) }
+              expectTrue(items.isEmpty)
+#if UnstableContainersPreview
+            case .inputSpan:
+              let buffer = UnsafeMutableBufferPointer<LifetimeTracked<Int>>
+                .allocate(capacity: c + 2)
+              _ = unsafe buffer.extracting(2...).initialize(
+                fromContentsOf: tracker.instances(for: added))
+              var items = unsafe InputSpan(buffer: buffer, initializedCount: c)
+              range = deque.prepend(moving: &items)
+              expectTrue(items.isEmpty)
+              _ = consume items
+              unsafe buffer.deallocate()
+#endif
+            }
+            expectEqual(range, 0 ..< c)
+            expectEqual(tracker.instances, expected.count)
+            expectUniqueDequeContents(
+              deque, equivalentTo: expected, by: { $0.payload == $1 })
+          }
+        }
+      }
+    }
+  }
+
 }
