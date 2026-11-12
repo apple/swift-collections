@@ -976,4 +976,24 @@ final class UniqueDequeTests: CollectionTestCase {
     }
   }
 
+#if compiler(>=6.4)
+  @available(SwiftStdlib 6.4, *)
+  func test_init_copying_Iterable() {
+    withEvery("count", in: [0, 1, 2, 5, 12]) { count in
+      withEvery("capacity", in: [nil, 0, count, count + 3] as [Int?]) { capacity in
+        withLifetimeTracking { tracker in
+          let items = tracker.instances(for: 0 ..< count)
+          let source = RigidArray(copying: items)
+          let deque = UniqueDeque(capacity: capacity, copying: source)
+          expectUniqueDequeContents(deque, equalTo: items)
+          expectEqual(deque.count, count)
+          if let capacity, capacity >= count {
+            expectEqual(deque.capacity, capacity)
+          }
+        }
+      }
+    }
+  }
+#endif
+
 }
