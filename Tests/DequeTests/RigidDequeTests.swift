@@ -1922,4 +1922,42 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
+
+  func test_append_copying() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEvery("c", in: 0 ... layout.freeCapacity) { c in
+        withEvery("source", in: CopySource.allCases) { source in
+          withLifetimeTracking { tracker in
+            var data = tracker.rigidDeque(with: layout)
+            var extras = tracker.instances(
+              for: layout.count ..< layout.count + c)
+            var range: Range<Int>?
+            switch source {
+            case .array:
+              data.deque.append(copying: extras)
+            case .minimalCollection:
+              data.deque.append(copying: MinimalCollection(extras))
+            case .span:
+              let rigid = RigidArray(copying: extras)
+              range = data.deque.append(copying: rigid.span)
+            case .unsafeBufferPointer:
+              range = extras.withUnsafeBufferPointer { buffer in
+                unsafe data.deque.append(copying: buffer)
+              }
+            case .unsafeMutableBufferPointer:
+              range = extras.withUnsafeMutableBufferPointer { buffer in
+                unsafe data.deque.append(copying: buffer)
+              }
+            }
+            data.contents.append(contentsOf: extras)
+            if let range {
+              expectEqual(range, layout.count ..< layout.count + c)
+            }
+            expectEqual(data.deque.capacity, layout.capacity)
+            expectRigidDequeContents(data.deque, equalTo: data.contents)
+          }
+        }
+      }
+    }
+  }
 }
