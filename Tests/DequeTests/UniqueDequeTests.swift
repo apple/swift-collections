@@ -864,4 +864,44 @@ final class UniqueDequeTests: CollectionTestCase {
     }
   }
 
+  func test_replaceSubrange_copying() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEveryRange("subrange", in: 0 ..< layout.count) { subrange in
+        withEvery("c", in: [0, 1, 2, 5, 12]) { c in
+          withEvery("source", in: CopySource.allCases) { source in
+            withLifetimeTracking { tracker in
+              var data = tracker.uniqueDeque(with: layout)
+              var extras = tracker.instances(
+                for: layout.count ..< layout.count + c)
+              let range: Range<Int>
+              switch source {
+              case .array:
+                range = data.deque.replaceSubrange(subrange, copying: extras)
+              case .minimalCollection:
+                range = data.deque.replaceSubrange(
+                  subrange, copying: MinimalCollection(extras))
+              case .span:
+                let rigid = RigidArray(copying: extras)
+                range = data.deque.replaceSubrange(
+                  subrange, copying: rigid.span)
+              case .unsafeBufferPointer:
+                range = extras.withUnsafeBufferPointer { buffer in
+                  unsafe data.deque.replaceSubrange(subrange, copying: buffer)
+                }
+              case .unsafeMutableBufferPointer:
+                range = extras.withUnsafeMutableBufferPointer { buffer in
+                  unsafe data.deque.replaceSubrange(subrange, copying: buffer)
+                }
+              }
+              data.contents.replaceSubrange(subrange, with: extras)
+              expectEqual(range, subrange.lowerBound ..< subrange.lowerBound + c)
+              expectUniqueDequeContents(data.deque, equalTo: data.contents)
+              expectEqual(tracker.instances, layout.count - subrange.count + c)
+            }
+          }
+        }
+      }
+    }
+  }
+
 }
