@@ -1055,4 +1055,56 @@ final class UniqueDequeTests: CollectionTestCase {
     }
   }
 
+  func test_replaceSubrange_moving() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEveryRange("subrange", in: 0 ..< layout.count) { subrange in
+        withEvery("c", in: [0, 1, 2, 5, 12]) { c in
+          withEvery("source", in: MoveSource.allCases) { source in
+            withLifetimeTracking { tracker in
+              let added = layout.count ..< layout.count + c
+              var expected = Array(layout.valueRange)
+              expected.replaceSubrange(subrange, with: added)
+              var deque = UniqueDeque(layout: layout) {
+                tracker.instance(for: $0)
+              }
+              let range: Range<Int>
+              switch source {
+              case .unsafeMutableBufferPointer:
+                let buffer = UnsafeMutableBufferPointer<LifetimeTracked<Int>>
+                  .allocate(capacity: c)
+                _ = unsafe buffer.initialize(
+                  fromContentsOf: tracker.instances(for: added))
+                range = unsafe deque.replaceSubrange(subrange, moving: buffer)
+                unsafe buffer.deallocate()
+              case .outputSpan:
+                var items = RigidArray(
+                  capacity: c + 2, copying: tracker.instances(for: added))
+                range = items.edit {
+                  deque.replaceSubrange(subrange, moving: &$0)
+                }
+                expectTrue(items.isEmpty)
+#if UnstableContainersPreview
+              case .inputSpan:
+                let buffer = UnsafeMutableBufferPointer<LifetimeTracked<Int>>
+                  .allocate(capacity: c + 2)
+                _ = unsafe buffer.extracting(2...).initialize(
+                  fromContentsOf: tracker.instances(for: added))
+                var items = unsafe InputSpan(buffer: buffer, initializedCount: c)
+                range = deque.replaceSubrange(subrange, moving: &items)
+                expectTrue(items.isEmpty)
+                _ = consume items
+                unsafe buffer.deallocate()
+#endif
+              }
+              expectEqual(range, subrange.lowerBound ..< subrange.lowerBound + c)
+              expectEqual(tracker.instances, expected.count)
+              expectUniqueDequeContents(
+                deque, equivalentTo: expected, by: { $0.payload == $1 })
+            }
+          }
+        }
+      }
+    }
+  }
+
 }
