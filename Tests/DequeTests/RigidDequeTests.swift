@@ -1996,4 +1996,63 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
+
+  enum MoveSource: CaseIterable {
+    case unsafeMutableBufferPointer
+    case outputSpan
+#if UnstableContainersPreview
+    case inputSpan
+#endif
+  }
+
+  func test_insert_moving() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEvery("index", in: 0 ... layout.count) { index in
+        withEvery("c", in: 0 ... layout.freeCapacity) { c in
+          withEvery("source", in: MoveSource.allCases) { source in
+            withLifetimeTracking { tracker in
+              let added = layout.count ..< layout.count + c
+              var expected = Array(layout.valueRange)
+              expected.insert(contentsOf: added, at: index)
+              var deque = RigidDeque(layout: layout) {
+                tracker.instance(for: $0)
+              }
+              let range: Range<Int>
+              switch source {
+              case .unsafeMutableBufferPointer:
+                let buffer = UnsafeMutableBufferPointer<LifetimeTracked<Int>>
+                  .allocate(capacity: c)
+                _ = unsafe buffer.initialize(
+                  fromContentsOf: tracker.instances(for: added))
+                range = unsafe deque.insert(moving: buffer, at: index)
+                unsafe buffer.deallocate()
+              case .outputSpan:
+                var items = RigidArray(
+                  capacity: c + 2, copying: tracker.instances(for: added))
+                range = items.edit { deque.insert(moving: &$0, at: index) }
+                expectTrue(items.isEmpty)
+#if UnstableContainersPreview
+              case .inputSpan:
+                let buffer = UnsafeMutableBufferPointer<LifetimeTracked<Int>>
+                  .allocate(capacity: c + 2)
+                _ = unsafe buffer.extracting(2...).initialize(
+                  fromContentsOf: tracker.instances(for: added))
+                var items = unsafe InputSpan(buffer: buffer, initializedCount: c)
+                range = deque.insert(moving: &items, at: index)
+                expectTrue(items.isEmpty)
+                _ = consume items
+                unsafe buffer.deallocate()
+#endif
+              }
+              expectEqual(range, index ..< index + c)
+              expectEqual(deque.capacity, layout.capacity)
+              expectEqual(tracker.instances, expected.count)
+              expectRigidDequeContents(
+                deque, equivalentTo: expected, by: { $0.payload == $1 })
+            }
+          }
+        }
+      }
+    }
+  }
 }
