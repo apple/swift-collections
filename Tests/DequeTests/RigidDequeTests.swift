@@ -2204,4 +2204,115 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
+
+#if UnstableContainersPreview
+  enum ConsumerPolicy: CaseIterable {
+    case takeAll
+    case takeNone
+    case takeOne
+  }
+
+  func checkConsumption(
+    _ layout: DequeLayout,
+    removing removed: Range<Int>,
+    _ operation: (
+      inout RigidDeque<LifetimeTracked<Int>>,
+      (inout InputSpan<LifetimeTracked<Int>>) -> Void
+    ) -> Int?
+  ) {
+    withEvery("policy", in: ConsumerPolicy.allCases) { policy in
+      withLifetimeTracking { tracker in
+        var deque = RigidDeque(layout: layout) { tracker.instance(for: $0) }
+        var consumed: [Int] = []
+        let index = operation(&deque) { span in
+          switch policy {
+          case .takeAll:
+            while let item = span.popFirst() { consumed.append(item.payload) }
+          case .takeNone:
+            break
+          case .takeOne:
+            if let item = span.popFirst() { consumed.append(item.payload) }
+          }
+        }
+        if let index {
+          expectEqual(index, removed.lowerBound)
+        }
+        var expected = Array(layout.valueRange)
+        expected.removeSubrange(removed)
+        expectEqual(deque.capacity, layout.capacity)
+        expectEqual(tracker.instances, expected.count)
+        expectRigidDequeContents(
+          deque, equivalentTo: expected, by: { $0.payload == $1 })
+        switch policy {
+        case .takeAll:
+          expectEqual(consumed, Array(removed))
+        case .takeNone:
+          expectEqual(consumed, [])
+        case .takeOne:
+          expectEqual(consumed.first, removed.first)
+          expectTrue(consumed.allSatisfy { removed.contains($0) })
+          expectEqual(consumed, consumed.sorted())
+        }
+      }
+    }
+  }
+
+  func test_consumeSubrange_consumingWith() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEveryRange("subrange", in: 0 ..< layout.count) { subrange in
+        checkConsumption(layout, removing: subrange) { deque, consumer in
+          deque.consumeSubrange(subrange, consumingWith: consumer)
+        }
+      }
+    }
+  }
+
+  func test_consumeSubrange_RangeExpression() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEvery("bound", in: 0 ... layout.count) { bound in
+        checkConsumption(layout, removing: bound ..< layout.count) {
+          deque, consumer in
+          deque.consumeSubrange(bound..., consumingWith: consumer)
+        }
+        checkConsumption(layout, removing: 0 ..< bound) { deque, consumer in
+          deque.consumeSubrange(..<bound, consumingWith: consumer)
+        }
+      }
+    }
+  }
+
+  func test_consumeAll() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      checkConsumption(layout, removing: 0 ..< layout.count) {
+        deque, consumer in
+        deque.consumeAll(consumingWith: consumer)
+        return nil
+      }
+    }
+  }
+
+  func test_consumeFirst() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEvery("n", in: 0 ... layout.count) { n in
+        checkConsumption(layout, removing: 0 ..< n) { deque, consumer in
+          deque.consumeFirst(n, consumingWith: consumer)
+          return nil
+        }
+      }
+    }
+  }
+
+  func test_consumeLast() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEvery("n", in: 0 ... layout.count) { n in
+        checkConsumption(
+          layout, removing: layout.count - n ..< layout.count
+        ) { deque, consumer in
+          deque.consumeLast(n, consumingWith: consumer)
+          return nil
+        }
+      }
+    }
+  }
+#endif
 }
