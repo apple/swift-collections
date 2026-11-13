@@ -77,6 +77,27 @@ class SortedSetTests: CollectionTestCase {
     }
   }
 
+  func test_formIndexOffsetBy() {
+    withEvery("count", in: [0, 1, 5, 6, 17, 18, 29, 30, 53, 54]) { count in
+      withEvery("isBulk", in: [false, true]) { isBulk in
+        let set = isBulk
+          ? SortedSet(sortedElements: 0 ..< count)
+          : SortedSet(0 ..< count)
+        let indices = Array(set.indices) + [set.endIndex]
+        withEvery("offset", in: 0 ... count) { offset in
+          withEvery("distance", in: -offset ... count - offset) { distance in
+            var index = indices[offset]
+            set.formIndex(&index, offsetBy: distance)
+            if offset + distance < count {
+              expectEqual(set[index], offset + distance)
+            }
+            expectEqualElements(set[index...], offset + distance ..< count)
+          }
+        }
+      }
+    }
+  }
+
   func test_firstIndexOf_lastIndexOf() {
     withEvery("count", in: 0 ..< 20) { count in
       let contents = Array(0 ..< count)
@@ -320,6 +341,25 @@ class SortedSetTests: CollectionTestCase {
       [SortedSet(evens.map { $0 == 56 ? 57 : $0 })[20 ..< 60]],
     ]
     checkHashable(equivalenceClasses: classes)
+  }
+
+  func test_subSequence_BidirectionalCollection() {
+    withEvery("count", in: [0, 1, 5, 6, 17, 18, 29, 30, 53, 54, 149, 150]) { count in
+      withEvery("isBulk", in: [false, true]) { isBulk in
+        let set = isBulk
+          ? SortedSet(sortedElements: 0 ..< count)
+          : SortedSet(0 ..< count)
+        let lengths = Set([0, 1, 8].map { min($0, count) }).sorted()
+        withEvery("length", in: lengths) { length in
+          let starts = Set([0, (count - length) / 2, count - length]).sorted()
+          withEvery("start", in: starts) { start in
+            let end = start + length
+            checkBidirectionalCollection(
+              set[start ..< end], expectedContents: start ..< end)
+          }
+        }
+      }
+    }
   }
 
   func test_Encodable() throws {
