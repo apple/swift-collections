@@ -108,4 +108,150 @@ class OrderedSetUnorderedViewTests: CollectionTestCase {
       models: [[], [0], [0, 1, 2, 3], Set(stride(from: 0, to: 200, by: 2))],
       members: { Array(OrderedSet($0)) })
   }
+
+  static let samples: [[Int]] = [
+    [], [0], [3], [0, 1], [1, 0], [2, 3, 0], [3, 2, 1, 0], [0, 1, 2, 3],
+    [4, 1, 5, 0], Array(stride(from: 0, to: 32, by: 2)),
+    Array((5 ..< 25).reversed()),
+  ]
+
+  func withEverySamplePair(_ body: ([Int], [Int]) -> Void) {
+    withEvery("a", in: Self.samples) { a in
+      withEvery("b", in: Self.samples) { b in
+        body(a, b)
+      }
+    }
+  }
+
+  func test_initializers() {
+    withEvery("a", in: Self.samples) { a in
+      typealias View = OrderedSet<Int>.UnorderedView
+      expectEqualElements(OrderedSet(View(a + a)), a)
+      expectEqualElements(OrderedSet(View(OrderedSet(a).unordered)), a)
+      let fromSet = OrderedSet(View(Set(a)))
+      expectEqual(fromSet.count, a.count)
+      expectEqual(Set(fromSet), Set(a))
+      let keys = Dictionary(uniqueKeysWithValues: a.map { ($0, $0) }).keys
+      let fromKeys = OrderedSet(View(keys))
+      expectEqual(fromKeys.count, a.count)
+      expectEqual(Set(fromKeys), Set(a))
+    }
+    expectEqualElements(OrderedSet(OrderedSet<Int>.UnorderedView()), [])
+    let literal: OrderedSet<Int>.UnorderedView = [3, 1, 2, 1]
+    expectEqualElements(OrderedSet(literal), [3, 1, 2])
+  }
+
+  func test_descriptions() {
+    withEvery("a", in: Self.samples) { a in
+      let view = OrderedSet(a).unordered
+      expectEqual(view.description, "\(a)")
+      expectEqual(view.debugDescription, view.description)
+      let mirror = view.customMirror
+      expectEqual(mirror.displayStyle, .collection)
+      expectEqualElements(mirror.children.map { $0.value as! Int }, a)
+    }
+  }
+
+  func test_union() {
+    withEverySamplePair { a, b in
+      let expected = a + b.filter { !a.contains($0) }
+      let x = OrderedSet(a).unordered
+      let y = OrderedSet(b).unordered
+      expectEqualElements(OrderedSet(x.union(y)), expected)
+      expectEqualElements(OrderedSet(x.union(b + b)), expected)
+      var z = x
+      z.formUnion(y)
+      expectEqualElements(OrderedSet(z), expected)
+      z = x
+      z.formUnion(b + b)
+      expectEqualElements(OrderedSet(z), expected)
+    }
+  }
+
+  func test_intersection() {
+    withEverySamplePair { a, b in
+      let expected = a.filter { b.contains($0) }
+      let x = OrderedSet(a).unordered
+      let y = OrderedSet(b).unordered
+      expectEqualElements(OrderedSet(x.intersection(y)), expected)
+      expectEqualElements(OrderedSet(x.intersection(b + b)), expected)
+      var z = x
+      z.formIntersection(y)
+      expectEqualElements(OrderedSet(z), expected)
+      z = x
+      z.formIntersection(b + b)
+      expectEqualElements(OrderedSet(z), expected)
+    }
+  }
+
+  func test_symmetricDifference() {
+    withEverySamplePair { a, b in
+      let expected =
+        a.filter { !b.contains($0) } + b.filter { !a.contains($0) }
+      let x = OrderedSet(a).unordered
+      let y = OrderedSet(b).unordered
+      expectEqualElements(OrderedSet(x.symmetricDifference(y)), expected)
+      expectEqualElements(OrderedSet(x.symmetricDifference(b + b)), expected)
+      var z = x
+      z.formSymmetricDifference(y)
+      expectEqualElements(OrderedSet(z), expected)
+      z = x
+      z.formSymmetricDifference(b + b)
+      expectEqualElements(OrderedSet(z), expected)
+    }
+  }
+
+  func test_subtracting() {
+    withEverySamplePair { a, b in
+      let expected = a.filter { !b.contains($0) }
+      let x = OrderedSet(a).unordered
+      let y = OrderedSet(b).unordered
+      expectEqualElements(OrderedSet(x.subtracting(y)), expected)
+      expectEqualElements(OrderedSet(x.subtracting(b + b)), expected)
+      var z = x
+      z.subtract(y)
+      expectEqualElements(OrderedSet(z), expected)
+      z = x
+      z.subtract(b + b)
+      expectEqualElements(OrderedSet(z), expected)
+    }
+  }
+
+  func test_predicates() {
+    withEverySamplePair { a, b in
+      let x = OrderedSet(a).unordered
+      let y = OrderedSet(b).unordered
+      let setA = Set(a)
+      let setB = Set(b)
+      let seqB = b + b
+      expectEqual(x == y, setA == setB)
+      expectEqual(x.isEqualSet(to: y), setA == setB)
+      expectEqual(x.isEqualSet(to: seqB), setA == setB)
+
+      let isSubset = setA.isSubset(of: setB)
+      expectEqual(x.isSubset(of: y), isSubset)
+      expectEqual(x.isSubset(of: setB), isSubset)
+      expectEqual(x.isSubset(of: seqB), isSubset)
+
+      let isSuperset = setA.isSuperset(of: setB)
+      expectEqual(x.isSuperset(of: y), isSuperset)
+      expectEqual(x.isSuperset(of: setB), isSuperset)
+      expectEqual(x.isSuperset(of: seqB), isSuperset)
+
+      let isStrictSubset = setA.isStrictSubset(of: setB)
+      expectEqual(x.isStrictSubset(of: y), isStrictSubset)
+      expectEqual(x.isStrictSubset(of: setB), isStrictSubset)
+      expectEqual(x.isStrictSubset(of: seqB), isStrictSubset)
+
+      let isStrictSuperset = setA.isStrictSuperset(of: setB)
+      expectEqual(x.isStrictSuperset(of: y), isStrictSuperset)
+      expectEqual(x.isStrictSuperset(of: setB), isStrictSuperset)
+      expectEqual(x.isStrictSuperset(of: seqB), isStrictSuperset)
+
+      let isDisjoint = setA.isDisjoint(with: setB)
+      expectEqual(x.isDisjoint(with: y), isDisjoint)
+      expectEqual(x.isDisjoint(with: setB), isDisjoint)
+      expectEqual(x.isDisjoint(with: seqB), isDisjoint)
+    }
+  }
 }
