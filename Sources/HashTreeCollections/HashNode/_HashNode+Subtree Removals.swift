@@ -30,7 +30,8 @@ extension _HashNode {
       return (r.removed, remainder)
     }
     guard let r = find(level, key, hash) else { return nil }
-    let bucket = hash[level]
+    // Collision nodes below the last hash level do not use buckets.
+    let bucket = level.isAtBottom ? .invalid : hash[level]
     guard r.descend else {
       let r = unsafe _removeItemFromUniqueLeafNode(level, at: bucket, r.slot) {
         unsafe $0.move()
@@ -56,7 +57,7 @@ extension _HashNode {
     _ level: _HashLevel, _ key: Key, _ hash: _Hash
   ) -> (removed: Element, replacement: Builder)? {
     guard let r = find(level, key, hash) else { return nil }
-    let bucket = hash[level]
+    let bucket = level.isAtBottom ? .invalid : hash[level]
     guard r.descend else {
       return unsafe _removingItemFromLeaf(level, at: bucket, r.slot)
     }
@@ -157,7 +158,8 @@ extension _HashNode {
         if unsafe $0.collisionCount == 2 {
           // Node will evaporate
           let remainder = _HashSlot(1 &- slot.value)
-          let bucket = unsafe $0.collisionHash[level]
+          let bucket =
+            unsafe level.isAtBottom ? .invalid : $0.collisionHash[level]
           return (
             removed: unsafe $0[item: slot],
             replacement: unsafe .item(level, $0[item: remainder], at: bucket))

@@ -931,6 +931,40 @@ class TreeDictionaryTests: CollectionTestCase {
     }
   }
 
+  func test_collision_node_at_maximum_depth() {
+    // `a1` and `a2` have the same hash, and `b` only differs from them on the
+    // last hash level, so `a1` and `a2` end up in a collision node that is
+    // below the last level that has a bucket in the hash.
+    let depth = TreeDictionary<Int, Int>._maxDepth
+    let prefix = String(repeating: "0", count: depth - 1)
+    let a1 = RawCollider(1, Hash(prefix + "1")!)
+    let a2 = RawCollider(2, Hash(prefix + "1")!)
+    let b = RawCollider(3, Hash(prefix + "0")!)
+    let expected: [(key: RawCollider, value: Int)] = [(a1, 1), (b, 3)]
+
+    withEvery("isShared", in: [false, true]) { isShared in
+      var d: TreeDictionary = [a1: 1, a2: 2, b: 3]
+      withHiddenCopies(if: isShared, of: &d) { d in
+        expectEqual(d.removeValue(forKey: a2), 2)
+        d._invariantCheck()
+        expectEqualDictionaries(d, expected)
+      }
+
+      d = [a1: 1, a2: 2, b: 3]
+      withHiddenCopies(if: isShared, of: &d) { d in
+        mutate(&d[a2]) { value in
+          expectEqual(value, 2)
+          value = nil
+        }
+        d._invariantCheck()
+        expectEqualDictionaries(d, expected)
+      }
+    }
+
+    let d: TreeDictionary = [a1: 1, a2: 2, b: 3]
+    expectEqualDictionaries(d.filter { $0.key != a2 }, expected)
+  }
+
   func test_subscript_modify_remove_fixtures_removeAll() {
     withEachFixture { fixture in
       withEvery("isShared", in: [false, true]) { isShared in
