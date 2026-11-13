@@ -133,6 +133,60 @@ final class ProducerTests: CollectionTestCase {
     }
   }
 
+  func test_map_throwing_transform_next() {
+    withEvery("failAt", in: [0, 1, 7, 8, 9, 15, 16, 19]) { failAt in
+      withLifetimeTracking { tracker in
+        var seen: [Int] = []
+        var mapped = CustomProducer<LifetimeTracked<Int>, ClosureError> {
+          $0 < 20 ? tracker.instance(for: $0) : nil
+        }
+        .map { item throws(ClosureError) in
+          seen.append(item.payload)
+          if item.payload == failAt { throw ClosureError(value: failAt) }
+          return item
+        }
+        var items: [Int] = []
+        do throws(ClosureError) {
+          while let item = try mapped.next() {
+            items.append(item.payload)
+          }
+          expectFailure("next() did not throw")
+        } catch {
+          expectEqual(error, ClosureError(value: failAt))
+        }
+        expectEqual(items, Array(0 ..< failAt))
+        expectEqual(seen, Array(0 ... failAt))
+      }
+    }
+  }
+
+  func test_map_throwing_transform_reduce_into() {
+    withEvery("failAt", in: [0, 1, 7, 8, 9, 15, 16, 19]) { failAt in
+      withLifetimeTracking { tracker in
+        var seen: [Int] = []
+        var reduced: [Int] = []
+        do throws(ClosureError) {
+          try CustomProducer<LifetimeTracked<Int>, ClosureError> {
+            $0 < 20 ? tracker.instance(for: $0) : nil
+          }
+          .map { item throws(ClosureError) in
+            seen.append(item.payload)
+            if item.payload == failAt { throw ClosureError(value: failAt) }
+            return item
+          }
+          .reduce(into: ()) { _, item throws(ClosureError) in
+            reduced.append(item.payload)
+          }
+          expectFailure("reduce(into:) did not throw")
+        } catch {
+          expectEqual(error, ClosureError(value: failAt))
+        }
+        expectEqual(seen, Array(0 ... failAt))
+        expectTrue((0 ..< failAt).starts(with: reduced))
+      }
+    }
+  }
+
   func test_default_skip_by_does_not_overshoot() {
     withEvery("n", in: [1, 5, 8, 10, 16, 40, 100, 150]) { n in
       var p = range(100).filter { $0 % 2 == 0 }
