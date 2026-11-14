@@ -17,13 +17,14 @@ import Builtin
 extension UnsafeMutablePointer where Pointee: ~Copyable {
   // FIXME: Remove this once the standard `pointee` has a borrow accessor.
   @_alwaysEmitIntoClient
-  @_transparent
   @unsafe
   package var _pointee: Pointee {
+    @_transparent
     @_unsafeSelfDependentResult
     borrow {
       Builtin.borrowAt(self._rawValue)
     }
+    @_transparent
     @_unsafeSelfDependentResult
     nonmutating mutate {
       unsafe &self.pointee

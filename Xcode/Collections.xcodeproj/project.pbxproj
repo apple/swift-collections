@@ -150,6 +150,13 @@
 			);
 			target = 7DE91B2529CA6721004483EB /* Collections */;
 		};
+		7DF685B230A7EB4600EE5D19 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				CMakeLists.txt,
+			);
+			target = 7DE91B2529CA6721004483EB /* Collections */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -167,6 +174,7 @@
 		7DB99958306C6A8300A51DEA /* RopeModule */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (7DB99B3C306C6AB500A51DEA /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = RopeModule; sourceTree = "<group>"; };
 		7DB9995D306C6A8300A51DEA /* SpanPreview */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (7DB99B3D306C6ABE00A51DEA /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = SpanPreview; sourceTree = "<group>"; };
 		7DB999B8306C6A8300A51DEA /* HashTreeCollections */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (7DB99B38306C6A9900A51DEA /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = HashTreeCollections; sourceTree = "<group>"; };
+		7DF685A430A7EB3C00EE5D19 /* LinkedListModule */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (7DF685B230A7EB4600EE5D19 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = LinkedListModule; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -244,6 +252,7 @@
 				7DB999B8306C6A8300A51DEA /* HashTreeCollections */,
 				7DB99855306C6A8300A51DEA /* HeapModule */,
 				7DB998B1306C6A8300A51DEA /* InternalCollectionsUtilities */,
+				7DF685A430A7EB3C00EE5D19 /* LinkedListModule */,
 				7DB998FD306C6A8300A51DEA /* OrderedCollections */,
 				7DB99958306C6A8300A51DEA /* RopeModule */,
 				7DB9988F306C6A8300A51DEA /* SortedCollections */,
@@ -379,6 +388,7 @@
 				7DB99958306C6A8300A51DEA /* RopeModule */,
 				7DB9995D306C6A8300A51DEA /* SpanPreview */,
 				7DB999B8306C6A8300A51DEA /* HashTreeCollections */,
+				7DF685A430A7EB3C00EE5D19 /* LinkedListModule */,
 			);
 			name = Collections;
 			productName = Collections;

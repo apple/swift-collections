@@ -84,7 +84,7 @@ var defines: [SwiftSetting] = [
   // putting them all directly into the `Collections` module.
   // Note: This is a source-incompatible variation of the default configuration.
 //  .define("COLLECTIONS_SINGLE_MODULE"),
-  
+
   // Enables longer, more exhaustive tests.
 //  .define("COLLECTIONS_LONG_TESTS"),
 ]
@@ -114,6 +114,8 @@ let extraSettings: [SwiftSetting] = [
   .enableExperimentalFeature("Lifetimes"),
   .enableExperimentalFeature("InoutLifetimeDependence"),
   .enableExperimentalFeature("SuppressedAssociatedTypesWithDefaults"), // Requires Swift 6.4
+  .enableExperimentalFeature("AddressableTypes"),
+  .enableExperimentalFeature("AddressableParameters"),
   // Note: if you touch these, please make sure to also update the similar lists in
   // CMakeLists.txt and Xcode/Shared.xcconfig.
 ]
@@ -263,6 +265,7 @@ let targets: [CustomTarget] = [
       "InternalCollectionsUtilities",
       "BasicContainers",
       "DequeModule",
+      "LinkedListModule",
       "SpanPreview",
     ],
     exclude: ["CMakeLists.txt"]),
@@ -302,6 +305,18 @@ let targets: [CustomTarget] = [
     kind: .test,
     name: "HeapTests",
     dependencies: ["HeapModule", "_CollectionsTestSupport"]),
+
+  .target(
+    kind: .exported,
+    name: "LinkedListModule",
+    dependencies: ["InternalCollectionsUtilities"],
+    exclude: ["CMakeLists.txt"]),
+  .target(
+    kind: .test,
+    name: "LinkedListTests",
+    dependencies: [
+      "LinkedListModule", "ContainersPreview", "_CollectionsTestSupport"
+    ]),
 
   .target(
     kind: .exported,

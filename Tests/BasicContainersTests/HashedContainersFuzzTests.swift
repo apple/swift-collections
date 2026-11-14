@@ -182,11 +182,11 @@ class HashedContainersFuzzTests: CollectionTestCase {
           }
 
           var consumed: [Int] = []
-          set._consumeAll { buffer in
+          unsafe set._consumeAll { buffer in
             for i in buffer.indices {
-              consumed.append(buffer[i].payload.value)
+              unsafe consumed.append(buffer[i].payload.value)
             }
-            buffer.deinitialize()
+            unsafe buffer.deinitialize()
           }
           expectEqualElements(consumed.sorted(), model.sorted())
           expectEqual(set.count, 0)

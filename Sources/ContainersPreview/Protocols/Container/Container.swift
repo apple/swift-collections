@@ -367,6 +367,7 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
 
   @_alwaysEmitIntoClient
   public func index(_ index: Index, offsetBy n: Int) -> Index {
+    precondition(n >= 0, "Only BidirectionalContainer indices can be advanced by a negative amount")
     var index = index
     var n = n
     let end = self.endIndex
