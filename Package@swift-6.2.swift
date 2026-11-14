@@ -301,6 +301,18 @@ let targets: [CustomTarget] = [
     name: "HeapTests",
     dependencies: ["HeapModule", "_CollectionsTestSupport"]),
 
+    .target(
+      kind: .exported,
+      name: "LinkedListModule",
+      dependencies: ["InternalCollectionsUtilities"],
+      exclude: ["CMakeLists.txt"]),
+    .target(
+      kind: .test,
+      name: "LinkedListTests",
+      dependencies: [
+        "LinkedListModule", "ContainersPreview", "_CollectionsTestSupport"
+      ]),
+
   .target(
     kind: .exported,
     name: "OrderedCollections",
