@@ -65,6 +65,8 @@ set(collections_swift_flags
   "-enable-experimental-feature Lifetimes"
   "-enable-experimental-feature InoutLifetimeDependence"
   "-enable-experimental-feature SuppressedAssociatedTypesWithDefaults"
+  "-enable-experimental-fearure AddressableTypes"
+  "-enable-experimental-feature AddressableParameters"
 )
 foreach(flag ${collections_swift_flags})
   add_compile_options("$<$<COMPILE_LANGUAGE:Swift>:SHELL:${flag}>")
