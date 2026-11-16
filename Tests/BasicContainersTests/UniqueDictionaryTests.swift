@@ -28,6 +28,13 @@ class UniqueDictionaryTests: CollectionTestCase {
     expectEqual(MemoryLayout<UniqueDictionary<String, Int>>.stride, 7 * word)
     expectEqual(MemoryLayout<UniqueDictionary<String, Int>?>.stride, 7 * word)
   }
+
+  func test_sendable_conformance_static() {
+    // Compile-time assertion: UniqueDictionary conforms to Sendable when its contents do.
+    func requireSendable<T: Sendable & ~Copyable>(_ type: T.Type) {}
+    requireSendable(UniqueDictionary<Int, String>.self)
+    requireSendable(UniqueDictionary<String, Int>.self)
+  }
   
   func test_empty() {
     let s = UniqueDictionary<Int, String>()

@@ -65,6 +65,13 @@ class RigidSetTests: CollectionTestCase {
     expectEqual(MemoryLayout<RigidSet<Int>?>.stride, 6 * word)
   }
 
+  func test_sendable_conformance_static() {
+    // Compile-time assertion: RigidSet conforms to Sendable when its contents do.
+    func requireSendable<T: Sendable & ~Copyable>(_ type: T.Type) {}
+    requireSendable(RigidSet<Int>.self)
+    requireSendable(RigidSet<String>.self)
+  }
+
   func test_empty() {
     let s = RigidSet<Int>()
     expectEqual(s.count, 0)

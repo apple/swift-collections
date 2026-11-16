@@ -42,6 +42,10 @@ public struct UniqueDictionary<
 }
 
 @available(SwiftStdlib 5.0, *)
+extension UniqueDictionary: Sendable
+where Key: Sendable & ~Copyable, Value: Sendable & ~Copyable {}
+
+@available(SwiftStdlib 5.0, *)
 extension UniqueDictionary where Key: ~Copyable, Value: ~Copyable {
   @inlinable
   @inline(__always)

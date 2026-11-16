@@ -28,6 +28,13 @@ class RigidDictionaryTests: CollectionTestCase {
     expectEqual(MemoryLayout<RigidDictionary<String, Int>>.stride, 7 * word)
     expectEqual(MemoryLayout<RigidDictionary<String, Int>?>.stride, 7 * word)
   }
+
+  func test_sendable_conformance_static() {
+    // Compile-time assertion: RigidDictionary conforms to Sendable when its contents do.
+    func requireSendable<T: Sendable & ~Copyable>(_ type: T.Type) {}
+    requireSendable(RigidDictionary<Int, String>.self)
+    requireSendable(RigidDictionary<String, Int>.self)
+  }
   
   func test_empty() {
     let s = RigidDictionary<Int, String>()

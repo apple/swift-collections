@@ -28,6 +28,13 @@ class UniqueSetTests: CollectionTestCase {
     expectEqual(MemoryLayout<UniqueSet<Int>>.stride, 6 * word)
     expectEqual(MemoryLayout<UniqueSet<Int>?>.stride, 6 * word)
   }
+
+  func test_sendable_conformance_static() {
+    // Compile-time assertion: UniqueSet conforms to Sendable when its contents do.
+    func requireSendable<T: Sendable & ~Copyable>(_ type: T.Type) {}
+    requireSendable(UniqueSet<Int>.self)
+    requireSendable(UniqueSet<String>.self)
+  }
   
   func test_empty() {
     let s = UniqueSet<Int>()
