@@ -446,6 +446,24 @@ final class BitSetTest: CollectionTestCase {
     expectEqualElements(h, [])
     expectEqual(h.startIndex, bits.endIndex)
     expectEqual(h.endIndex, bits.endIndex)
+
+    // Closed ranges ending at `Int.max`
+    let i = bits[members: ...Int.max]
+    expectEqualElements(i, [2, 5, 6, 8, 9])
+    expectEqual(i.startIndex, bits.startIndex)
+    expectEqual(i.endIndex, bits.endIndex)
+
+    let j = bits[members: 6 ... Int.max]
+    expectEqualElements(j, [6, 8, 9])
+    expectEqual(j.endIndex, bits.endIndex)
+
+    let k = bits[members: Int.min ... Int.max]
+    expectEqualElements(k, [2, 5, 6, 8, 9])
+
+    let l = bits[members: Int.max ... Int.max]
+    expectEqualElements(l, [])
+    expectEqual(l.startIndex, bits.endIndex)
+    expectEqual(l.endIndex, bits.endIndex)
   }
 
   func test_member_range_subscript_exhaustive() {

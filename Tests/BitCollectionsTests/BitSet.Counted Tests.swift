@@ -29,6 +29,13 @@ extension BitSet.Counted: SetAPIExtras {
 extension BitSet.Counted: SortedCollectionAPIChecker {}
 
 final class BitSetCountedTests: CollectionTestCase {
+  func test_member_range_subscript() {
+    let bits: BitSet.Counted = [2, 5, 6, 8, 9]
+    expectEqualElements(bits[members: 3 ..< 7], [5, 6])
+    expectEqualElements(bits[members: ...Int.max], [2, 5, 6, 8, 9])
+    expectEqualElements(bits[members: 6 ... Int.max], [6, 8, 9])
+  }
+
   func test_collection_strides() {
     withEvery("stride", in: [1, 2, 3, 5, 7, 8, 11, 13, 63, 79, 300]) { stride in
       withEvery("count", in: [0, 1, 2, 5, 10, 20, 25]) { count in

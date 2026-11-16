@@ -143,8 +143,23 @@ extension BitSet {
   ///
   /// - Complexity: Equivalent to two invocations of `index(after:)`.
   public subscript(members bounds: some RangeExpression<Int>) -> Slice<BitSet> {
-    let bounds = bounds.relative(to: Int.min ..< Int.max)
+    let bounds = bounds.relative(to: _AllIntegers())
     return self[members: bounds]
+  }
+}
+
+/// All `Int` values as a collection, for resolving range expressions in
+/// `BitSet[members:]`. Unlike `Int.min ..< Int.max`, stepping past `Int.max`
+/// doesn't trap, so closed ranges like `0 ... Int.max` resolve to
+/// `0 ..< Int.max`. `Int.max` can never be a member, so that loses nothing.
+internal struct _AllIntegers: Collection {
+  internal var startIndex: Int { Int.min }
+  internal var endIndex: Int { Int.max }
+
+  internal subscript(position: Int) -> Int { position }
+
+  internal func index(after i: Int) -> Int {
+    i == Int.max ? Int.max : i + 1
   }
 }
 
