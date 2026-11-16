@@ -177,11 +177,25 @@ extension MutableContainer
 where Self: ~Copyable & ~Escapable, Element: Copyable
 {
   @_alwaysEmitIntoClient
+  @_lifetime(borrow source)
+  public mutating func updateElements<
+    Failure: Error,
+    Source: Iterable<Element, Failure> & ~Copyable & ~Escapable
+  >(
+    startingAt index: inout Index,
+    copying source: borrowing Source
+  ) throws(Failure) -> Source.BorrowingIterator {
+    var it = source.makeBorrowingIterator()
+    try updateElements(startingAt: &index, copying: &it)
+    return it
+  }
+
+  @_alwaysEmitIntoClient
   public mutating func updateElements<
     Failure: Error,
     Source: BorrowingIteratorProtocol<Element, Failure> & ~Copyable & ~Escapable
   >(
-    after index: inout Index,
+    startingAt index: inout Index,
     copying source: inout Source
   ) throws(Failure) {
   outer:
