@@ -156,7 +156,10 @@ extension _HashNode {
     assert(isUnique())
     if level == path.level {
       return unsafe _removeItemFromUniqueLeafNode(
-        level, at: hash[level], path.currentItemSlot, by: { _ in }
+        level,
+        at: level.isAtBottom ? .invalid : hash[level],
+        path.currentItemSlot,
+        by: { _ in }
       ).remainder
     }
     let slot = unsafe path.childSlot(at: level)

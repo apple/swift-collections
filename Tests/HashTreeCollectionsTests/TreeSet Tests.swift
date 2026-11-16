@@ -602,6 +602,33 @@ class TreeSetTests: CollectionTestCase {
     expectTrue(union.contains(b2))
   }
 
+  func test_collision_node_at_maximum_depth() {
+    // `a1` and `a2` have the same hash, and `b` only differs from them on the
+    // last hash level, so `a1` and `a2` end up in a collision node that is
+    // below the last level that has a bucket in the hash.
+    let depth = TreeSet<Int>._maxDepth
+    let prefix = String(repeating: "0", count: depth - 1)
+    let a1 = RawCollider(1, Hash(prefix + "1")!)
+    let a2 = RawCollider(2, Hash(prefix + "1")!)
+    let b = RawCollider(3, Hash(prefix + "0")!)
+
+    withEvery("isShared", in: [false, true]) { isShared in
+      var s: TreeSet = [a1, a2, b]
+      withHiddenCopies(if: isShared, of: &s) { s in
+        expectEqual(s.remove(a2), a2)
+        s._invariantCheck()
+        expectEqualSets(s, [a1, b])
+      }
+    }
+
+    let s: TreeSet = [a1, a2, b]
+    expectEqualSets(s.subtracting([a2]), [a1, b])
+    expectEqualSets(s.subtracting([a2] as TreeSet), [a1, b])
+    expectEqualSets(s.filter { $0 != a2 }, [a1, b])
+    expectEqualSets(s.intersection([a1, b] as TreeSet), [a1, b])
+    expectEqualSets(s.symmetricDifference([a2] as TreeSet), [a1, b])
+  }
+
   func test_symmetricDifference_exhaustive() {
     withEverySubset("a", of: testItems) { a in
       let x = TreeSet(a)
