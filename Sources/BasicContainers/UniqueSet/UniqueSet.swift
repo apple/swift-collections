@@ -41,6 +41,9 @@ public struct UniqueSet<Element: Hashable & ~Copyable>: ~Copyable {
 }
 
 @available(SwiftStdlib 5.0, *)
+extension UniqueSet: Sendable where Element: Sendable & ~Copyable {}
+
+@available(SwiftStdlib 5.0, *)
 extension UniqueSet where Element: ~Copyable {
   @inlinable
   @inline(__always)

@@ -79,6 +79,9 @@ public struct RigidSet<Element: Hashable & ~Copyable>: ~Copyable {
 }
 
 @available(SwiftStdlib 5.0, *)
+extension RigidSet: @unchecked Sendable where Element: Sendable & ~Copyable {}
+
+@available(SwiftStdlib 5.0, *)
 extension RigidSet where Element: ~Copyable {
   @inlinable
   @inline(__always)

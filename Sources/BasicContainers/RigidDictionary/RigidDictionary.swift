@@ -81,6 +81,10 @@ public struct RigidDictionary<
 }
 
 @available(SwiftStdlib 5.0, *)
+extension RigidDictionary: @unchecked Sendable
+where Key: Sendable & ~Copyable, Value: Sendable & ~Copyable {}
+
+@available(SwiftStdlib 5.0, *)
 extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
   @inlinable
   @inline(__always)
