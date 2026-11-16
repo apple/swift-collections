@@ -30,7 +30,7 @@ where
   @_lifetime(&self)
   mutating func nextMutableSpan(after index: inout Index) -> MutableSpan<Element>
 
-    /// Return a mutable span over the container's storage that begins with the
+  /// Return a mutable span over the container's storage that begins with the
   /// element at the given index, and extends to the end of the contiguous
   /// storage chunk that contains it, but no more than `maxCount` items.
   ///

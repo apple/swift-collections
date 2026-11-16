@@ -186,7 +186,7 @@ final class MutableContainer_Update_Tests: CollectionTestCase {
               }
 
               var i = start
-              actual.updateElements(after: &i, copying: &replacements2)
+              actual.updateElements(startingAt: &i, copying: &replacements2)
 
               expectIterablePayloads(actual, equalTo: expected)
               expectEqual(i, end)
