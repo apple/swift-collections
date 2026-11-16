@@ -60,7 +60,7 @@ extension BitSet.Counted {
 
   @inlinable
   public init(bitPattern x: some BinaryInteger) {
-    self.init(words: x.words)
+    self.init(BitSet(bitPattern: x))
   }
 
   public init(_ array: BitArray) {

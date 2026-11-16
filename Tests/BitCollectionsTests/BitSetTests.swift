@@ -100,6 +100,29 @@ final class BitSetTest: CollectionTestCase {
 
     let s5 = BitSet(bitPattern: -1)
     expectEqualElements(s5, 0 ..< UInt.bitWidth)
+
+    // Negative values narrower than a word must not pick up the sign
+    // extension in `words`.
+    let s6 = BitSet(bitPattern: -1 as Int8)
+    expectEqualElements(s6, 0 ..< 8)
+
+    let s7 = BitSet(bitPattern: -54 as Int8)
+    expectEqualElements(s7, [1, 3, 6, 7])
+
+    let s8 = BitSet(bitPattern: Int16.min)
+    expectEqualElements(s8, [15])
+
+    let s9 = BitSet(bitPattern: -2 as Int32)
+    expectEqualElements(s9, 1 ..< 32)
+
+    withSome(
+      "value", in: Int(Int16.min) ... Int(Int16.max), maxSamples: 1000
+    ) { value in
+      let v = Int16(value)
+      let expected = (0 ..< 16).filter { v & (1 << $0) != 0 }
+      expectEqualElements(BitSet(bitPattern: v), expected)
+      expectEqualElements(BitSet(BitArray(bitPattern: v)), expected)
+    }
   }
   
   func test_BitArray_initializer() {
