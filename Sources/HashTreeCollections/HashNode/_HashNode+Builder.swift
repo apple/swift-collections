@@ -178,9 +178,9 @@ extension _HashNode.Builder {
     assert(level == self.level)
     switch kind {
     case .empty:
-      kind = .item(newItem, at: hash[level])
+      kind = .item(newItem, at: level.isAtBottom ? .invalid : hash[level])
     case .item(let oldItem, at: let bucket):
-      assert(hash[level] == bucket)
+      assert(level.isAtBottom || hash[level] == bucket)
       let node = _HashNode._collisionNode(hash, oldItem, newItem)
       kind = .collisionNode(node)
     case .collisionNode(var node):
