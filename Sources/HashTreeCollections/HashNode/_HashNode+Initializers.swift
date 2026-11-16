@@ -18,7 +18,7 @@ import InternalCollectionsUtilities
 extension _HashNode {
   @inlinable @inline(__always)
   internal static func _emptyNode() -> _HashNode {
-    unsafe _HashNode(storage: _emptySingleton, count: 0)
+    _HashNode(storage: _emptySingleton, count: 0)
   }
 
   @inlinable
