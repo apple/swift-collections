@@ -342,7 +342,7 @@ let targets: [CustomTarget] = [
   .target(
     kind: .test,
     name: "TrailingElementsTests",
-    dependencies: ["TrailingElementsModule"]),
+    dependencies: ["TrailingElementsModule", "_CollectionsTestSupport"]),
 
   .target(
     kind: .exported,
