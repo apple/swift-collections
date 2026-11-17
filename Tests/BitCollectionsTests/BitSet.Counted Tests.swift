@@ -61,6 +61,21 @@ final class BitSetCountedTests: CollectionTestCase {
     }
   }
 
+  func test_hashable() {
+    let classes: [[BitSet.Counted]] = [
+      [[], BitSet().counted, BitSet.Counted(words: [0, 0])],
+      [[1], BitSet([1]).counted, BitSet.Counted(words: [2, 0])],
+      [[2], BitSet.Counted(bitPattern: 4 as UInt8)],
+      [[1, 5, 10], [10, 5, 1], BitSet.Counted([10, 1, 5, 1, 10])],
+      [[1, 5, 11], [11, 5, 1]],
+      [[1, 5, 100], [100, 5, 1]],
+      [[1, 100, 200], [200, 100, 1]],
+      [[1, 101, 200], [200, 101, 1]],
+      [[63, 64], BitSet(0 ..< 65).counted.subtracting(0 ..< 63)],
+    ]
+    checkHashable(equivalenceClasses: classes)
+  }
+
   func test_union() {
     let a: BitSet.Counted = [1, 2, 3, 4]
 
