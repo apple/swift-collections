@@ -175,8 +175,8 @@ final class BitSetCountedTests: CollectionTestCase {
       expectEqualElements(a, expected, file: file, line: line)
     }
 
-    let b = 3 ..< 7
-    let exp = [1, 2, 5, 6]
+    let b = 3 ..< 8
+    let exp = [1, 2, 5, 6, 7]
     check(exp) { $0.formSymmetricDifference(BitSet.Counted(b)) }
     check(exp) { $0.formSymmetricDifference(BitSet(b)) }
     check(exp) { $0.formSymmetricDifference(b) }
