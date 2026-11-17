@@ -309,6 +309,44 @@ final class BitSetCountedTests: CollectionTestCase {
     }
   }
 
+  func test_count_after_random_mutations() {
+    let values = [0, 1, 2, 3, 63, 64, 65, 127, 128, 4095, 4096]
+    withEvery("seed", in: 0 ..< 10) { seed in
+      var rng = RepeatableRandomNumberGenerator(seed: seed)
+      var actual: BitSet.Counted = []
+      var expected: Set<Int> = []
+      withEvery("step", in: 0 ..< 100) { _ in
+        let value = values.randomElement(using: &rng)!
+        switch Int.random(in: 0 ..< 8, using: &rng) {
+        case 0:
+          expectTrue(actual.insert(value) == expected.insert(value))
+        case 1:
+          expectEqual(actual.update(with: value), expected.update(with: value))
+        case 2:
+          expectEqual(actual.remove(value), expected.remove(value))
+        case 3:
+          actual[member: value] = true
+          expected.insert(value)
+        case 4:
+          actual[member: value] = false
+          expected.remove(value)
+        case 5:
+          if let index = actual.firstIndex(of: value) {
+            expectEqual(actual.remove(at: index), expected.remove(value))
+          }
+        case 6:
+          actual.uncounted[member: value].toggle()
+          if expected.remove(value) == nil { expected.insert(value) }
+        default:
+          let removed = actual.uncounted.counted.remove(value)
+          expectEqual(removed, expected.remove(value))
+        }
+        expectEqual(actual.count, expected.count)
+        expectEqualElements(actual.uncounted, expected.sorted())
+      }
+    }
+  }
+
   func test_isDisjoint() {
     let a: BitSet.Counted = [1, 2, 3, 4]
 
