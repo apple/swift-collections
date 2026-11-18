@@ -1207,4 +1207,29 @@ class TestBigString: CollectionTestCase {
       }
     }
   }
+
+  func test_ordering_matches_String() {
+    // When the first mismatching characters are such that one is a prefix of
+    // the other, the result depends on the characters that follow.
+    let cases: [(String, String)] = [
+      ("\ra", "\r\n"),
+      ("x中", "x\u{301}"),            // COMBINING ACUTE ACCENT
+      ("ü\u{334}", "ü각"),            // COMBINING TILDE OVERLAY
+      ("e\u{301}x", "é"),            // canonically equivalent prefix
+      ("\r\n", "\r\r"),
+      ("a", "a\u{301}"),
+      ("ab", "a"),
+      ("", "a"),
+    ]
+    withEvery("i", in: cases.indices) { i in
+      let (a, b) = cases[i]
+      let bigA = BigString(a)
+      let bigB = BigString(b)
+      expectEqual(bigA < bigB, a < b, "\(a.debugDescription) < \(b.debugDescription)")
+      expectEqual(bigB < bigA, b < a, "\(b.debugDescription) < \(a.debugDescription)")
+      expectEqual(bigA == bigB, a == b)
+      expectEqual(bigA[...] < bigB[...], a < b)
+      expectEqual(bigB[...] < bigA[...], b < a)
+    }
+  }
 }
