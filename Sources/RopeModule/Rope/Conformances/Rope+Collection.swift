@@ -225,8 +225,14 @@ extension Rope {
     validate(end)
     if start == end { return 0 }
     precondition(_root != nil, "Invalid index")
-    if unsafe start._leaf == end._leaf, let leaf = unsafe start._leaf {
+    if
+      unsafe start._leaf == end._leaf,
+      let leaf = unsafe start._leaf,
+      start._isInSameLeaf(as: end)
+    {
       // Fast path: both indices are pointing within the same leaf.
+      // (Note that a tree may share the same leaf node at multiple positions,
+      // so we cannot rely on the leaf's identity alone.)
       return unsafe leaf.read {
         let h = unsafe $0.height
         let a = start._path[h]

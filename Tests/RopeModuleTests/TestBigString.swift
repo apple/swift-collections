@@ -1207,4 +1207,44 @@ class TestBigString: CollectionTestCase {
       }
     }
   }
+
+  func test_distance_with_shared_subtrees() {
+    // Inserting a string into itself makes parts of the underlying tree share
+    // the same nodes.
+    let flat = String(repeating: "abcdefghij", count: 5000)
+    var big = BigString(flat)
+    big.append(contentsOf: big)
+    big._invariantCheck()
+    let i = big.index(big.startIndex, offsetBy: 1358)
+    let j = big.index(big.startIndex, offsetBy: 51353)
+    expectEqual(i.utf8Offset, 1358)
+    expectEqual(j.utf8Offset, 51353)
+    expectEqual(big.distance(from: i, to: j), 49995)
+    expectEqual(big.distance(from: j, to: i), -49995)
+    expectEqual(big.unicodeScalars.distance(from: i, to: j), 49995)
+    expectEqual(big.utf16.distance(from: i, to: j), 49995)
+    expectEqual(big.index(i, offsetBy: 49995), j)
+    expectEqual(big.index(i, offsetBy: 49995).utf8Offset, 51353)
+
+    var flat2 = flat
+    var big2 = BigString(flat)
+    let s = big2.index(big2.startIndex, offsetBy: 1000)
+    let e = big2.index(big2.startIndex, offsetBy: 40000)
+    big2.insert(contentsOf: big2[s ..< e], at: big2.index(big2.startIndex, offsetBy: 45000))
+    flat2.insert(
+      contentsOf: flat.dropFirst(1000).prefix(39000),
+      at: flat2.index(flat2.startIndex, offsetBy: 45000))
+    big2._invariantCheck()
+    expectEqual(String(big2), flat2)
+    checkCharacterIndices(flat2, big2)
+    checkScalarIndices(flat2, big2)
+    checkUTF16Indices(flat2, big2)
+    let indices = Array(big2.indices) + [big2.endIndex]
+    for a in stride(from: 0, to: indices.count, by: 997) {
+      for b in stride(from: 0, to: indices.count, by: 1009) {
+        expectEqual(big2.distance(from: indices[a], to: indices[b]), b - a, "a: \(a), b: \(b)")
+        expectEqual(big2.index(indices[a], offsetBy: b - a), indices[b], "a: \(a), b: \(b)")
+      }
+    }
+  }
 }
