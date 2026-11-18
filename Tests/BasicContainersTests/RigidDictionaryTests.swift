@@ -560,6 +560,23 @@ class RigidDictionaryTests: CollectionTestCase {
     }
   }
 
+  func test_deinit_empty_doesNotLeak() {
+    withEvery("emptiedByRemoval", in: [false, true]) { emptiedByRemoval in
+      withEvery("capacity", in: [0, 1, 10, 100]) { capacity in
+        expectNoHeapGrowth(tolerance: 64 * 1024) {
+          for _ in 0 ..< 10_000 {
+            var d = RigidDictionary<Int, Int>(capacity: capacity)
+            if emptiedByRemoval {
+              for i in 0 ..< capacity { d.insertValue(i, forKey: i) }
+              d.removeAll()
+            }
+            _ = consume d
+          }
+        }
+      }
+    }
+  }
+
   func test_hashable() {
     typealias Key = LifetimeTrackedStruct<Int>
     typealias Value = LifetimeTrackedStruct<Int>

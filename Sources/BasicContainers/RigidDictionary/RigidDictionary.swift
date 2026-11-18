@@ -60,11 +60,11 @@ public struct RigidDictionary<
   
   @_alwaysEmitIntoClient
   deinit {
-    // FIXME: This iterates over the bitmap twice: once in `self._dispose()`,
-    // and once in `_keys.deinit`. `self` not being mutable really hurts us
-    // here.
-    if !isEmpty {
-      unsafe _deinitializeValues()
+    // FIXME: This iterates over the bitmap twice: once in
+    // `self._deinitializeValues()`, and once in `_keys.deinit`. `self` not
+    // being mutable really hurts us here.
+    unsafe _deinitializeValues()
+    if unsafe _values != ._dangling() {
       unsafe _values.deallocate()
     }
   }
@@ -72,6 +72,7 @@ public struct RigidDictionary<
   @_alwaysEmitIntoClient
   @unsafe
   internal func _deinitializeValues() {
+    guard !isEmpty else { return }
     let values = unsafe _valueBuf
     var it = unsafe _keys._table.makeBucketIterator()
     while let range = it.nextOccupiedRegion() {
