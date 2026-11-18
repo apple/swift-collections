@@ -1149,4 +1149,86 @@ final class BitArrayTests: CollectionTestCase {
     }
   }
 
+  func test_maskingShiftLeft() {
+    withEvery(
+      "count", in: [0, 1, 2, 31, 32, 33, 63, 64, 65, 127, 128, 129, 200]
+    ) { count in
+      let bools = randomBoolArray(count: count)
+      withEvery("amount", in: (0 - count - 2) ... (count + 2)) { amount in
+        var a = BitArray(bools)
+        a.maskingShiftLeft(by: amount)
+        // Bit `i` comes from bit `i - amount`, or is cleared if there is none.
+        let expected = (0 ..< count).map { i -> Bool in
+          let source = i - amount
+          return source >= 0 && source < count && bools[source]
+        }
+        expectEqualElements(a, expected)
+      }
+    }
+  }
+
+  func test_maskingShiftRight() {
+    withEvery(
+      "count", in: [0, 1, 2, 31, 32, 33, 63, 64, 65, 127, 128, 129, 200]
+    ) { count in
+      let bools = randomBoolArray(count: count)
+      withEvery("amount", in: (0 - count - 2) ... (count + 2)) { amount in
+        var a = BitArray(bools)
+        a.maskingShiftRight(by: amount)
+        // Bit `i` comes from bit `i + amount`, or is cleared if there is none.
+        let expected = (0 ..< count).map { i -> Bool in
+          let source = i + amount
+          return source >= 0 && source < count && bools[source]
+        }
+        expectEqualElements(a, expected)
+      }
+    }
+  }
+
+  func test_maskingShift_docExamples() {
+    do {
+      var bits: BitArray = "1110110"
+      bits.maskingShiftLeft(by: 2)
+      expectEqual("\(bits)", "<1011000>")
+      bits.maskingShiftLeft(by: -4)
+      expectEqual("\(bits)", "<0000101>")
+      bits.maskingShiftLeft(by: 8)
+      expectEqual("\(bits)", "<0000000>")
+    }
+    do {
+      var bits: BitArray = "1110110"
+      bits.maskingShiftRight(by: 2)
+      expectEqual("\(bits)", "<0011101>")
+      bits.maskingShiftRight(by: -3)
+      expectEqual("\(bits)", "<1101000>")
+      bits.maskingShiftRight(by: 8)
+      expectEqual("\(bits)", "<0000000>")
+    }
+  }
+
+  func test_shift_byExtremeAmounts() {
+    withEvery("count", in: [0, 1, 63, 64, 65, 200]) { count in
+      let bools = randomBoolArray(count: count)
+      // An amount whose magnitude is at least `count` discards every value,
+      // whichever way it shifts. `Int.min` is the one that can't be negated.
+      withEvery("amount", in: [Int.min, Int.min + 1, Int.max]) { amount in
+        var a = BitArray(bools)
+        a.maskingShiftLeft(by: amount)
+        expectEqualElements(a, repeatElement(false, count: count))
+
+        var b = BitArray(bools)
+        b.maskingShiftRight(by: amount)
+        expectEqualElements(b, repeatElement(false, count: count))
+      }
+      withEvery("amount", in: [Int.min, Int.min + 1]) { amount in
+        var a = BitArray(bools)
+        a.resizingShiftLeft(by: amount)
+        expectEqual("\(a)", "<>")
+      }
+      var c = BitArray(bools)
+      c.resizingShiftRight(by: Int.max)
+      expectEqual("\(c)", "<>")
+    }
+  }
+
 }

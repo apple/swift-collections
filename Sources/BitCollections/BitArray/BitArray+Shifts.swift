@@ -12,6 +12,19 @@
 //===----------------------------------------------------------------------===//
 
 extension BitArray {
+  /// Returns the magnitude of a negative shift amount.
+  ///
+  /// `Int.min` has no positive counterpart, so it is clamped to `Int.max`.
+  /// This only suits shifts that discard values: those treat every amount
+  /// that is at least `count` the same way.
+  @inline(__always)
+  internal static func _magnitude(ofNegativeShift amount: Int) -> Int {
+    assert(amount < 0)
+    return Int(clamping: amount.magnitude)
+  }
+}
+
+extension BitArray {
   /// Shift the bits in this array by the specified number of places to the
   /// left (towards the end of the array), by inserting `amount` false values
   /// at the beginning.
@@ -31,7 +44,7 @@ extension BitArray {
     if amount > 0 {
       _resizingShiftLeft(by: amount)
     } else {
-      _resizingShiftRight(by: -amount)
+      _resizingShiftRight(by: Self._magnitude(ofNegativeShift: amount))
     }
   }
 
@@ -58,6 +71,8 @@ extension BitArray {
     if amount > 0 {
       _resizingShiftRight(by: amount)
     } else {
+      // This direction inserts values, so `Int.min` cannot be clamped: no
+      // array can hold as many values as it asks for, and the negation traps.
       _resizingShiftLeft(by: -amount)
     }
   }
@@ -106,7 +121,8 @@ extension BitArray {
       if amount > 0 {
         unsafe $0._maskingShiftLeft(by: amount)
       } else {
-        unsafe $0._maskingShiftRight(by: -amount)
+        unsafe $0._maskingShiftRight(
+          by: BitArray._magnitude(ofNegativeShift: amount))
       }
     }
   }
@@ -135,7 +151,8 @@ extension BitArray {
       if amount > 0 {
         unsafe $0._maskingShiftRight(by: amount)
       } else {
-        unsafe $0._maskingShiftLeft(by: -amount)
+        unsafe $0._maskingShiftLeft(
+          by: BitArray._magnitude(ofNegativeShift: amount))
       }
     }
   }
