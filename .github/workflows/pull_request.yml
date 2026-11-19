@@ -10,7 +10,7 @@ on:
 jobs:
   tests:
     name: Test
-    uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.17
+    uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.18
     with:
       enable_macos_checks: true
       macos_exclude_xcode_versions: '[{"xcode_version": "swift_6.1"}]'
@@ -23,7 +23,7 @@ jobs:
 
   tests-release:
     name: Release Test
-    uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.17
+    uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.18
     with:
       enable_macos_checks: true
       macos_exclude_xcode_versions: '[{"xcode_version": "swift_6.1"}]'
@@ -34,7 +34,7 @@ jobs:
 
   containers-tests:
     name: Containers Test
-    uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.17
+    uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.18
     with:
       linux_swift_versions: '["6.2", "nightly-main"]'
       enable_macos_checks: false
@@ -44,7 +44,7 @@ jobs:
 
   hashed-containers-tests:
     name: Hashed Containers Test
-    uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.17
+    uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.18
     with:
       linux_swift_versions: '["6.2", "nightly-main"]'
       enable_macos_checks: false
@@ -54,7 +54,7 @@ jobs:
 
   all-traits-tests-debug:
     name: All Unstable Package Traits (Debug)
-    uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.17
+    uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.18
     with:
       linux_swift_versions: '["6.2", "6.3", "6.4", "nightly-main"]'
       enable_macos_checks: false
@@ -64,7 +64,7 @@ jobs:
 
   all-traits-tests-release:
     name: All Unstable Package Traits (Release)
-    uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.17
+    uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.18
     with:
       linux_swift_versions: '["6.2", "6.3", "6.4", "nightly-main"]'
       enable_macos_checks: false
@@ -74,7 +74,7 @@ jobs:
 
   embedded-swift:
     name: Build with Embedded Swift
-    uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.17
+    uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.18
     with:
       enable_linux_checks: false
       enable_macos_checks: false
@@ -85,7 +85,7 @@ jobs:
 
   soundness:
     name: Soundness
-    uses: swiftlang/github-workflows/.github/workflows/soundness.yml@0.0.17
+    uses: swiftlang/github-workflows/.github/workflows/soundness.yml@0.0.18
     with:
       license_header_check_project_name: "Swift.org"
       # https://github.com/apple/swift-collections/issues/428
@@ -111,7 +111,7 @@ jobs:
         run: apt-get -qq update && apt-get -qq -y install curl ninja-build
       - name: Install CMake
         id: install-cmake
-        uses: swiftlang/github-workflows/.github/actions/install-cmake@0.0.17
+        uses: swiftlang/github-workflows/.github/actions/install-cmake@0.0.18
         with:
           cmake-version: "3.30.2"
           hash: "cdd7fb352605cee3ae53b0e18b5929b642900e33d6b0173e19f6d4f2067ebf16"
@@ -160,7 +160,7 @@ jobs:
 
   xcode-build:
     name: Xcode Project Build
-    runs-on: [self-hosted, macos, "tahoe", "ARM64"]
+    runs-on: [self-hosted, macos, "goldengate", "ARM64"]
     steps:
       - name: Checkout repo
         uses: actions/checkout@v7
