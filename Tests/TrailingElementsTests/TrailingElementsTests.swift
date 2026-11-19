@@ -16,6 +16,7 @@ import Testing
 #if COLLECTIONS_SINGLE_MODULE
 import Collections
 #else
+import _CollectionsTestSupport
 import TrailingElementsModule
 #endif
 
@@ -57,6 +58,10 @@ struct ManyBytesWithPointers: @unsafe TrailingElements {
 
   typealias Element = OpaquePointer
   var trailingCount: Int { Int(bytes.0) }
+}
+
+struct TrackedHeader {
+  var tracked: LifetimeTracked<Int>
 }
 
 @Suite("Trailing elements tests")
@@ -182,5 +187,28 @@ struct TrailingElementsTests {
         #expect(unsafe UnsafeMutableRawPointer(p1) == UnsafeMutableRawPointer(p2))
       }
     }
+  }
+
+  @Test func paddingOnHeapReleasesHeader() {
+    let tracker = LifetimeTracker()
+    do {
+      let padded = TrailingPadding(
+        header: TrackedHeader(tracked: tracker.instance(for: 0)),
+        totalSize: 64)
+      #expect(tracker.instances == 1)
+      _ = consume padded
+    }
+    #expect(tracker.instances == 0)
+  }
+
+  @Test func paddingOnStackReleasesHeader() {
+    let tracker = LifetimeTracker()
+    TrailingPadding.withTemporaryValue(
+      header: TrackedHeader(tracked: tracker.instance(for: 0)),
+      totalSize: 64
+    ) { _ in
+      #expect(tracker.instances == 1)
+    }
+    #expect(tracker.instances == 0)
   }
 }
