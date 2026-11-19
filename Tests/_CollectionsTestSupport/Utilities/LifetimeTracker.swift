@@ -48,7 +48,9 @@ public class LifetimeTracker {
                 file: file, line: line)
   }
 
-  public func instance<Payload>(for payload: Payload) -> LifetimeTracked<Payload> {
+  public func instance<Payload: ~Copyable>(
+    for payload: consuming Payload
+  ) -> LifetimeTracked<Payload> {
     LifetimeTracked(payload, for: self)
   }
 
