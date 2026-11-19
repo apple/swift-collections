@@ -69,6 +69,48 @@ final class SortedDictionaryTests: CollectionTestCase {
     ])
   }
 
+  func test_keysWithValues_duplicates_keepLastKey() {
+    // Keys that compare equal but are distinguishable by their tag.
+    struct Key: Comparable {
+      var value: Int
+      var tag: Int
+
+      static func == (left: Self, right: Self) -> Bool {
+        left.value == right.value
+      }
+
+      static func < (left: Self, right: Self) -> Bool {
+        left.value < right.value
+      }
+    }
+
+    withEvery("count", in: [1, 2, 10, 100]) { count in
+      withEvery("copies", in: [2, 3]) { copies in
+        // Every key appears `copies` times. Each pair carries its copy number
+        // both in the tag of its key and in its value.
+        let labeled: [(key: Key, value: Int)] = (0 ..< copies).flatMap { copy in
+          let keys = copy.isMultiple(of: 2)
+            ? Array(0 ..< count)
+            : Array((0 ..< count).reversed())
+          return keys.map { (key: Key(value: $0, tag: copy), value: copy) }
+        }
+        let unlabeled: [(Key, Int)] = labeled.map { ($0.key, $0.value) }
+
+        withEvery("isLabeled", in: [false, true]) { isLabeled in
+          let d = isLabeled
+            ? SortedDictionary(keysWithValues: labeled)
+            : SortedDictionary(keysWithValues: unlabeled)
+          expectEqual(d.count, count)
+          // The last instance of each key-value pair is the one that is kept.
+          for (key, value) in d {
+            expectEqual(key.tag, copies - 1)
+            expectEqual(value, copies - 1)
+          }
+        }
+      }
+    }
+  }
+
   func test_grouping_initializer() {
     let items: [String] = [
       "one", "two", "three", "four", "five",

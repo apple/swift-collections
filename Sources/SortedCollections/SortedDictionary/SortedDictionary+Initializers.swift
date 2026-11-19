@@ -31,7 +31,7 @@ extension SortedDictionary {
     self.init()
     
     for (key, value) in keysAndValues {
-      self._root.updateAnyValue(value, forKey: key, updatingKey: true)
+      self._root.updateAnyValue(value, forKey: key)
     }
   }
   
