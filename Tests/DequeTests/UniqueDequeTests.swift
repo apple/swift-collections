@@ -18,6 +18,7 @@ import Collections
 import _CollectionsTestSupport
 import DequeModule
 import BasicContainers
+import SpanPreview
 #endif
 import ContainersPreview
 
@@ -812,6 +813,492 @@ final class UniqueDequeTests: CollectionTestCase {
           actual.append(copying: additions)
 
           expectUniqueDequeContents(actual, equalTo: expected)
+        }
+      }
+    }
+  }
+#endif
+
+  enum CopySource: CaseIterable {
+    case array
+    case minimalCollection
+    case span
+    case unsafeBufferPointer
+    case unsafeMutableBufferPointer
+  }
+
+  func test_insert_copying() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEvery("index", in: 0 ... layout.count) { index in
+        withEvery("c", in: [0, 1, 2, 5, 12]) { c in
+          withEvery("source", in: CopySource.allCases) { source in
+            withLifetimeTracking { tracker in
+              var data = tracker.uniqueDeque(with: layout)
+              var extras = tracker.instances(
+                for: layout.count ..< layout.count + c)
+              let range: Range<Int>
+              switch source {
+              case .array:
+                range = data.deque.insert(copying: extras, at: index)
+              case .minimalCollection:
+                range = data.deque.insert(
+                  copying: MinimalCollection(extras), at: index)
+              case .span:
+                let rigid = RigidArray(copying: extras)
+                range = data.deque.insert(copying: rigid.span, at: index)
+              case .unsafeBufferPointer:
+                range = extras.withUnsafeBufferPointer { buffer in
+                  unsafe data.deque.insert(copying: buffer, at: index)
+                }
+              case .unsafeMutableBufferPointer:
+                range = extras.withUnsafeMutableBufferPointer { buffer in
+                  unsafe data.deque.insert(copying: buffer, at: index)
+                }
+              }
+              data.contents.insert(contentsOf: extras, at: index)
+              expectEqual(range, index ..< index + c)
+              expectUniqueDequeContents(data.deque, equalTo: data.contents)
+            }
+          }
+        }
+      }
+    }
+  }
+
+  func test_replaceSubrange_copying() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEveryRange("subrange", in: 0 ..< layout.count) { subrange in
+        withEvery("c", in: [0, 1, 2, 5, 12]) { c in
+          withEvery("source", in: CopySource.allCases) { source in
+            withLifetimeTracking { tracker in
+              var data = tracker.uniqueDeque(with: layout)
+              var extras = tracker.instances(
+                for: layout.count ..< layout.count + c)
+              let range: Range<Int>
+              switch source {
+              case .array:
+                range = data.deque.replaceSubrange(subrange, copying: extras)
+              case .minimalCollection:
+                range = data.deque.replaceSubrange(
+                  subrange, copying: MinimalCollection(extras))
+              case .span:
+                let rigid = RigidArray(copying: extras)
+                range = data.deque.replaceSubrange(
+                  subrange, copying: rigid.span)
+              case .unsafeBufferPointer:
+                range = extras.withUnsafeBufferPointer { buffer in
+                  unsafe data.deque.replaceSubrange(subrange, copying: buffer)
+                }
+              case .unsafeMutableBufferPointer:
+                range = extras.withUnsafeMutableBufferPointer { buffer in
+                  unsafe data.deque.replaceSubrange(subrange, copying: buffer)
+                }
+              }
+              data.contents.replaceSubrange(subrange, with: extras)
+              expectEqual(range, subrange.lowerBound ..< subrange.lowerBound + c)
+              expectUniqueDequeContents(data.deque, equalTo: data.contents)
+              expectEqual(tracker.instances, layout.count - subrange.count + c)
+            }
+          }
+        }
+      }
+    }
+  }
+
+  func test_append_copying() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEvery("c", in: [0, 1, 2, 5, 12]) { c in
+        withEvery("source", in: CopySource.allCases) { source in
+          withLifetimeTracking { tracker in
+            var data = tracker.uniqueDeque(with: layout)
+            var extras = tracker.instances(
+              for: layout.count ..< layout.count + c)
+            var range: Range<Int>?
+            switch source {
+            case .array:
+              data.deque.append(copying: extras)
+            case .minimalCollection:
+              data.deque.append(copying: MinimalCollection(extras))
+            case .span:
+              let rigid = RigidArray(copying: extras)
+              range = data.deque.append(copying: rigid.span)
+            case .unsafeBufferPointer:
+              range = extras.withUnsafeBufferPointer { buffer in
+                unsafe data.deque.append(copying: buffer)
+              }
+            case .unsafeMutableBufferPointer:
+              range = extras.withUnsafeMutableBufferPointer { buffer in
+                unsafe data.deque.append(copying: buffer)
+              }
+            }
+            data.contents.append(contentsOf: extras)
+            if let range {
+              expectEqual(range, layout.count ..< layout.count + c)
+            }
+            expectUniqueDequeContents(data.deque, equalTo: data.contents)
+          }
+        }
+      }
+    }
+  }
+
+  func test_prepend_copying() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEvery("c", in: [0, 1, 2, 5, 12]) { c in
+        withEvery("source", in: CopySource.allCases) { source in
+          withLifetimeTracking { tracker in
+            var data = tracker.uniqueDeque(with: layout)
+            var extras = tracker.instances(
+              for: layout.count ..< layout.count + c)
+            let range: Range<Int>
+            switch source {
+            case .array:
+              range = data.deque.prepend(copying: extras)
+            case .minimalCollection:
+              range = data.deque.prepend(copying: MinimalCollection(extras))
+            case .span:
+              let rigid = RigidArray(copying: extras)
+              range = data.deque.prepend(copying: rigid.span)
+            case .unsafeBufferPointer:
+              range = extras.withUnsafeBufferPointer { buffer in
+                unsafe data.deque.prepend(copying: buffer)
+              }
+            case .unsafeMutableBufferPointer:
+              range = extras.withUnsafeMutableBufferPointer { buffer in
+                unsafe data.deque.prepend(copying: buffer)
+              }
+            }
+            data.contents.insert(contentsOf: extras, at: 0)
+            expectEqual(range, 0 ..< c)
+            expectUniqueDequeContents(data.deque, equalTo: data.contents)
+          }
+        }
+      }
+    }
+  }
+
+#if compiler(>=6.4)
+  @available(SwiftStdlib 6.4, *)
+  func test_init_copying_Iterable() {
+    withEvery("count", in: [0, 1, 2, 5, 12]) { count in
+      withEvery("capacity", in: [nil, 0, count, count + 3] as [Int?]) { capacity in
+        withLifetimeTracking { tracker in
+          let items = tracker.instances(for: 0 ..< count)
+          let source = RigidArray(copying: items)
+          let deque = UniqueDeque(capacity: capacity, copying: source)
+          expectUniqueDequeContents(deque, equalTo: items)
+          expectEqual(deque.count, count)
+          if let capacity, capacity >= count {
+            expectEqual(deque.capacity, capacity)
+          }
+        }
+      }
+    }
+  }
+#endif
+
+  enum MoveSource: CaseIterable {
+    case unsafeMutableBufferPointer
+    case outputSpan
+#if UnstableContainersPreview
+    case inputSpan
+#endif
+  }
+
+  func test_insert_moving() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEvery("index", in: 0 ... layout.count) { index in
+        withEvery("c", in: [0, 1, 2, 5, 12]) { c in
+          withEvery("source", in: MoveSource.allCases) { source in
+            withLifetimeTracking { tracker in
+              let added = layout.count ..< layout.count + c
+              var expected = Array(layout.valueRange)
+              expected.insert(contentsOf: added, at: index)
+              var deque = UniqueDeque(layout: layout) {
+                tracker.instance(for: $0)
+              }
+              let range: Range<Int>
+              switch source {
+              case .unsafeMutableBufferPointer:
+                let buffer = UnsafeMutableBufferPointer<LifetimeTracked<Int>>
+                  .allocate(capacity: c)
+                _ = unsafe buffer.initialize(
+                  fromContentsOf: tracker.instances(for: added))
+                range = unsafe deque.insert(moving: buffer, at: index)
+                unsafe buffer.deallocate()
+              case .outputSpan:
+                var items = RigidArray(
+                  capacity: c + 2, copying: tracker.instances(for: added))
+                range = items.edit { deque.insert(moving: &$0, at: index) }
+                expectTrue(items.isEmpty)
+#if UnstableContainersPreview
+              case .inputSpan:
+                let buffer = UnsafeMutableBufferPointer<LifetimeTracked<Int>>
+                  .allocate(capacity: c + 2)
+                _ = unsafe buffer.extracting(2...).initialize(
+                  fromContentsOf: tracker.instances(for: added))
+                var items = unsafe InputSpan(buffer: buffer, initializedCount: c)
+                range = deque.insert(moving: &items, at: index)
+                expectTrue(items.isEmpty)
+                _ = consume items
+                unsafe buffer.deallocate()
+#endif
+              }
+              expectEqual(range, index ..< index + c)
+              expectEqual(tracker.instances, expected.count)
+              expectUniqueDequeContents(
+                deque, equivalentTo: expected, by: { $0.payload == $1 })
+            }
+          }
+        }
+      }
+    }
+  }
+
+  func test_replaceSubrange_moving() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEveryRange("subrange", in: 0 ..< layout.count) { subrange in
+        withEvery("c", in: [0, 1, 2, 5, 12]) { c in
+          withEvery("source", in: MoveSource.allCases) { source in
+            withLifetimeTracking { tracker in
+              let added = layout.count ..< layout.count + c
+              var expected = Array(layout.valueRange)
+              expected.replaceSubrange(subrange, with: added)
+              var deque = UniqueDeque(layout: layout) {
+                tracker.instance(for: $0)
+              }
+              let range: Range<Int>
+              switch source {
+              case .unsafeMutableBufferPointer:
+                let buffer = UnsafeMutableBufferPointer<LifetimeTracked<Int>>
+                  .allocate(capacity: c)
+                _ = unsafe buffer.initialize(
+                  fromContentsOf: tracker.instances(for: added))
+                range = unsafe deque.replaceSubrange(subrange, moving: buffer)
+                unsafe buffer.deallocate()
+              case .outputSpan:
+                var items = RigidArray(
+                  capacity: c + 2, copying: tracker.instances(for: added))
+                range = items.edit {
+                  deque.replaceSubrange(subrange, moving: &$0)
+                }
+                expectTrue(items.isEmpty)
+#if UnstableContainersPreview
+              case .inputSpan:
+                let buffer = UnsafeMutableBufferPointer<LifetimeTracked<Int>>
+                  .allocate(capacity: c + 2)
+                _ = unsafe buffer.extracting(2...).initialize(
+                  fromContentsOf: tracker.instances(for: added))
+                var items = unsafe InputSpan(buffer: buffer, initializedCount: c)
+                range = deque.replaceSubrange(subrange, moving: &items)
+                expectTrue(items.isEmpty)
+                _ = consume items
+                unsafe buffer.deallocate()
+#endif
+              }
+              expectEqual(range, subrange.lowerBound ..< subrange.lowerBound + c)
+              expectEqual(tracker.instances, expected.count)
+              expectUniqueDequeContents(
+                deque, equivalentTo: expected, by: { $0.payload == $1 })
+            }
+          }
+        }
+      }
+    }
+  }
+
+  func test_append_moving() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEvery("c", in: [0, 1, 2, 5, 12]) { c in
+        withEvery("source", in: MoveSource.allCases) { source in
+          withLifetimeTracking { tracker in
+            let added = layout.count ..< layout.count + c
+            let expected = Array(layout.valueRange) + Array(added)
+            var deque = UniqueDeque(layout: layout) {
+              tracker.instance(for: $0)
+            }
+            let range: Range<Int>
+            switch source {
+            case .unsafeMutableBufferPointer:
+              let buffer = UnsafeMutableBufferPointer<LifetimeTracked<Int>>
+                .allocate(capacity: c)
+              _ = unsafe buffer.initialize(
+                fromContentsOf: tracker.instances(for: added))
+              range = unsafe deque.append(moving: buffer)
+              unsafe buffer.deallocate()
+            case .outputSpan:
+              var items = RigidArray(
+                capacity: c + 2, copying: tracker.instances(for: added))
+              range = items.edit { deque.append(moving: &$0) }
+              expectTrue(items.isEmpty)
+#if UnstableContainersPreview
+            case .inputSpan:
+              let buffer = UnsafeMutableBufferPointer<LifetimeTracked<Int>>
+                .allocate(capacity: c + 2)
+              _ = unsafe buffer.extracting(2...).initialize(
+                fromContentsOf: tracker.instances(for: added))
+              var items = unsafe InputSpan(buffer: buffer, initializedCount: c)
+              range = deque.append(moving: &items)
+              expectTrue(items.isEmpty)
+              _ = consume items
+              unsafe buffer.deallocate()
+#endif
+            }
+            expectEqual(range, layout.count ..< layout.count + c)
+            expectEqual(tracker.instances, expected.count)
+            expectUniqueDequeContents(
+              deque, equivalentTo: expected, by: { $0.payload == $1 })
+          }
+        }
+      }
+    }
+  }
+
+  func test_prepend_moving() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEvery("c", in: [0, 1, 2, 5, 12]) { c in
+        withEvery("source", in: MoveSource.allCases) { source in
+          withLifetimeTracking { tracker in
+            let added = layout.count ..< layout.count + c
+            let expected = Array(added) + Array(layout.valueRange)
+            var deque = UniqueDeque(layout: layout) {
+              tracker.instance(for: $0)
+            }
+            let range: Range<Int>
+            switch source {
+            case .unsafeMutableBufferPointer:
+              let buffer = UnsafeMutableBufferPointer<LifetimeTracked<Int>>
+                .allocate(capacity: c)
+              _ = unsafe buffer.initialize(
+                fromContentsOf: tracker.instances(for: added))
+              range = unsafe deque.prepend(moving: buffer)
+              unsafe buffer.deallocate()
+            case .outputSpan:
+              var items = RigidArray(
+                capacity: c + 2, copying: tracker.instances(for: added))
+              range = items.edit { deque.prepend(moving: &$0) }
+              expectTrue(items.isEmpty)
+#if UnstableContainersPreview
+            case .inputSpan:
+              let buffer = UnsafeMutableBufferPointer<LifetimeTracked<Int>>
+                .allocate(capacity: c + 2)
+              _ = unsafe buffer.extracting(2...).initialize(
+                fromContentsOf: tracker.instances(for: added))
+              var items = unsafe InputSpan(buffer: buffer, initializedCount: c)
+              range = deque.prepend(moving: &items)
+              expectTrue(items.isEmpty)
+              _ = consume items
+              unsafe buffer.deallocate()
+#endif
+            }
+            expectEqual(range, 0 ..< c)
+            expectEqual(tracker.instances, expected.count)
+            expectUniqueDequeContents(
+              deque, equivalentTo: expected, by: { $0.payload == $1 })
+          }
+        }
+      }
+    }
+  }
+
+#if UnstableContainersPreview
+  enum ConsumerPolicy: CaseIterable {
+    case takeAll
+    case takeNone
+    case takeOne
+  }
+
+  func checkConsumption(
+    _ layout: DequeLayout,
+    removing removed: Range<Int>,
+    _ operation: (
+      inout UniqueDeque<LifetimeTracked<Int>>,
+      (inout InputSpan<LifetimeTracked<Int>>) -> Void
+    ) -> Void
+  ) {
+    withEvery("policy", in: ConsumerPolicy.allCases) { policy in
+      withLifetimeTracking { tracker in
+        var deque = UniqueDeque(layout: layout) { tracker.instance(for: $0) }
+        var consumed: [Int] = []
+        operation(&deque) { span in
+          switch policy {
+          case .takeAll:
+            while let item = span.popFirst() { consumed.append(item.payload) }
+          case .takeNone:
+            break
+          case .takeOne:
+            if let item = span.popFirst() { consumed.append(item.payload) }
+          }
+        }
+        var expected = Array(layout.valueRange)
+        expected.removeSubrange(removed)
+        expectEqual(tracker.instances, expected.count)
+        expectUniqueDequeContents(
+          deque, equivalentTo: expected, by: { $0.payload == $1 })
+        switch policy {
+        case .takeAll:
+          expectEqual(consumed, Array(removed))
+        case .takeNone:
+          expectEqual(consumed, [])
+        case .takeOne:
+          expectEqual(consumed.first, removed.first)
+          expectTrue(consumed.allSatisfy { removed.contains($0) })
+          expectEqual(consumed, consumed.sorted())
+        }
+      }
+    }
+  }
+
+  func test_consumeSubrange() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEveryRange("subrange", in: 0 ..< layout.count) { subrange in
+        checkConsumption(layout, removing: subrange) { deque, consumer in
+          deque.consumeSubrange(subrange, consumingWith: consumer)
+        }
+      }
+    }
+  }
+
+  func test_consumeSubrange_RangeExpression() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEvery("bound", in: 0 ... layout.count) { bound in
+        checkConsumption(layout, removing: bound ..< layout.count) {
+          deque, consumer in
+          deque.consumeSubrange(bound..., consumingWith: consumer)
+        }
+        checkConsumption(layout, removing: 0 ..< bound) { deque, consumer in
+          deque.consumeSubrange(..<bound, consumingWith: consumer)
+        }
+      }
+    }
+  }
+
+  func test_consumeAll() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      checkConsumption(layout, removing: 0 ..< layout.count) {
+        deque, consumer in
+        deque.consumeAll(consumingWith: consumer)
+      }
+    }
+  }
+
+  func test_consumeFirst() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEvery("n", in: 0 ... layout.count) { n in
+        checkConsumption(layout, removing: 0 ..< n) { deque, consumer in
+          deque.consumeFirst(n, consumingWith: consumer)
+        }
+      }
+    }
+  }
+
+  func test_consumeLast() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEvery("n", in: 0 ... layout.count) { n in
+        checkConsumption(
+          layout, removing: layout.count - n ..< layout.count
+        ) { deque, consumer in
+          deque.consumeLast(n, consumingWith: consumer)
         }
       }
     }
