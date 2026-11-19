@@ -31,27 +31,42 @@ benchmark.registerCustomGenerators()
 benchmark.addArrayBenchmarks()
 benchmark.addSetBenchmarks()
 benchmark.addDictionaryBenchmarks()
-benchmark.addTreeDictionaryBenchmarks()
+
 benchmark.addDequeBenchmarks()
 benchmark.addRigidDequeBenchmarks()
 benchmark.addUniqueDequeBenchmarks()
+
 benchmark.addOrderedSetBenchmarks()
 benchmark.addOrderedDictionaryBenchmarks()
+
+benchmark.addHeapBenchmarks()
+
+benchmark.addBitSetBenchmarks()
+benchmark.addBitArrayBenchmarks()
+
+#if UnstableHashedContainers
+benchmark.addRigidSetBenchmarks()
+benchmark.addUniqueSetBenchmarks()
+benchmark.addRigidDictionaryBenchmarks()
+benchmark.addUniqueDictionaryBenchmarks()
+#endif
+
+benchmark.addTreeSetBenchmarks()
+benchmark.addTreeDictionaryBenchmarks()
+
 #if UnstableSortedCollections
 benchmark.addSortedSetBenchmarks()
 benchmark.addSortedDictionaryBenchmarks()
 #endif
-benchmark.addHeapBenchmarks()
-benchmark.addBitSetBenchmarks()
-benchmark.addBitArrayBenchmarks()
-benchmark.addTreeSetBenchmarks()
-benchmark.addCppBenchmarks()
-#if EnableRustBenchmarks
-benchmark.addRustBenchmarks()
-#endif
+
 benchmark.addBigStringBenchmarks()
 #if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
 benchmark.addFoundationBenchmarks()
+#endif
+
+benchmark.addCppBenchmarks()
+#if EnableRustBenchmarks
+benchmark.addRustBenchmarks()
 #endif
 
 benchmark.main()

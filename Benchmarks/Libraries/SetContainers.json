@@ -1,0 +1,62 @@
+{
+  "kind": "group",
+  "title": "Set Container Benchmarks",
+  "directory": "SetContainers",
+  "contents": [
+    {
+      "kind": "group",
+      "title": "RigidSet Operations",
+      "directory": "RigidSet",
+      "contents": [
+        {
+          "kind": "chart",
+          "title": "lookups",
+          "tasks": [
+            "RigidSet<Int> successful contains",
+            "RigidSet<Int> unsuccessful contains",
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "group",
+      "title": "UniqueSet Operations",
+      "directory": "UniqueSet",
+      "contents": [
+        {
+          "kind": "chart",
+          "title": "lookups",
+          "tasks": [
+            "UniqueSet<Int> successful contains",
+            "UniqueSet<Int> unsuccessful contains",
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "group",
+      "title": "UniqueSet vs RigidSet vs Set",
+      "directory": "comparative",
+      "contents": [
+        {
+          "kind": "chart",
+          "title": "contains-successful",
+          "tasks": [
+            "Set<Int> successful contains",
+            "RigidSet<Int> successful contains",
+            "UniqueSet<Int> successful contains",
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "contains-unsuccessful",
+          "tasks": [
+            "Set<Int> unsuccessful contains",
+            "RigidSet<Int> unsuccessful contains",
+            "UniqueSet<Int> unsuccessful contains",
+          ]
+        }
+      ]
+    }
+  ]
+}

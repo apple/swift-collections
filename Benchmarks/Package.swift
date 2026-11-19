@@ -18,9 +18,6 @@ let _traits: Set<Trait> = [
   .default(
     enabledTraits: [
 //      "EnableRustBenchmarks",
-//      "UnstableContainersPreview",
-//      "UnstableHashedContainers",
-//      "UnstableSortedCollections",
     ]
   ),
   .trait(
@@ -28,9 +25,6 @@ let _traits: Set<Trait> = [
     description: """
       Enables building and running benchmarks written in Rust, for comparative analysis.
       """),
-  .trait(name: "UnstableContainersPreview"),
-  .trait(name: "UnstableSortedCollections"),
-  .trait(name: "UnstableHashedContainers"),
 ]
 
 let availabilityMacros: KeyValuePairs<String, String> = [
@@ -70,15 +64,9 @@ let package = Package(
       name: "swift-collections",
       path: "..",
       traits: [
-        .trait(
-          name: "UnstableContainersPreview",
-          condition: .when(traits: ["UnstableContainersPreview"])),
-        .trait(
-          name: "UnstableHashedContainers",
-          condition: .when(traits: ["UnstableHashedContainers"])),
-        .trait(
-          name: "UnstableSortedCollections",
-          condition: .when(traits: ["UnstableSortedCollections"])),
+        .trait(name: "UnstableContainersPreview"),
+        .trait(name: "UnstableHashedContainers"),
+        .trait(name: "UnstableSortedCollections"),
       ]
     ),
     .package(url: "https://github.com/apple/swift-collections-benchmark", from: "0.0.4"),

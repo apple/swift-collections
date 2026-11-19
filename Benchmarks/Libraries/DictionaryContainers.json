@@ -1,0 +1,62 @@
+{
+  "kind": "group",
+  "title": "Dictionary Container Benchmarks",
+  "directory": "DictionaryContainers",
+  "contents": [
+    {
+      "kind": "group",
+      "title": "RigidDictionary Operations",
+      "directory": "RigidDictionary",
+      "contents": [
+        {
+          "kind": "chart",
+          "title": "lookups",
+          "tasks": [
+            "RigidDictionary<Int, Int> value(forKey:), successful lookups",
+            "RigidDictionary<Int, Int> value(forKey:), unsuccessful lookups",
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "group",
+      "title": "UniqueDictionary Operations",
+      "directory": "UniqueDictionary",
+      "contents": [
+        {
+          "kind": "chart",
+          "title": "lookups",
+          "tasks": [
+            "UniqueDictionary<Int, Int> value(forKey:), successful lookups",
+            "UniqueDictionary<Int, Int> value(forKey:), unsuccessful lookups",
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "group",
+      "title": "UniqueDictionary vs RigidDictionary vs Dictionary",
+      "directory": "comparative",
+      "contents": [
+        {
+          "kind": "chart",
+          "title": "lookups-successful",
+          "tasks": [
+            "Dictionary<Int, Int> subscript, successful lookups",
+            "RigidDictionary<Int, Int> value(forKey:), successful lookups",
+            "UniqueDictionary<Int, Int> value(forKey:), successful lookups",
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "lookups-unsuccessful",
+          "tasks": [
+            "Dictionary<Int, Int> subscript, unsuccessful lookups",
+            "RigidDictionary<Int, Int> value(forKey:), unsuccessful lookups",
+            "UniqueDictionary<Int, Int> value(forKey:), unsuccessful lookups",
+          ]
+        }
+      ]
+    }
+  ]
+}
