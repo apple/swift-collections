@@ -13,6 +13,7 @@
 
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
+import SpanPreview
 #endif
 
 #if compiler(>=6.4)
@@ -45,6 +46,65 @@ extension LinkedList where Element: ~Copyable {
     let result = unsafe node.move().deconstruct()
     unsafe node.deallocate()
     return result
+  }
+
+  @_alwaysEmitIntoClient
+  public mutating func removeAll() {
+    self._version.bump()
+    unsafe _dismantleList(self._first)
+    unsafe self._first = nil
+    unsafe self._last = nil
+    self._count = 0
+  }
+
+  @_alwaysEmitIntoClient
+  @discardableResult
+  public mutating func removeSubrange(_ bounds: Range<Index>) -> Index {
+    var bounds = bounds
+    let _ = self.extract(&bounds)
+    return bounds.lowerBound
+  }
+
+  @_alwaysEmitIntoClient
+  public mutating func removeFirst(_ n: Int) {
+    precondition(
+      n >= 0 && n <= self._count, "Count of items to remove is out of bounds")
+    var p = unsafe self._first
+    var i = 0
+    while let q = unsafe p, i < n {
+      unsafe p = exchange(&q.pointee.next, with: nil)
+      unsafe q.deinitialize(count: 1)
+      unsafe q.deallocate()
+      i &+= 1
+    }
+    unsafe self._first = p
+    if unsafe p == nil {
+      unsafe self._last = nil
+    }
+    self._count -= n
+  }
+
+  @_alwaysEmitIntoClient
+  public mutating func consumeAll(
+    consumingWith consumer: (inout InputSpan<Element>) -> Void
+  ) {
+    self._version.bump()
+    unsafe _consumeList(self._first, consumingWith: consumer)
+    unsafe self._first = nil
+    unsafe self._last = nil
+    self._count = 0
+  }
+
+  @_alwaysEmitIntoClient
+  @discardableResult
+  public mutating func consumeSubrange(
+    _ bounds: Range<Index>,
+    consumingWith consumer: (inout InputSpan<Element>) -> Void
+  ) -> Index {
+    var bounds = bounds
+    var items = self.extract(&bounds)
+    items.consumeAll(consumingWith: consumer)
+    return bounds.lowerBound
   }
 }
 #endif

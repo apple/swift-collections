@@ -60,12 +60,28 @@ extension LinkedList where Element: ~Copyable {
 
   @_alwaysEmitIntoClient
   @_transparent
+  package func _isValid(_ subrange: Range<Index>) -> Bool {
+    _isValid(subrange.lowerBound) && _isValid(subrange.upperBound)
+  }
+
+  @_alwaysEmitIntoClient
+  @_transparent
   package func _currentNode(of index: Index) -> UnsafeMutablePointer<_Node>? {
     precondition(_isValid(index), "Invalid index")
     guard let prev = unsafe index._previousNode else {
       return unsafe _first
     }
     return unsafe prev.pointee.next
+  }
+}
+
+@available(SwiftStdlib 6.4, *)
+extension LinkedList.Index where Element: ~Copyable {
+  @_alwaysEmitIntoClient
+  @_transparent
+  @unsafe
+  package func _withVersion(_ version: _LinkedListVersion) -> Self {
+    unsafe Self(_version: version, previousNode: _previousNode, offset: _offset)
   }
 }
 

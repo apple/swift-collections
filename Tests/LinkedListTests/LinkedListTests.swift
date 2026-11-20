@@ -18,6 +18,7 @@ import Collections
 import _CollectionsTestSupport
 import InternalCollectionsUtilities
 import LinkedListModule
+import SpanPreview
 #endif
 import ContainersPreview
 
@@ -69,12 +70,6 @@ extension LinkedList where Element: ~Copyable {
     expectEqual(c, _count, "Invalid count")
     unsafe expectEqual(last, _last, "Invalid last node")
   }
-
-#if !UnstableContainersPreview
-  internal func _index(atOffset offset: Int) -> Index {
-    self.index(self.startIndex, offsetBy: offset)
-  }
-#endif
 }
 
 
@@ -151,24 +146,17 @@ class LinkedListTests: CollectionTestCase {
     }
   }
 
-  #if UnstableContainersPreview
+#if UnstableContainersPreview
   func test_Container() {
-    withEvery("count", in: 0 ..< 10) { count in
+    withEvery("count", in: [0, 1, 2, 5]) { count in
       withLifetimeTracking { tracker in
-        var list = LinkedList<LifetimeTrackedStruct<Int>>()
-        withEvery("value", in: 0 ..< count) { value in
-          list.append(tracker.structInstance(for: value))
-          list.checkInvariants()
-          checkContainer(
-            list,
-            expectedContents: 0 ... value,
-            by: { $0.payload == $1 },
-            printer: { "\($0.payload)" })
-        }
+        let list = tracker.linkedList(count: count)
+        list.checkInvariants()
+        checkContainer(list, expectedContents: 0 ..< count, by: { $0.payload == $1 })
       }
     }
   }
-  #endif
+#endif
 
   func test_append() {
     withEvery("count", in: 0 ..< 10) { count in
@@ -317,6 +305,132 @@ class LinkedListTests: CollectionTestCase {
     }
   }
 
+  func test_removeAll() {
+    withEvery("count", in: 0 ..< 10) { count in
+      withLifetimeTracking { tracker in
+        var list = tracker.linkedList(count: count)
+        list.removeAll()
+        list.checkInvariants()
+        expectEqual(list.count, 0)
+        expectIterablePayloads(list, equalTo: [])
+      }
+    }
+  }
+
+  func test_remove_subrange() {
+    withEvery("count", in: 0 ..< 10) { count in
+      withEveryRange("offsetRange", in: 0 ..< count) { offsetRange in
+        withLifetimeTracking { tracker in
+          var list = tracker.linkedList(count: count)
+
+          let i = list.removeSubrange(list._indexRange(atOffsetRange: offsetRange))
+
+          list.checkInvariants()
+          expectEqual(i, list._index(atOffset: offsetRange.lowerBound))
+          var expected = Array(0 ..< count)
+          expected.removeSubrange(offsetRange)
+          expectIterablePayloads(list, equalTo: expected)
+        }
+      }
+    }
+  }
+
+  func test_removeFirst() {
+    withEvery("count", in: 0 ..< 10) { count in
+      withEvery("n", in: 0 ... count) { n in
+        withLifetimeTracking { tracker in
+          var list = tracker.linkedList(count: count)
+
+          list.removeFirst(n)
+
+          list.checkInvariants()
+
+          expectIterablePayloads(list, equalTo: n ..< count)
+        }
+      }
+    }
+  }
+
+  func test_consumeAll_consumingWith() {
+    withEvery("count", in: 0 ..< 10) { count in
+      withLifetimeTracking { tracker in
+        var list = tracker.linkedList(count: count)
+
+        var consumed = 0
+        list.consumeAll { span in
+          expectEqual(span.count, 1)
+          expectEqual(span[0].payload, consumed)
+          consumed += 1
+        }
+        expectEqual(consumed, count)
+        list.checkInvariants()
+        expectEqual(list.count, 0)
+        expectIterablePayloads(list, equalTo: [])
+      }
+    }
+  }
+
+  func test_consumeSubrange_consumingWith() {
+    withEvery("count", in: 0 ..< 10) { count in
+      withEveryRange("offsetRange", in: 0 ..< count) { offsetRange in
+        withLifetimeTracking { tracker in
+          var list = tracker.linkedList(count: count)
+
+          let range = list._indexRange(atOffsetRange: offsetRange)
+
+          var consumed = 0
+          let i = list.consumeSubrange(range) { span in
+            expectEqual(span.count, 1)
+            expectEqual(span[0].payload, offsetRange.lowerBound + consumed)
+            consumed += 1
+          }
+          expectEqual(consumed, offsetRange.count)
+          list.checkInvariants()
+          expectEqual(i, list._index(atOffset: offsetRange.lowerBound))
+          expectEqual(list.count, count - offsetRange.count)
+          var expected = Array(0 ..< count)
+          expected.removeSubrange(offsetRange)
+          expectIterablePayloads(list, equalTo: expected)
+        }
+      }
+    }
+  }
+
+#if UnstableContainersPreview
+  func test_consumeSubrange() {
+    withEvery("count", in: 0 ..< 10) { count in
+      withEveryRange("offsetRange", in: 0 ..< count) { offsetRange in
+        withLifetimeTracking { tracker in
+          var list = tracker.linkedList(count: count)
+
+          let range = list._indexRange(atOffsetRange: offsetRange)
+
+          var drain = list.consumeSubrange(range)
+          var consumed = 0
+          while true {
+            expectEqual(drain.count, offsetRange.count - consumed)
+            let span = drain.drainNext()
+            guard !span.isEmpty else { break }
+            expectEqual(span.count, 1)
+            expectEqual(span[0].payload, offsetRange.lowerBound + consumed)
+            consumed += 1
+          }
+          expectEqual(consumed, offsetRange.count)
+          let i = drain.finalize()
+
+          list.checkInvariants()
+
+          expectEqual(i, list._index(atOffset: offsetRange.lowerBound))
+          expectEqual(list.count, count - offsetRange.count)
+          var expected = Array(0 ..< count)
+          expected.removeSubrange(offsetRange)
+          expectIterablePayloads(list, equalTo: expected)
+        }
+      }
+    }
+  }
+#endif
+
   func test_extract() {
     withEvery("count", in: [0, 1, 2, 5]) { count in
       withEveryRange("range", in: 0 ..< count) { range in
@@ -326,9 +440,8 @@ class LinkedListTests: CollectionTestCase {
             list.append(tracker.structInstance(for: i))
           }
           list.checkInvariants()
-          let lower = list.index(list.startIndex, offsetBy: range.lowerBound)
-          let upper = list.index(lower, offsetBy: range.count)
-          var indexRange = lower ..< upper
+
+          var indexRange = list._indexRange(atOffsetRange: range)
           let extract = list.extract(&indexRange)
           list.checkInvariants()
           extract.checkInvariants()
@@ -350,6 +463,45 @@ class LinkedListTests: CollectionTestCase {
           } else {
             expectEqual(list[indexRange.lowerBound].payload, range.upperBound)
           }
+        }
+      }
+    }
+  }
+
+  func test_extract_from() {
+    withEvery("count", in: [0, 1, 2, 5]) { count in
+      withEvery("offset", in: 0 ... count) { offset in
+        withLifetimeTracking { tracker in
+          var list = LinkedList<LifetimeTrackedStruct<Int>>()
+          for i in 0 ..< count {
+            list.append(tracker.structInstance(for: i))
+          }
+          list.checkInvariants()
+          let index = list.index(list.startIndex, offsetBy: offset)
+          let extract = list.extract(from: index)
+          list.checkInvariants()
+          extract.checkInvariants()
+
+          expectIterablePayloads(extract, equalTo: offset ..< count)
+          expectIterablePayloads(list, equalTo: 0 ..< offset)
+        }
+      }
+    }
+  }
+
+  func test_extract_upTo() {
+    withEvery("count", in: [0, 1, 2, 5]) { count in
+      withEvery("offset", in: 0 ... count) { offset in
+        withLifetimeTracking { tracker in
+          var list = tracker.linkedList(count: count)
+          list.checkInvariants()
+          let index = list.index(list.startIndex, offsetBy: offset)
+          let extract = list.extract(upTo: index)
+          list.checkInvariants()
+          extract.checkInvariants()
+
+          expectIterablePayloads(extract, equalTo: 0 ..< offset)
+          expectIterablePayloads(list, equalTo: offset ..< count)
         }
       }
     }

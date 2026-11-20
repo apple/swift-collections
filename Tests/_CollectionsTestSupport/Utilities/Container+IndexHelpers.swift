@@ -24,5 +24,12 @@ where
   package func _index(atOffset offset: Int) -> Index {
     self.index(self.startIndex, offsetBy: offset)
   }
+
+  @_alwaysEmitIntoClient
+  package func _indexRange(atOffsetRange offsetRange: Range<Int>) -> Range<Index> {
+    let lower = _index(atOffset: offsetRange.lowerBound)
+    let upper = _index(atOffset: offsetRange.upperBound)
+    return lower ..< upper
+  }
 }
 #endif

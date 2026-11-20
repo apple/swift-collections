@@ -114,14 +114,30 @@ extension LinkedList where Element: ~Copyable {
     return unsafe _overrideLifetime(span, borrowing: self)
   }
 
-  #if false // FIXME: This should work, but we can't override the lifetime of the MutableSpan retrieved from behind a pointer
   @_alwaysEmitIntoClient
   @_lifetime(&self)
   public mutating func nextMutableSpan(after index: inout Index) -> MutableSpan<Element> {
     let node = unsafe _advance(&index)
+#if false // FIXME: This should work, but we can't override the lifetime of the MutableSpan retrieved from behind a pointer
     return unsafe _overrideLifetime(node._pointee.mutableSpan, mutating: &self)
+#else
+    return unsafe node._mutableValue(mutating: &self)
+#endif
   }
-  #endif
+
+  @_alwaysEmitIntoClient
+  @_lifetime(&self)
+  public mutating func nextMutableSpan(
+    after index: inout Index,
+    maxCount: Int,
+    limitedBy limit: Index
+  ) -> MutableSpan<Element> {
+    precondition(_isValid(limit), "Invalid index")
+    precondition(maxCount > 0, "maxCount must be positive")
+    guard limit != index else { return .init() }
+    return nextMutableSpan(after: &index)
+  }
+
 
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)

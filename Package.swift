@@ -309,7 +309,7 @@ let targets: [CustomTarget] = [
   .target(
     kind: .exported,
     name: "LinkedListModule",
-    dependencies: ["InternalCollectionsUtilities"],
+    dependencies: ["InternalCollectionsUtilities", "SpanPreview"],
     exclude: ["CMakeLists.txt"]),
   .target(
     kind: .test,

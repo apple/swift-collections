@@ -11,9 +11,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.4)
 import Synchronization
+#if !COLLECTIONS_SINGLE_MODULE
+import InternalCollectionsUtilities
+import SpanPreview
+#endif
 
+#if compiler(>=6.4)
 @available(SwiftStdlib 6.4, *)
 @safe
 @frozen
@@ -29,17 +33,8 @@ public struct LinkedList<Element: ~Copyable>: ~Copyable {
   @usableFromInline
   package var _count: Int
 
-  /// The list's current version number. This is a composite of two bitfields,
-  /// a 16-bit local version, and a 48-bit global version number:
-  ///
-  ///     b63:16                                           b15:0
-  ///    ┌────────────────────────────────────────────────┬────────────────┐
-  ///    │ Global version                                 │ Local version  │
-  ///    └────────────────────────────────────────────────┴────────────────┘
-  ///
-  /// The local version number is incremented directly whenever one or more
-  /// nodes get added, removed or reordered in the list. The global version
-  /// comes from a process-wide global counter.
+  /// The list's current version number. This gets bumped whenever one or more
+  /// nodes get added, removed or reordered in the list.
   @usableFromInline
   package var _version: _LinkedListVersion
 
@@ -77,7 +72,7 @@ public struct LinkedList<Element: ~Copyable>: ~Copyable {
 /// Carefully destroy the list of nodes starting at `list`, avoiding
 /// unbounded recursion in node deinit.
 ///
-/// Each node is deinitialized and deallocatedstruct
+/// Each node is deinitialized and deallocated.
 @available(SwiftStdlib 6.4, *)
 @inlinable
 package func _dismantleList<Element: ~Copyable>(
@@ -89,6 +84,24 @@ package func _dismantleList<Element: ~Copyable>(
     let buffer = unsafe UnsafeMutableBufferPointer(start: q, count: 1)
     unsafe buffer.deinitialize()
     unsafe buffer.deallocate()
+  }
+}
+
+@available(SwiftStdlib 6.4, *)
+@inlinable
+package func _consumeList<Element: ~Copyable>(
+  _ list: UnsafeMutablePointer<LinkedList<Element>._Node>?,
+  consumingWith consumer: (inout InputSpan<Element>) -> Void
+) {
+  var p = unsafe list
+  while let q = unsafe p {
+    unsafe p = exchange(&q.pointee.next, with: nil)
+    let v = unsafe LinkedList<Element>._Node._ptrToValue(in: q)
+    let buffer = unsafe UnsafeMutableBufferPointer(start: v, count: 1)
+    var span = unsafe InputSpan(buffer: buffer, initializedCount: 1)
+    consumer(&span)
+    _ = consume span
+    unsafe q.deallocate()
   }
 }
 

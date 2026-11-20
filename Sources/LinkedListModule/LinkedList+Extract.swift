@@ -29,12 +29,36 @@ extension LinkedList where Element: ~Copyable {
     _ subrange: inout Range<Index> 
   ) -> LinkedList {
     // FIXME: We want this to return a tuple of (Index, LinkedList), but we can't do that.
-    defer {
-      var i = subrange.lowerBound
-      i._version = self._version
-      subrange = i ..< i
-    }
+    let r = unsafe _extract(subrange)
+    subrange = unsafe r.index ..< r.index
+    return unsafe LinkedList(_first: r.first, last: r.last, count: r.count)
+  }
 
+  @_alwaysEmitIntoClient
+  public mutating func extract(
+    upTo index: Index
+  ) -> LinkedList {
+    let r = unsafe _extract(upTo: index)
+    return unsafe LinkedList(_first: r.first, last: r.last, count: r.count)
+  }
+
+  @_alwaysEmitIntoClient
+  public mutating func extract(
+    from index: Index
+  ) -> LinkedList {
+    let r = unsafe _extract(from: index)
+    return unsafe LinkedList(_first: r.first, last: r.last, count: r.count)
+  }
+
+  @_alwaysEmitIntoClient
+  package mutating func _extract(
+    _ subrange: Range<Index>
+  ) -> (
+    index: Index,
+    first: UnsafeMutablePointer<_Node>?,
+    last: UnsafeMutablePointer<_Node>?,
+    count: Int
+  ) {
     precondition(
       _isValid(subrange.lowerBound) && _isValid(subrange.upperBound),
       "Invalid subrange")
@@ -42,16 +66,17 @@ extension LinkedList where Element: ~Copyable {
     case (false, false):
       break
     case (false, true):
-      return extract(from: subrange.lowerBound)
+      return unsafe _extract(from: subrange.lowerBound)
     case (true, false):
-      return extract(upTo: subrange.upperBound)
+      return unsafe _extract(upTo: subrange.upperBound)
     case (true, true):
-      return exchange(&self, with: LinkedList())
+      return unsafe _extractAll()
     }
 
-    _version.bump()
+    self._version.bump()
+    let i = unsafe subrange.lowerBound._withVersion(self._version)
     guard !subrange.isEmpty else {
-      return LinkedList()
+      return (i, nil, nil, 0)
     }
 
     let lower = unsafe subrange.lowerBound._previousNode.unsafelyUnwrapped
@@ -63,49 +88,71 @@ extension LinkedList where Element: ~Copyable {
     let c = subrange.upperBound._offset &- subrange.lowerBound._offset
     self._count &-= c
 
-    return unsafe LinkedList(_first: first, last: last, count: c)
+    return unsafe (i, first, last, c)
   }
 
   @_alwaysEmitIntoClient
-  public mutating func extract(
+  package mutating func _extractAll() -> (
+    index: Index,
+    first: UnsafeMutablePointer<_Node>?,
+    last: UnsafeMutablePointer<_Node>?,
+    count: Int
+  ) {
+    self._version.bump()
+    return unsafe (
+      index: self.startIndex,
+      first: exchange(&self._first, with: nil),
+      last: exchange(&self._last, with: nil),
+      count: exchange(&self._count, with: 0))
+  }
+
+  @_alwaysEmitIntoClient
+  package mutating func _extract(
     upTo index: Index
-  ) -> LinkedList {
+  ) -> (
+    index: Index,
+    first: UnsafeMutablePointer<_Node>?,
+    last: UnsafeMutablePointer<_Node>?,
+    count: Int
+  ) {
     precondition(_isValid(index), "Invalid index")
     _version.bump()
     guard let last = unsafe index._previousNode else { // index == startIndex
-      return LinkedList()
+      return (self.startIndex, nil, nil, 0)
     }
     guard unsafe last != self._last else { // index == endIndex
-      return exchange(&self, with: Self())
+      return unsafe _extractAll()
     }
     self._count &-= index._offset
 
     let first = unsafe exchange(&self._first, with: exchange(&last.pointee.next, with: nil))
 
-    return unsafe LinkedList(_first: first, last: last, count: index._offset)
+    return unsafe (self.startIndex, first, last, index._offset)
   }
 
   @_alwaysEmitIntoClient
-  public mutating func extract(
+  package mutating func _extract(
     from index: Index
-  ) -> LinkedList {
+  ) -> (
+    index: Index,
+    first: UnsafeMutablePointer<_Node>?,
+    last: UnsafeMutablePointer<_Node>?,
+    count: Int
+  ) {
     precondition(_isValid(index), "Invalid index")
     _version.bump()
     guard let last = unsafe index._previousNode else { // index == startIndex
-      return exchange(&self, with: Self())
+      return unsafe _extractAll()
     }
     guard unsafe last != self._last else { // index == endIndex
-      return LinkedList()
+      return (self.endIndex, nil, nil, 0)
     }
 
-    defer {
-      self._count = index._offset
-    }
-
-    return unsafe LinkedList(
-      _first: exchange(&last.pointee.next, with: nil),
-      last: exchange(&self._last, with: last),
-      count: self.count &- index._offset)
+    let c = self.count &- index._offset
+    self._count = index._offset
+    let f = unsafe exchange(&last.pointee.next, with: nil)
+    let l = unsafe exchange(&self._last, with: last)
+    return unsafe (index: self.endIndex, first: f, last: l, count: c)
   }
 }
 #endif

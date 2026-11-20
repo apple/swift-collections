@@ -23,11 +23,23 @@ import SpanPreview
 
 #if compiler(>=6.4) && UnstableContainersPreview
 @available(SwiftStdlib 6.4, *)
-extension LinkedList: Container, PermutableContainer
+extension LinkedList: Container, PermutableContainer, MutableContainer
 where Element: ~Copyable
 {}
 
-#if false // FIXME: Implement. Implementing drainNext is tricky
+@available(SwiftStdlib 6.4, *)
+extension LinkedList: DrainableContainer
+where Element: ~Copyable
+{
+  @_alwaysEmitIntoClient
+  @_lifetime(&self)
+  public mutating func consumeSubrange(
+    _ subrange: Range<Index>
+  ) -> SubrangeConsumer {
+    SubrangeConsumer(_base: &self, subrange: subrange)
+  }
+}
+
 @available(SwiftStdlib 6.4, *)
 extension LinkedList where Element: ~Copyable
 {
@@ -38,9 +50,28 @@ extension LinkedList where Element: ~Copyable
     package var _next: UnsafeMutablePointer<_Node>?
 
     @_alwaysEmitIntoClient
+    package var _prev: UnsafeMutablePointer<_Node>?
+
+    @_alwaysEmitIntoClient
     package var _remaining: Int
 
+    @_alwaysEmitIntoClient
+    package var _finalIndex: Index
+
+    @_alwaysEmitIntoClient
+    @_lifetime(&_base)
+    package init(
+      _base: inout LinkedList, subrange: Range<Index>
+    ) {
+      let r = unsafe _base._extract(subrange)
+      self._remaining = unsafe r.count
+      self._finalIndex = unsafe r.index
+      unsafe self._next = r.first
+      unsafe self._prev = nil
+    }
+
     deinit {
+      unsafe _prev?.deallocate() // See note in `drainNext` below.
       unsafe _dismantleList(_next)
     }
   }
@@ -51,6 +82,7 @@ extension LinkedList.SubrangeConsumer: ContainerDrain<Element>
 where Element: ~Copyable
 {
   public typealias Failure = Never
+  public typealias Index = LinkedList.Index
 
   @_alwaysEmitIntoClient
   public var count: Int {
@@ -61,19 +93,26 @@ where Element: ~Copyable
   @_lifetime(&self)
   @_lifetime(self: copy self)
   public mutating func drainNext(maxCount: Int) -> InputSpan<Element> {
-
+    precondition(maxCount > 0, "maxCount must be positive")
+    unsafe _prev?.deallocate() // See note below.
+    guard let next = unsafe _next else {
+      unsafe _prev = nil
+      return .init()
+    }
+    self._remaining &-= 1
+    unsafe self._prev = next
+    unsafe self._next = exchange(&next.pointee.next, with: nil)
+    // Note: the returned InputSpan ensures that the value will be deinitialized
+    // before the next `drainNext` invocation, or before `self` is destroyed.
+    // We don't need to (and cannot) run `_Node.deinit`, as we've taken over its
+    // duties. We just need to deallocate the node after the input span is gone,
+    // which we do with the `_prev?.deallocate()` calls above.
+    return unsafe next._drainOrphanNode(mutating: &self)
   }
 
   @_alwaysEmitIntoClient
-  public consuming func finalize() -> LinkedList.Index {
-
+  public consuming func finalize() -> Index {
+    _finalIndex
   }
 }
-
-@available(SwiftStdlib 6.4, *)
-extension LinkedList: DrainableContainer
-where Element: ~Copyable
-{
-}
-#endif
 #endif
