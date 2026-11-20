@@ -566,5 +566,33 @@ class LinkedListTests: CollectionTestCase {
       }
     }
   }
+
+  func test_reverse() {
+    withEvery("count", in: [0, 1, 2, 5]) { count in
+      withLifetimeTracking { tracker in
+        var list = tracker.linkedList(count: count)
+        list.reverse()
+        list.checkInvariants()
+        expectIterablePayloads(list, equalTo: (0 ..< count).reversed())
+      }
+    }
+  }
+
+  func test_reverseSubrange() {
+    withEvery("count", in: [0, 1, 2, 5]) { count in
+      withEveryRange("offsetRange", in: 0 ..< count) { offsetRange in
+        withLifetimeTracking { tracker in
+          var list = tracker.linkedList(count: count)
+          let indexRange = list._indexRange(atOffsetRange: offsetRange)
+          let r = list.reverseSubrange(indexRange)
+          list.checkInvariants()
+          expectEqual(r, list._indexRange(atOffsetRange: offsetRange))
+          var expected = Array(0 ..< count)
+          expected[offsetRange].reverse()
+          expectIterablePayloads(list, equalTo: expected)
+        }
+      }
+    }
+  }
 }
 #endif
