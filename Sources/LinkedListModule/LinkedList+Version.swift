@@ -14,6 +14,23 @@
 import Synchronization
 
 #if compiler(>=6.4)
+/// A relatively efficient 64-bit version number with reasonably good
+/// expectations of uniqueness within a process.
+///
+/// This is a composite of two bitfields, a 16-bit local version, and
+/// a 48-bit global version number:
+///
+///     b63:16                                           b15:0
+///    ┌────────────────────────────────────────────────┬────────────────┐
+///    │ Global version                                 │ Local version  │
+///    └────────────────────────────────────────────────┴────────────────┘
+///
+/// The local version gets incremented with no synchronization.
+/// The global version comes from a process-wide global counter, atomically
+/// bumped every time the local field overflows.
+///
+/// When the global counter overflows, we randomly select a new value for it,
+/// to avoid predictable collisions.
 @available(SwiftStdlib 6.4, *)
 @usableFromInline
 @frozen
@@ -62,7 +79,7 @@ extension _LinkedListVersion {
   /// The version number of the empty list.
   @_alwaysEmitIntoClient
   @_transparent
-  package static var empty: Self { Self(_bits: 0) }
+  package static var empty: Self { Self(_bits: .max) }
 
   /// A new, unique version number.
   @_alwaysEmitIntoClient
@@ -117,13 +134,36 @@ extension _LinkedListVersion {
 @available(SwiftStdlib 6.4, *)
 extension _LinkedListVersion {
   @inlinable
+  @inline(always)
   package mutating func bump() {
     _bits &+= 1
     if _bits & Self._localMask == 0 {
-      _bits = Self._globalCounter.wrappingAdd(
-        Self._globalIncrement, ordering: .relaxed
-      ).newValue
-      precondition(_bits != 0, "Linked list version overflow")
+      _slowBump()
+    }
+  }
+
+  @inlinable
+  @inline(never)
+  package mutating func _slowBump() {
+    var expected = Self._globalCounter.load(ordering: .relaxed)
+    var done = false
+    while true {
+      let desired: UInt64
+      if expected == Self._globalMask {
+        // We've run out of bits; select a next version by random.
+        var rng = SystemRandomNumberGenerator()
+        desired = rng.next() & Self._globalMask
+      } else {
+        desired = expected &+ Self._globalIncrement
+      }
+      (done, expected) = Self._globalCounter.compareExchange(
+        expected: expected,
+        desired: desired,
+        ordering: .relaxed)
+      if done {
+        _bits = desired
+        break
+      }
     }
   }
 }

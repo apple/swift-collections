@@ -12,6 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 import XCTest
+import Synchronization
 #if COLLECTIONS_SINGLE_MODULE
 import Collections
 #else
@@ -75,6 +76,65 @@ extension LinkedList where Element: ~Copyable {
 
 @available(SwiftStdlib 6.4, *)
 class LinkedListTests: CollectionTestCase {
+  func test_version() {
+    // The initial version of an empty list is known.
+    var v = _LinkedListVersion.empty
+    expectEqual(v._bits, .max)
+
+    // Bumping the initial version acquires a quasi-unique version.
+    var global = _LinkedListVersion._globalCounter.load(ordering: .relaxed)
+    v.bump()
+    expectEqual(v.local, 0)
+    expectEqual(v.global, global + _LinkedListVersion._globalIncrement)
+    do {
+      let g = _LinkedListVersion._globalCounter.load(ordering: .relaxed)
+      expectEqual(g, global + _LinkedListVersion._globalIncrement)
+      global = g
+    }
+
+    var v2 = _LinkedListVersion.empty
+    v2.bump()
+    expectEqual(v2.local, 0)
+    expectEqual(v2.global, global + _LinkedListVersion._globalIncrement)
+    expectNotEqual(v2, v)
+    do {
+      let g = _LinkedListVersion._globalCounter.load(ordering: .relaxed)
+      expectEqual(g, global + _LinkedListVersion._globalIncrement)
+      global = g
+    }
+
+    for local in 1 ... _LinkedListVersion._localMask {
+      let old = v.global
+      v.bump()
+      expectEqual(
+        _LinkedListVersion._globalCounter.load(ordering: .relaxed),
+        global)
+      expectEqual(v.local, local)
+      expectEqual(v.global, old)
+    }
+
+    // See what happens when the local component overflows
+    global += _LinkedListVersion._globalIncrement
+    v.bump()
+    expectEqual(
+      _LinkedListVersion._globalCounter.load(ordering: .relaxed),
+      global)
+    expectEqual(v.local, 0)
+    expectEqual(v.global, global)
+
+    // See what happens when the global component overflows
+    var versions: Set<UInt64> = []
+    for _ in 0 ..< 10 {
+      _LinkedListVersion._globalCounter
+        .store(_LinkedListVersion._globalMask, ordering: .relaxed)
+      var v = _LinkedListVersion.empty
+      v.bump()
+      expectEqual(v.local, 0)
+      versions.insert(v.global)
+    }
+    expectGreaterThan(versions.count, 5)
+  }
+
   func test_empty() {
     withLifetimeTracking { tracker in
       let list = LinkedList<LifetimeTrackedStruct<Int>>()
