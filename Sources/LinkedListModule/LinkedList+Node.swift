@@ -129,6 +129,7 @@ extension UnsafeMutablePointer where Pointee: ~Copyable {
     return unsafe _overrideLifetime(span, mutating: &owner)
   }
 
+#if UnstableContainersPreview
   @_alwaysEmitIntoClient
   @_lifetime(&owner)
   package func _drainOrphanNode<
@@ -148,6 +149,7 @@ extension UnsafeMutablePointer where Pointee: ~Copyable {
       initializedCount: 1)
     return unsafe _overrideLifetime(span, mutating: &owner)
   }
+#endif
 }
 
 #endif

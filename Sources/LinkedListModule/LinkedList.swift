@@ -87,6 +87,7 @@ package func _dismantleList<Element: ~Copyable>(
   }
 }
 
+#if UnstableContainersPreview
 @available(SwiftStdlib 6.4, *)
 @inlinable
 package func _consumeList<Element: ~Copyable>(
@@ -104,5 +105,6 @@ package func _consumeList<Element: ~Copyable>(
     unsafe q.deallocate()
   }
 }
+#endif
 
 #endif

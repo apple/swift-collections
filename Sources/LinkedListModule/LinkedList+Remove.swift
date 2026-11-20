@@ -84,6 +84,7 @@ extension LinkedList where Element: ~Copyable {
     self._count -= n
   }
 
+#if UnstableContainersPreview
   @_alwaysEmitIntoClient
   public mutating func consumeAll(
     consumingWith consumer: (inout InputSpan<Element>) -> Void
@@ -94,7 +95,9 @@ extension LinkedList where Element: ~Copyable {
     unsafe self._last = nil
     self._count = 0
   }
+#endif
 
+#if UnstableContainersPreview
   @_alwaysEmitIntoClient
   @discardableResult
   public mutating func consumeSubrange(
@@ -106,5 +109,6 @@ extension LinkedList where Element: ~Copyable {
     items.consumeAll(consumingWith: consumer)
     return bounds.lowerBound
   }
+#endif
 }
 #endif
