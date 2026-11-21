@@ -107,6 +107,45 @@ final class SortedDictionaryTests: CollectionTestCase {
     }
   }
 
+  func test_formIndexOffsetBy() {
+    withEvery("count", in: [0, 1, 5, 6, 17, 18, 29, 30, 53, 54]) { count in
+      withEvery("isBulk", in: [false, true]) { isBulk in
+        withLifetimeTracking { tracker in
+          let (inserted, kvs) = tracker.sortedDictionary(keys: 0 ..< count)
+          let dictionary = isBulk
+            ? SortedDictionary(sortedKeysWithValues: kvs)
+            : inserted
+          let keys = dictionary.keys
+          let values = dictionary.values
+          let indices = Array(dictionary.indices) + [dictionary.endIndex]
+          withEvery("offset", in: 0 ... count) { offset in
+            withEvery("distance", in: -offset ... count - offset) { distance in
+              let start = indices[offset]
+              var index = start
+              dictionary.formIndex(&index, offsetBy: distance)
+              var keyIndex = start
+              keys.formIndex(&keyIndex, offsetBy: distance)
+              var valueIndex = start
+              values.formIndex(&valueIndex, offsetBy: distance)
+              if offset + distance < count {
+                let (key, value) = kvs[offset + distance]
+                expectEqual(dictionary[index].key, key)
+                expectEqual(dictionary[index].value, value)
+                expectEqual(keys[keyIndex], key)
+                expectEqual(values[valueIndex], value)
+              }
+              let expected = kvs[(offset + distance)...]
+                .map { (key: $0, value: $1) }
+              expectEqualElements(dictionary[index...], expected)
+              expectEqualElements(dictionary[keyIndex...], expected)
+              expectEqualElements(dictionary[valueIndex...], expected)
+            }
+          }
+        }
+      }
+    }
+  }
+
   func test_bidirectionalCollection() {
     withEvery("count", in: [1, 2, 4, 8, 16, 32, 64]) { count in
       withLifetimeTracking { tracker in
@@ -116,6 +155,32 @@ final class SortedDictionaryTests: CollectionTestCase {
           d,
           expectedContents: kvs,
           by: { $0.key == $1.key && $0.value == $1.value }
+        )
+      }
+    }
+  }
+
+  func test_keys_bidirectionalCollection() {
+    withEvery("count", in: [0, 1, 5, 6, 17, 18]) { count in
+      withLifetimeTracking { tracker in
+        let (d, kvs) = tracker.sortedDictionary(keys: 0 ..< count)
+
+        checkBidirectionalCollection(
+          d.keys,
+          expectedContents: kvs.map { key, _ in key }
+        )
+      }
+    }
+  }
+
+  func test_values_bidirectionalCollection() {
+    withEvery("count", in: [0, 1, 5, 6, 17, 18]) { count in
+      withLifetimeTracking { tracker in
+        let (d, kvs) = tracker.sortedDictionary(keys: 0 ..< count)
+
+        checkBidirectionalCollection(
+          d.values,
+          expectedContents: kvs.map { _, value in value }
         )
       }
     }
@@ -477,6 +542,31 @@ final class SortedDictionaryTests: CollectionTestCase {
       [keysShifted.dropFirst(10).prefix(20)],
     ]
     checkHashable(equivalenceClasses: classes)
+  }
+
+  func test_subSequence_bidirectionalCollection() {
+    withEvery("count", in: [0, 1, 5, 6, 17, 18, 29, 30, 53, 54, 149, 150]) { count in
+      withEvery("isBulk", in: [false, true]) { isBulk in
+        withLifetimeTracking { tracker in
+          let (inserted, kvs) = tracker.sortedDictionary(keys: 0 ..< count)
+          let dictionary = isBulk
+            ? SortedDictionary(sortedKeysWithValues: kvs)
+            : inserted
+          let indices = Array(dictionary.indices) + [dictionary.endIndex]
+          let lengths = Set([0, 1, 8].map { min($0, count) }).sorted()
+          withEvery("length", in: lengths) { length in
+            let starts = Set([0, (count - length) / 2, count - length]).sorted()
+            withEvery("start", in: starts) { start in
+              let end = start + length
+              checkBidirectionalCollection(
+                dictionary[indices[start] ..< indices[end]],
+                expectedContents: Array(kvs[start ..< end]),
+                by: { $0.key == $1.key && $0.value == $1.value })
+            }
+          }
+        }
+      }
+    }
   }
 }
 
