@@ -61,6 +61,21 @@ final class BitSetCountedTests: CollectionTestCase {
     }
   }
 
+  func test_hashable() {
+    let classes: [[BitSet.Counted]] = [
+      [[], BitSet().counted, BitSet.Counted(words: [0, 0])],
+      [[1], BitSet([1]).counted, BitSet.Counted(words: [2, 0])],
+      [[2], BitSet.Counted(bitPattern: 4 as UInt8)],
+      [[1, 5, 10], [10, 5, 1], BitSet.Counted([10, 1, 5, 1, 10])],
+      [[1, 5, 11], [11, 5, 1]],
+      [[1, 5, 100], [100, 5, 1]],
+      [[1, 100, 200], [200, 100, 1]],
+      [[1, 101, 200], [200, 101, 1]],
+      [[63, 64], BitSet(0 ..< 65).counted.subtracting(0 ..< 63)],
+    ]
+    checkHashable(equivalenceClasses: classes)
+  }
+
   func test_union() {
     let a: BitSet.Counted = [1, 2, 3, 4]
 
@@ -160,8 +175,8 @@ final class BitSetCountedTests: CollectionTestCase {
       expectEqualElements(a, expected, file: file, line: line)
     }
 
-    let b = 3 ..< 7
-    let exp = [1, 2, 5, 6]
+    let b = 3 ..< 8
+    let exp = [1, 2, 5, 6, 7]
     check(exp) { $0.formSymmetricDifference(BitSet.Counted(b)) }
     check(exp) { $0.formSymmetricDifference(BitSet(b)) }
     check(exp) { $0.formSymmetricDifference(b) }
@@ -291,6 +306,44 @@ final class BitSetCountedTests: CollectionTestCase {
       }
       expectEqualElements(actual, expected.sorted())
       expectEqual(actual.count, expected.count)
+    }
+  }
+
+  func test_count_after_random_mutations() {
+    let values = [0, 1, 2, 3, 63, 64, 65, 127, 128, 4095, 4096]
+    withEvery("seed", in: 0 ..< 10) { seed in
+      var rng = RepeatableRandomNumberGenerator(seed: seed)
+      var actual: BitSet.Counted = []
+      var expected: Set<Int> = []
+      withEvery("step", in: 0 ..< 100) { _ in
+        let value = values.randomElement(using: &rng)!
+        switch Int.random(in: 0 ..< 8, using: &rng) {
+        case 0:
+          expectTrue(actual.insert(value) == expected.insert(value))
+        case 1:
+          expectEqual(actual.update(with: value), expected.update(with: value))
+        case 2:
+          expectEqual(actual.remove(value), expected.remove(value))
+        case 3:
+          actual[member: value] = true
+          expected.insert(value)
+        case 4:
+          actual[member: value] = false
+          expected.remove(value)
+        case 5:
+          if let index = actual.firstIndex(of: value) {
+            expectEqual(actual.remove(at: index), expected.remove(value))
+          }
+        case 6:
+          actual.uncounted[member: value].toggle()
+          if expected.remove(value) == nil { expected.insert(value) }
+        default:
+          let removed = actual.uncounted.counted.remove(value)
+          expectEqual(removed, expected.remove(value))
+        }
+        expectEqual(actual.count, expected.count)
+        expectEqualElements(actual.uncounted, expected.sorted())
+      }
     }
   }
 
