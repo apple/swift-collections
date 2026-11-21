@@ -58,15 +58,23 @@ where Header: ~Copyable
     unsafe _pointer.initialize(to: header)
   }
 
+  /// Initialize the trailing elements that follow the header at `pointer`.
+  ///
+  /// If `initializer` throws, the output span deinitializes the elements it
+  /// has initialized so far, so the caller only needs to clean up the header.
   @available(SwiftStdlib 5.1, *)
   @_alwaysEmitIntoClient
-  mutating func _initializeTrailingElements<E>(
+  @unsafe
+  static func _initializeTrailingElements<E>(
+    after pointer: UnsafeMutablePointer<Header>,
     initializer: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) {
-    var output = unsafe OutputSpan(buffer: rawElements, initializedCount: 0)
+    let elements = unsafe _elements(after: pointer)
+    var output = unsafe OutputSpan(buffer: elements, initializedCount: 0)
     try initializer(&output)
-    let initialized = unsafe output.finalize(for: rawElements)
-    precondition(count == initialized, "TrailingArray initialization underflow")
+    let initialized = unsafe output.finalize(for: elements)
+    precondition(
+      elements.count == initialized, "TrailingArray initialization underflow")
   }
 
   /// Allocate an intrusive managed buffer with the given header and calling
@@ -77,8 +85,22 @@ where Header: ~Copyable
     header: consuming Header,
     initializingTrailingElementsWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) {
-    self.init(_headerOnly: header)
-    try _initializeTrailingElements(initializer: initializer)
+    let (bytes, alignment) = Self.allocationSize(header: header)
+    let storage = unsafe UnsafeMutableRawPointer.allocate(
+      byteCount: bytes,
+      alignment: alignment)
+    let pointer = unsafe Self.headerPointer(fromStorage: storage)
+    unsafe pointer.initialize(to: header)
+    do throws(E) {
+      try unsafe Self._initializeTrailingElements(
+        after: pointer, initializer: initializer)
+    } catch {
+      // The trailing elements aren't initialized, so don't let `deinit` run.
+      unsafe pointer.deinitialize(count: 1)
+      unsafe storage.deallocate()
+      throw error
+    }
+    unsafe self._storage = storage
   }
 
   /// Allocate an intrusive managed buffer with the given header and
@@ -184,10 +206,18 @@ where Header: ~Copyable
   @_alwaysEmitIntoClient
   @unsafe
   var rawElements: UnsafeMutableBufferPointer<Element> {
+    unsafe Self._elements(after: _pointer)
+  }
+
+  @_alwaysEmitIntoClient
+  @unsafe
+  static func _elements(
+    after pointer: UnsafeMutablePointer<Header>
+  ) -> UnsafeMutableBufferPointer<Element> {
     unsafe UnsafeMutableBufferPointer(
-      start: UnsafeMutableRawPointer(_pointer.advanced(by: 1))
+      start: UnsafeMutableRawPointer(pointer.advanced(by: 1))
         .assumingMemoryBound(to: Element.self),
-      count: header.trailingCount
+      count: pointer.pointee.trailingCount
     )
   }
 
@@ -334,11 +364,13 @@ extension TrailingArray where Header: Copyable {
     body: (inout TrailingArray<Header>) throws(E) -> R
   ) throws(E) -> R {
     return unsafe try _withTemporaryValue(
-      header: header, uninitializedTrailingElements: ()
-    ) { (value) throws(E) in
-      try value._initializeTrailingElements(initializer: initializer)
-      return try body(&value)
-    }
+      header: header,
+      uninitializedTrailingElements: (),
+      initializingTrailingElements: { (pointer) throws(E) in
+        try unsafe _initializeTrailingElements(
+          after: pointer, initializer: initializer)
+      },
+      body: body)
   }
 }
 
@@ -353,6 +385,9 @@ extension TrailingArray {
   static func _withTemporaryValue<R: ~Copyable, E>(
     header: Header,
     uninitializedTrailingElements: (),
+    initializingTrailingElements: (
+      UnsafeMutablePointer<Header>
+    ) throws(E) -> Void = { _ in },
     body: (inout TrailingArray<Header>) throws(E) -> R
   ) throws(E) -> R {
     let (numBytes, alignment) = allocationSize(header: header)
@@ -366,6 +401,16 @@ extension TrailingArray {
       let storagePointer = buffer.baseAddress!
       let headerPointer = unsafe TrailingArray.headerPointer(fromStorage: storagePointer)
       unsafe headerPointer.initialize(to: header)
+
+      // Initialize the trailing elements, if requested, before creating the
+      // trailing array, so a throwing initializer doesn't leave behind
+      // a value whose elements aren't initialized.
+      do throws(E) {
+        try initializingTrailingElements(headerPointer)
+      } catch {
+        unsafe headerPointer.deinitialize(count: 1)
+        throw error
+      }
 
       /// Create a trailing array over that temporary storage.
       var managedBuffer: Optional = unsafe TrailingArray(

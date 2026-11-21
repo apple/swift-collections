@@ -16,6 +16,7 @@ import Testing
 #if COLLECTIONS_SINGLE_MODULE
 import Collections
 #else
+import _CollectionsTestSupport
 import TrailingElementsModule
 #endif
 
@@ -58,6 +59,13 @@ struct ManyBytesWithPointers: @unsafe TrailingElements {
   typealias Element = OpaquePointer
   var trailingCount: Int { Int(bytes.0) }
 }
+
+struct TrackedList: TrailingElements {
+  typealias Element = LifetimeTracked<Int>
+  var trailingCount: Int
+}
+
+struct InitializationError: Error {}
 
 @Suite("Trailing elements tests")
 struct TrailingElementsTests {
@@ -182,5 +190,66 @@ struct TrailingElementsTests {
         #expect(unsafe UnsafeMutableRawPointer(p1) == UnsafeMutableRawPointer(p2))
       }
     }
+  }
+
+  @Test(arguments: 0 ... 3)
+  func throwingInitializerOnHeap(initializedCount: Int) {
+    let tracker = LifetimeTracker()
+    #expect(throws: InitializationError.self) {
+      _ = try TrailingArray(
+        header: TrackedList(trailingCount: 3)
+      ) { (outputSpan) throws(InitializationError) in
+        for _ in 0 ..< initializedCount {
+          outputSpan.append(tracker.instance(for: 0))
+        }
+        throw InitializationError()
+      }
+    }
+    #expect(tracker.instances == 0)
+  }
+
+  @Test(arguments: 0 ... 3)
+  func throwingInitializerOnStack(initializedCount: Int) {
+    let tracker = LifetimeTracker()
+    let initializer:
+      (inout OutputSpan<LifetimeTracked<Int>>) throws(InitializationError) -> Void = {
+      outputSpan throws(InitializationError) in
+      for _ in 0 ..< initializedCount {
+        outputSpan.append(tracker.instance(for: 0))
+      }
+      throw InitializationError()
+    }
+    let body: (inout TrailingArray<TrackedList>) throws(InitializationError) -> Void = { _ in
+      Issue.record("body shouldn't be called")
+    }
+    #expect(throws: InitializationError.self) {
+      try TrailingArray<TrackedList>.withTemporaryValue(
+        header: TrackedList(trailingCount: 3),
+        initializingTrailingElementsWith: initializer,
+        body: body)
+    }
+    #expect(tracker.instances == 0)
+  }
+
+  @Test func trackedElementsAreReleased() {
+    let tracker = LifetimeTracker()
+    do {
+      let tracked = TrailingArray(header: TrackedList(trailingCount: 3)) { outputSpan in
+        for _ in 0 ..< 3 {
+          outputSpan.append(tracker.instance(for: 0))
+        }
+      }
+      #expect(tracker.instances == 3)
+      #expect(tracked.count == 3)
+    }
+    #expect(tracker.instances == 0)
+
+    TrailingArray.withTemporaryValue(header: TrackedList(trailingCount: 2)) { outputSpan in
+      outputSpan.append(tracker.instance(for: 0))
+      outputSpan.append(tracker.instance(for: 0))
+    } body: { tracked in
+      #expect(tracker.instances == 2)
+    }
+    #expect(tracker.instances == 0)
   }
 }
