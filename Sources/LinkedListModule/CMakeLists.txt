@@ -15,7 +15,7 @@ else()
   set(module_name LinkedListModule)
   add_library(LinkedListModule)
   target_link_libraries(LinkedListModule PRIVATE
-    InternalCollectionsUtilities)
+    InternalCollectionsUtilities SpanPreview)
   set_target_properties(LinkedListModule PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
 
@@ -33,7 +33,9 @@ target_sources(${module_name} PRIVATE
   "LinkedList+Iterable.swift"
   "LinkedList+Node.swift"
   "LinkedList+Prepend.swift"
+  "LinkedList+RangeReplacement.swift"
   "LinkedList+Remove.swift"
+  "LinkedList+Reverse.swift"
   "LinkedList+Validation.swift"
   "LinkedList+Version.swift"
 )

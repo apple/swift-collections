@@ -65,7 +65,7 @@ set(collections_swift_flags
   "-enable-experimental-feature Lifetimes"
   "-enable-experimental-feature InoutLifetimeDependence"
   "-enable-experimental-feature SuppressedAssociatedTypesWithDefaults"
-  "-enable-experimental-fearure AddressableTypes"
+  "-enable-experimental-feature AddressableTypes"
   "-enable-experimental-feature AddressableParameters"
 )
 foreach(flag ${collections_swift_flags})

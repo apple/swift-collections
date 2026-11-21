@@ -41,6 +41,7 @@ target_sources(${module_name} PRIVATE
   "LifetimeOverride.swift"
   "MutableRef.swift"
   "MutableSpan+Extras.swift"
+  "Optional+Spans.swift"
   "OutputSpan+Extras.swift"
   "RandomAccessCollection+Offsets.swift"
   "Span+Extras.swift"
