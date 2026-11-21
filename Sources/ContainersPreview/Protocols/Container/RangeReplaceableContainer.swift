@@ -31,6 +31,14 @@ where Element: ~Copyable
 {
   // MARK: Core requirements
 
+  /// The number of additional elements that this container can accommodate
+  /// without having to allocate storage.
+  ///
+  /// When this property returns 0, trying to add a new item triggers
+  /// a capacity overflow condition. In fixed-capacity container types, this
+  /// is a precondition violation that results in a runtime error. In dynamic
+  /// containers, capacity overflows are handled by a (potentially expensive)
+  /// reallocation of storage.
   var freeCapacity: Int { get }
 
   /// - Returns: A valid index range addressing the newly inserted items.

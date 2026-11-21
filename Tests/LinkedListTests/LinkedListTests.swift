@@ -292,15 +292,14 @@ class LinkedListTests: CollectionTestCase {
     withEvery("count", in: 0 ..< 10) { count in
       withEvery("offset", in: 0 ... count) { offset in
         withLifetimeTracking { tracker in
-          var list = LinkedList<LifetimeTrackedStruct<Int>>()
-          withEvery("value", in: 0 ..< count) { value in
-            list.append(tracker.structInstance(for: value))
-          }
-          var expected = Array(0 ..< count)
-          expected.insert(-1, at: offset)
+          var list = tracker.linkedList(count: count)
 
           let index = list.index(list.startIndex, offsetBy: offset)
+
           let result = list.insert(tracker.structInstance(for: -1), at: index)
+
+          var expected = Array(0 ..< count)
+          expected.insert(-1, at: offset)
 
           list.checkInvariants()
           expectEqual(list.count, count + 1)
@@ -331,6 +330,121 @@ class LinkedListTests: CollectionTestCase {
 
             expectEqual(range.lowerBound, list._index(atOffset: offset))
             expectEqual(range.upperBound, list._index(atOffset: offset + c2))
+          }
+        }
+      }
+    }
+  }
+
+  func test_insert_addingCount_at_initializingWith() {
+    withEvery("count", in: 0 ..< 10) { count in
+      withEvery("newItemCount", in: 0 ..< 3) { newItemCount in
+        withEvery("offset", in: 0 ... count) { offset in
+          withLifetimeTracking { tracker in
+            var list = tracker.linkedList(count: count)
+
+            let index = list._index(atOffset: offset)
+
+            var i = 0
+            let range = list.insert(addingCount: newItemCount, at: index) { span in
+              expectLessThan(i, newItemCount)
+              expectEqual(span.count, 0)
+              expectEqual(span.freeCapacity, 1)
+              span.append(tracker.structInstance(for: count + i))
+              i += 1
+            }
+            expectEqual(i, newItemCount)
+            list.checkInvariants()
+
+            expectEqual(list.count, count + newItemCount)
+            expectEqual(range.lowerBound, list._index(atOffset: offset))
+            expectEqual(
+              range.upperBound,
+              list._index(atOffset: offset + newItemCount))
+
+            var expected = Array(0 ..< count)
+            expected.insert(contentsOf: count ..< count + newItemCount, at: offset)
+            expectIterablePayloads(list, equalTo: expected)
+          }
+        }
+      }
+    }
+  }
+
+  func test_insert_addingCount_at_initializingWith_partial() {
+    withEvery("count", in: 0 ..< 10) { count in
+      withEvery("newItemCount", in: 1 ..< 3) { newItemCount in
+        withEvery("offset", in: 0 ... count) { offset in
+          withLifetimeTracking { tracker in
+            var list = tracker.linkedList(count: count)
+
+            let index = list._index(atOffset: offset)
+
+            var i = 0
+            let range = list.insert(addingCount: newItemCount, at: index) { span in
+              expectLessThan(i, newItemCount)
+              if i == newItemCount - 1 { return }
+              expectEqual(span.count, 0)
+              expectEqual(span.freeCapacity, 1)
+              span.append(tracker.structInstance(for: count + i))
+              i += 1
+            }
+            expectEqual(i, newItemCount - 1)
+            list.checkInvariants()
+
+            expectEqual(list.count, count + newItemCount - 1)
+            expectEqual(range.lowerBound, list._index(atOffset: offset))
+            expectEqual(
+              range.upperBound,
+              list._index(atOffset: offset + newItemCount - 1))
+
+            var expected = Array(0 ..< count)
+            expected.insert(contentsOf: count ..< count + newItemCount - 1, at: offset)
+            expectIterablePayloads(list, equalTo: expected)
+          }
+        }
+      }
+    }
+  }
+
+  func test_insert_addingCount_at_initializingWith_throwing() {
+    struct MyError: Error {
+      let value: Int
+    }
+
+    withEvery("count", in: 0 ..< 10) { count in
+      withEvery("newItemCount", in: 1 ..< 3) { newItemCount in
+        withEvery("offset", in: 0 ... count) { offset in
+          withLifetimeTracking { tracker in
+            var list = tracker.linkedList(count: count)
+
+            let index = list._index(atOffset: offset)
+
+            var i = 0
+            expectThrows(
+              body: { () throws(MyError) in
+                try list.insert(
+                  addingCount: newItemCount, at: index
+                ) { span throws(MyError) in
+                  expectLessThan(i, newItemCount)
+                  if i == newItemCount - 1 { throw MyError(value: 42) }
+                  expectEqual(span.count, 0)
+                  expectEqual(span.freeCapacity, 1)
+                  span.append(tracker.structInstance(for: count + i))
+                  i += 1
+                }
+              },
+              errorHandler: { error in
+                expectEqual(error.value, 42)
+              })
+            expectEqual(i, newItemCount - 1)
+            list.checkInvariants()
+
+            expectEqual(list.count, count + newItemCount - 1)
+
+            var expected = Array(0 ..< count)
+            expected.insert(contentsOf: count ..< count + newItemCount - 1, at: offset)
+            expectIterablePayloads(list, equalTo: expected)
           }
         }
       }
@@ -490,6 +604,53 @@ class LinkedListTests: CollectionTestCase {
     }
   }
 #endif
+
+  func test_replaceSubrange_consumingWith_addingCount_initializingWith() {
+    withEvery("count", in: [0, 1, 2, 5]) { count in
+      withEveryRange("offsetRange", in: 0 ..< count) { offsetRange in
+        withEvery("newItemCount", in: 0 ..< 3) { newItemCount in
+          withLifetimeTracking { tracker in
+            var list = tracker.linkedList(count: count)
+
+            let subrange = list._indexRange(atOffsetRange: offsetRange)
+
+            var consumed = 0
+            var inserted = 0
+            let range = list.replaceSubrange(
+              subrange,
+              consumingWith: { span in
+                expectEqual(span.count, 1)
+                expectEqual(span[0].payload, offsetRange.lowerBound + consumed)
+                consumed += 1
+              },
+              addingCount: newItemCount,
+              initializingWith: { span in
+                expectLessThan(inserted, newItemCount)
+                expectEqual(span.count, 0)
+                expectEqual(span.freeCapacity, 1)
+                span.append(tracker.structInstance(for: count + inserted))
+                inserted += 1
+              })
+            expectEqual(consumed, offsetRange.count)
+            expectEqual(inserted, newItemCount)
+            list.checkInvariants()
+
+            expectEqual(list.count, count - offsetRange.count + newItemCount)
+            expectEqual(
+              range.lowerBound,
+              list._index(atOffset: offsetRange.lowerBound))
+            expectEqual(
+              range.upperBound,
+              list._index(atOffset: offsetRange.lowerBound + newItemCount))
+
+            var expected = Array(0 ..< count)
+            expected.replaceSubrange(offsetRange, with: count ..< count + newItemCount)
+            expectIterablePayloads(list, equalTo: expected)
+          }
+        }
+      }
+    }
+  }
 
   func test_extract() {
     withEvery("count", in: [0, 1, 2, 5]) { count in

@@ -112,6 +112,38 @@ extension LinkedList._Node where Element: ~Copyable {
 @available(SwiftStdlib 6.4, *)
 extension UnsafeMutablePointer where Pointee: ~Copyable {
   @_alwaysEmitIntoClient
+  package static func _allocateNode<
+    Element: ~Copyable,
+    E: Error
+  >(
+    initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
+  ) throws(E) -> Self?
+  where Pointee == LinkedList<Element>._Node
+  {
+    let p = Self.allocate(capacity: 1)
+    unsafe UnsafeMutableRawPointer(p)
+      .assumingMemoryBound(to: Optional<Self>.self)
+      .initialize(to: nil)
+    let v = unsafe LinkedList<Element>._Node._ptrToValue(in: p)
+    let buf = unsafe UnsafeMutableBufferPointer(start: v, count: 1)
+
+    var result: Optional = unsafe p
+    do {
+      var span = unsafe OutputSpan(buffer: buf, initializedCount: 0)
+      defer {
+        let c = unsafe span.finalize(for: buf)
+        span = .init()
+        if c == 0 {
+          unsafe p.deallocate()
+          unsafe result = nil
+        }
+      }
+      try initializer(&span)
+    }
+    return unsafe result
+  }
+
+  @_alwaysEmitIntoClient
   @_lifetime(&owner)
   package func _mutableValue<
     Element: ~Copyable, T: ~Copyable & ~Escapable
@@ -124,7 +156,7 @@ extension UnsafeMutablePointer where Pointee: ~Copyable {
     // Swift 6.5, so we drop down to direct pointer offsetting. (Hopefully
     // this doesn't break the memory model too much.)
     unsafe assert(pointee.next == nil)
-    let ptr = unsafe LinkedList._Node._ptrToValue(in: self)
+    let ptr = unsafe LinkedList<Element>._Node._ptrToValue(in: self)
     let span = unsafe MutableSpan(_unsafeElements: .init(start: ptr, count: 1))
     return unsafe _overrideLifetime(span, mutating: &owner)
   }

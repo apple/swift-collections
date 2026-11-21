@@ -97,5 +97,53 @@ extension LinkedList where Element: ~Copyable {
 
     return lower ..< upper
   }
+
+  @_alwaysEmitIntoClient
+  @discardableResult
+  public mutating func insert<E: Error>(
+    addingCount newItemCount: Int,
+    at index: Index,
+    initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
+  ) throws(E) -> Range<Index> {
+    precondition(_isValid(index), "Invalid index")
+    precondition(newItemCount >= 0, "newItemCount must not be negative")
+    self._version.bump()
+    guard newItemCount > 0 else {
+      let i = unsafe index._withVersion(self._version)
+      return i ..< i
+    }
+    // Create a new node chain
+    guard
+      let newItems = unsafe try UnsafeMutablePointer<_Node>._allocateNode(initializingWith: initializer)
+        else {
+      let i = unsafe index._withVersion(self._version)
+      return i ..< i
+    }
+
+    var p = unsafe newItems
+    var c = 1
+    defer {
+      if let prev = unsafe index._previousNode {
+        unsafe p.pointee.next = exchange(&prev.pointee.next, with: newItems)
+      } else {
+        unsafe p.pointee.next = exchange(&self._first, with: newItems)
+      }
+      if unsafe self._last == index._previousNode  {
+        unsafe self._last = p
+      }
+      self._count &+= c
+    }
+    while
+      c < newItemCount,
+      let next = unsafe try UnsafeMutablePointer<_Node>._allocateNode(initializingWith: initializer)
+    {
+      unsafe p.pointee.next = next
+      unsafe p = next
+      c &+= 1
+    }
+    let lower = unsafe self._index(previousNode: index._previousNode, offset: index._offset)
+    let upper = unsafe self._index(previousNode: p, offset: index._offset &+ c)
+    return lower ..< upper
+  }
 }
 #endif

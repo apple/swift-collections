@@ -23,7 +23,17 @@ import SpanPreview
 
 #if compiler(>=6.4) && UnstableContainersPreview
 @available(SwiftStdlib 6.4, *)
-extension LinkedList: Container, PermutableContainer, MutableContainer
+extension LinkedList: Container
+where Element: ~Copyable
+{}
+
+@available(SwiftStdlib 6.4, *)
+extension LinkedList: PermutableContainer
+where Element: ~Copyable
+{}
+
+@available(SwiftStdlib 6.4, *)
+extension LinkedList: MutableContainer
 where Element: ~Copyable
 {}
 
@@ -37,6 +47,26 @@ where Element: ~Copyable
     _ subrange: Range<Index>
   ) -> SubrangeConsumer {
     SubrangeConsumer(_base: &self, subrange: subrange)
+  }
+}
+
+@available(SwiftStdlib 6.4, *)
+extension LinkedList: RangeReplaceableContainer
+where Element: ~Copyable
+{}
+
+@available(SwiftStdlib 6.4, *)
+extension LinkedList: DynamicContainer
+where Element: ~Copyable
+{
+  @_alwaysEmitIntoClient
+  public init(minimumCapacity: Int) {
+    self.init()
+  }
+
+  @_alwaysEmitIntoClient
+  public mutating func reserveCapacity(_ minimumCapacity: Int) {
+    // Do nothing.
   }
 }
 
