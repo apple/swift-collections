@@ -54,7 +54,7 @@ public struct LifetimeTrackedStruct<Payload: ~Copyable>: ~Copyable {
 
   @inlinable
   deinit {
-    precondition(serialNumber != 0, "Double deinit")
+    precondition(serialNumber > 0, "Double deinit")
     tracker._instances -= 1
     // Can't mutate in deinit yet
     // serialNumber = -serialNumber

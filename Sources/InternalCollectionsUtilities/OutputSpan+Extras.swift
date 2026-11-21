@@ -26,6 +26,23 @@ package func withTemporaryOutputSpan<Element: ~Copyable, E: Error, R: ~Copyable>
   }
 }
 
+#if compiler(>=6.4)
+@available(SwiftStdlib 5.0, *)
+extension OutputSpan where Element: ~Copyable {
+  @available(SwiftStdlib 6.4, *)
+  @inlinable
+  @_lifetime(&self)
+  package mutating func _mutableCount() -> MutableRef<Int> {
+    let countAddress = withUnsafeMutableBytes(of: &self) {
+      // FIXME: This is intentionally escaping a scoped pointer!
+      let countAddress = unsafe $0.baseAddress! + (2 * MemoryLayout<Int>.size)
+      return unsafe countAddress.assumingMemoryBound(to: Int.self)
+    }
+    return unsafe MutableRef(unsafeAddress: countAddress, mutating: &self)
+  }
+}
+#endif
+
 @available(SwiftStdlib 5.0, *)
 extension OutputSpan where Element: ~Copyable {
   /// Removes and returns the last element of this output span, if it exists.
