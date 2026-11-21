@@ -26,6 +26,7 @@ package func withTemporaryOutputSpan<Element: ~Copyable, E: Error, R: ~Copyable>
   }
 }
 
+#if compiler(>=6.4)
 @available(SwiftStdlib 5.0, *)
 extension OutputSpan where Element: ~Copyable {
   @available(SwiftStdlib 6.4, *)
@@ -40,7 +41,7 @@ extension OutputSpan where Element: ~Copyable {
     return unsafe MutableRef(unsafeAddress: countAddress, mutating: &self)
   }
 }
-
+#endif
 
 @available(SwiftStdlib 5.0, *)
 extension OutputSpan where Element: ~Copyable {

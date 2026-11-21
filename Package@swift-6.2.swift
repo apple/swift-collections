@@ -261,6 +261,7 @@ let targets: [CustomTarget] = [
       "InternalCollectionsUtilities",
       "BasicContainers",
       "DequeModule",
+      "LinkedListModule",
       "SpanPreview",
     ],
     exclude: ["CMakeLists.txt"]),
@@ -304,7 +305,7 @@ let targets: [CustomTarget] = [
     .target(
       kind: .exported,
       name: "LinkedListModule",
-      dependencies: ["InternalCollectionsUtilities"],
+      dependencies: ["InternalCollectionsUtilities", "SpanPreview"],
       exclude: ["CMakeLists.txt"]),
     .target(
       kind: .test,
