@@ -92,9 +92,10 @@ extension _HashNode {
             node.ensureUnique(
               isUnique: copied, withFreeSpace: _HashNode.spaceForSpawningChild)
             let item = unsafe node.removeItem(at: bucket)
-            let r = unsafe rp.pointee.mapValuesToVoid()
-              .inserting(level.descend(), (item.key, ()), _Hash(item.key))
-            unsafe node.insertChild(r.node, bucket)
+            // Keep `self`'s instance if `other`'s subtree has an equal key.
+            let child = unsafe rp.pointee.mapValuesToVoid()
+              ._updatingItem(level.descend(), item)
+            unsafe node.insertChild(child, bucket)
             copied = true
           }
         }
@@ -235,8 +236,12 @@ extension _HashNode {
         if unsafe l.itemMap.contains(bucket) {
           let lslot = unsafe l.itemMap.slot(of: bucket)
           assert(unsafe !l.hasSingletonItem) // Handled up front above
-          let node = unsafe self.mapValuesToVoid().copyNodeAndPushItemIntoNewChild(
-            level: level, other.mapValuesToVoid(), at: bucket, itemSlot: lslot)
+          // Keep `self`'s instance if it is one of the colliding keys.
+          let item = unsafe (l[item: lslot].key, ())
+          let child = other.mapValuesToVoid()._updatingItem(level.descend(), item)
+          let node = unsafe self.mapValuesToVoid()
+            ._copyNodeAndReplaceItemWithNewChild(
+              level: level, child, at: bucket, itemSlot: lslot)
           return (true, node)
         }
         if unsafe l.childMap.contains(bucket) {
@@ -255,5 +260,26 @@ extension _HashNode {
         return (true, node)
       }
     }
+  }
+}
+
+extension _HashNode where Value == Void {
+  /// Returns a copy of this node with `item` added, replacing the existing
+  /// instance if the node already has an equal key.
+  @inlinable
+  internal func _updatingItem(
+    _ level: _HashLevel,
+    _ item: __owned Element
+  ) -> _HashNode {
+    var copy = self.copy()
+    let r = unsafe copy.updateValue(level, forKey: item.key, _Hash(item.key)) {
+      unsafe $0.initialize(to: item)
+    }
+    if unsafe !r.inserted {
+      unsafe UnsafeHandle.update(r.leaf) {
+        unsafe $0[item: r.slot] = item
+      }
+    }
+    return copy
   }
 }

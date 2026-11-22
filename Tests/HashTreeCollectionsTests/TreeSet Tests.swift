@@ -560,6 +560,40 @@ class TreeSetTests: CollectionTestCase {
     }
   }
 
+  func test_union_keeps_self_instances() {
+    // Equal to another member with the same `key`, whatever its `tag`.
+    struct Tagged: Hashable {
+      var key: RawCollider
+      var tag: Int
+      static func == (left: Self, right: Self) -> Bool { left.key == right.key }
+      func hash(into hasher: inout Hasher) { hasher.combine(key.hash.value) }
+      func _rawHashValue(seed: Int) -> Int { key._rawHashValue(seed: seed) }
+    }
+
+    withEverySubset("a", of: testItems) { a in
+      let x = TreeSet(a.map { Tagged(key: $0, tag: 0) })
+      withEverySubset("b", of: testItems) { b in
+        let y = TreeSet(b.map { Tagged(key: $0, tag: 1) })
+        let z = TreeDictionary(uniqueKeysWithValues: y.map { ($0, 0) })
+        let shared = Set(a.map(\.identity)).intersection(b.map(\.identity))
+
+        func check(_ result: TreeSet<Tagged>, _ label: String) {
+          for member in result where shared.contains(member.key.identity) {
+            expectEqual(member.tag, 0, "\(label) took \(member.key) from other")
+          }
+        }
+        check(x.union(y), "union(TreeSet)")
+        check(x.union(z.keys), "union(TreeDictionary.Keys)")
+        var w = x
+        w.formUnion(y)
+        check(w, "formUnion(TreeSet)")
+        w = x
+        w.formUnion(z.keys)
+        check(w, "formUnion(TreeDictionary.Keys)")
+      }
+    }
+  }
+
   func test_union_pushing_item_into_new_child() {
     let a1 = RawCollider(1, "A")     // level-0 bucket = 10
     let a2 = RawCollider(2, "B")     // level-0 bucket = 11
