@@ -251,6 +251,16 @@ extension RigidArray where Element: ~Copyable {
   public mutating func setCapacity(_ newCapacity: Int) {
     let newCapacity = Swift.max(newCapacity, count)
     guard newCapacity != capacity else { return }
+    if newCapacity == 0 {
+      // The array is empty and has storage. A capacity of 0 means that nothing
+      // is allocated (see `init(capacity:)` and `deinit`), so free the storage
+      // instead of replacing it with a zero-capacity allocation that would
+      // never be freed.
+      unsafe _storage.deallocate()
+      unsafe _ptr = ._dangling()
+      unsafe _capacity = 0
+      return
+    }
     let newStorage: UnsafeMutableBufferPointer<Element> = .allocate(
       capacity: newCapacity)
     let i = unsafe newStorage.moveInitialize(fromContentsOf: self._items)
