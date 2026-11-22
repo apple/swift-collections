@@ -184,7 +184,6 @@ extension InputSpan where Element: ~Copyable {
   public init(
     buffer: UnsafeMutableBufferPointer<Element>, initializedCount: Int
   ) {
-    precondition(buffer._isWellAligned(), "Misaligned OutputSpan")
     if let baseAddress = buffer.baseAddress {
       precondition(
         unsafe baseAddress.advanced(by: buffer.count) >= baseAddress,

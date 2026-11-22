@@ -261,6 +261,7 @@ let targets: [CustomTarget] = [
       "InternalCollectionsUtilities",
       "BasicContainers",
       "DequeModule",
+      "LinkedListModule",
       "SpanPreview",
     ],
     exclude: ["CMakeLists.txt"]),
@@ -300,6 +301,18 @@ let targets: [CustomTarget] = [
     kind: .test,
     name: "HeapTests",
     dependencies: ["HeapModule", "_CollectionsTestSupport"]),
+
+    .target(
+      kind: .exported,
+      name: "LinkedListModule",
+      dependencies: ["InternalCollectionsUtilities", "SpanPreview"],
+      exclude: ["CMakeLists.txt"]),
+    .target(
+      kind: .test,
+      name: "LinkedListTests",
+      dependencies: [
+        "LinkedListModule", "ContainersPreview", "_CollectionsTestSupport"
+      ]),
 
   .target(
     kind: .exported,
