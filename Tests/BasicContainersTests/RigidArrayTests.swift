@@ -1126,6 +1126,44 @@ class RigidArrayTests: CollectionTestCase {
 #endif
 #endif
 
+#if compiler(>=6.4)
+  @available(SwiftStdlib 6.4, *)
+  func test_append_copying_throwingIterable_keepsCopiedItems() {
+    // https://github.com/apple/swift-collections/issues/866
+    withEvery("capacity", in: [3, 5]) { capacity in
+      withEvery("throwAfter", in: 0 ... 3) { throwAfter in
+        withLifetimeTracking { tracker in
+          var a = RigidArray<LifetimeTracked<Int>>(capacity: capacity)
+          let source = _ThrowingIterable(
+            items: (0 ..< throwAfter).map { tracker.instance(for: $0) })
+          do {
+            try a.append(copying: source)
+            expectFailure("append(copying:) should have thrown")
+          } catch {}
+          expectEqual(a.count, throwAfter)
+          expectEqual(
+            (0 ..< a.count).map { a[$0].payload }, Array(0 ..< throwAfter))
+        }
+      }
+    }
+  }
+
+  @available(SwiftStdlib 6.4, *)
+  func test_init_capacity_copying_throwingIterable_doesNotLeak() {
+    // https://github.com/apple/swift-collections/issues/866
+    withEvery("throwAfter", in: 0 ... 3) { throwAfter in
+      withLifetimeTracking { tracker in
+        let source = _ThrowingIterable(
+          items: (0 ..< throwAfter).map { tracker.instance(for: $0) })
+        do {
+          _ = try RigidArray(capacity: 5, copying: source)
+          expectFailure("init(capacity:copying:) should have thrown")
+        } catch {}
+      }
+    }
+  }
+#endif
+
   func test_insert_at() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       guard layout.count < layout.capacity else { return }
@@ -1701,3 +1739,27 @@ class RigidArrayTests: CollectionTestCase {
   }
 #endif
 }
+
+#if compiler(>=6.4)
+/// An `Iterable` that hands out its items one at a time, then throws.
+@available(SwiftStdlib 6.4, *)
+private struct _ThrowingIterable<Element>: Iterable {
+  struct Failure: Error {}
+
+  var items: [Element]
+
+  func makeBorrowingIterator() -> Iterator { Iterator(items: items) }
+
+  struct Iterator: BorrowingIteratorProtocol {
+    var items: [Element]
+    var offset = 0
+
+    @_lifetime(&self)
+    mutating func nextSpan(maxCount: Int) throws(Failure) -> Span<Element> {
+      guard offset < items.count else { throw Failure() }
+      offset += 1
+      return items.span.extracting(offset - 1 ..< offset)
+    }
+  }
+}
+#endif

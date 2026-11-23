@@ -18,20 +18,22 @@ extension Iterable where Self: ~Copyable & ~Escapable, Element: Copyable {
   @inlinable
   @unsafe
   package func _copyContents(
-    intoPrefixOf buffer: UnsafeMutableBufferPointer<Element>
-  ) throws(Failure) -> Int {
+    intoPrefixOf buffer: UnsafeMutableBufferPointer<Element>,
+    count: inout Int
+  ) throws(Failure) {
+    // `count` is bumped after each span, so that if the iterator throws, the
+    // caller still accounts for (and eventually releases) the items that were
+    // already copied.
     var target = unsafe buffer
     var it = self.makeBorrowingIterator()
     while target.count != 0 {
       let span = try it.nextSpan(maxCount: target.count)
-      if span.isEmpty {
-        return buffer.count - target.count
-      }
+      if span.isEmpty { return }
       unsafe target._initializeAndDropPrefix(copying: span)
+      count += span.count
     }
     let test = try it.nextSpan()
     precondition(test.isEmpty, "Contents do not fit in target buffer")
-    return buffer.count
   }
 }
 
