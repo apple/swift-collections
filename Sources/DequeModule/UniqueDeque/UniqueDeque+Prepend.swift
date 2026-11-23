@@ -257,8 +257,8 @@ extension UniqueDeque /*where Element: Copyable*/ {
     // then we should use that when possible to copy items to their final
     // location in a single pass.
     let oldCount = self.count
+    defer { unsafe _storage._handle.rotate(toStartAtOffset: oldCount) }
     try self._append(copying: items) // Not a typo!
-    unsafe _storage._handle.rotate(toStartAtOffset: oldCount)
   }
 
   @available(SwiftStdlib 6.4, *)
