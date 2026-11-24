@@ -922,8 +922,7 @@ extension BitSet.Counted {
   /// - Complexity: O(min(*max*, `other.upperBound`), where *max* is the largest
   ///    member of `self`.
   public func isEqualSet(to other: Range<Int>) -> Bool {
-    guard self.count == other.count else { return false }
-    return _bits.isEqualSet(to: other)
+    _bits.isEqualSet(to: other)
   }
 
   /// Returns a Boolean value indicating whether this bit set contains the same
@@ -1171,8 +1170,7 @@ extension BitSet.Counted {
   ///
   /// - Complexity: O(*max*), where *max* is the largest item in `self`.
   public func isStrictSubset(of other: Range<Int>) -> Bool {
-    guard self.count < other.count else { return false }
-    return _bits.isStrictSubset(of: other)
+    _bits.isStrictSubset(of: other)
   }
 
   /// Returns a Boolean value that indicates whether this bit set is a strict

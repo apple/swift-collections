@@ -204,6 +204,9 @@ final class BitSetCountedTests: CollectionTestCase {
     expectFalse(a.isEqualSet(to: BitSet(c)))
     expectFalse(a.isEqualSet(to: c))
     expectFalse(a.isEqualSet(to: Set(c)))
+
+    // A range whose count overflows Int must not trap.
+    expectFalse(a.isEqualSet(to: -1 ..< Int.max))
   }
 
   func test_isSubset() {
@@ -252,6 +255,9 @@ final class BitSetCountedTests: CollectionTestCase {
     expectFalse(a.isStrictSubset(of: BitSet(c)))
     expectFalse(a.isStrictSubset(of: c))
     expectFalse(a.isStrictSubset(of: Set(c)))
+
+    // A range whose count overflows Int must not trap.
+    expectTrue(a.isStrictSubset(of: Int.min ..< 5))
   }
 
   func test_isStrictSuperset() {
