@@ -140,8 +140,8 @@ class TestBigString: CollectionTestCase {
     expectEqual(a, b)
     expectEqual(b, a)
 
-    // Every pair of UTF-16 slices of two differently chunked strings must
-    // agree with elementsEqual, in both directions.
+    // Every pair of UTF-16 slices of two strings with the same contents
+    // built different ways must agree with elementsEqual, in both directions.
     var chunked = BigString("😀ab")
     chunked.append(contentsOf: BigString("😀ab"))
     let flat = BigString("😀ab😀ab")
