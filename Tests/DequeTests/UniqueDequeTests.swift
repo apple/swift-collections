@@ -793,6 +793,63 @@ final class UniqueDequeTests: CollectionTestCase {
 
 #if compiler(>=6.4) && UnstableContainersPreview
   @available(SwiftStdlib 6.4, *)
+  func test_prepend_copying_ThrowingIterable() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEvery("count", in: 0 ... 15) { count in
+        withEvery("chunkSize", in: [1, 2, 3]) { chunkSize in
+          var expected = Array(layout.valueRange)
+          expected.insert(contentsOf: layout.count ..< layout.count + count, at: 0)
+
+          var actual = UniqueDeque(layout: layout)
+          let source = CustomIterable<Int, TestError>(
+            chunkSize: chunkSize
+          ) { offset throws(TestError) in
+            guard offset < count else { throw TestError(23) }
+            return layout.count + offset
+          }
+          expectThrows { () throws(TestError) in
+            try actual.prepend(copying: source)
+          }
+          errorHandler: { error in
+            expectEqual(error.value, 23)
+          }
+          expectUniqueDequeContents(actual, equalTo: expected)
+        }
+      }
+    }
+  }
+#endif
+
+#if compiler(>=6.4) && UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
+  func test_prepend_copying_ThrowingIterableSequence() {
+    func prependFromIterableSequence<S: Iterable & Sequence>(
+      _ source: borrowing S,
+      to deque: inout UniqueDeque<S.Element>
+    ) throws(S.Failure) where S.Element == Int {
+      try deque.prepend(copying: source)
+    }
+
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEvery("count", in: 0 ... 15) { count in
+        var expected = Array(layout.valueRange)
+        expected.insert(contentsOf: layout.count ..< layout.count + count, at: 0)
+
+        var actual = UniqueDeque(layout: layout)
+        let source = ThrowingIterableSequence(
+          items: Array(layout.count ..< layout.count + count))
+        expectThrows { () throws(ThrowingIterableSequenceError) in
+          try prependFromIterableSequence(source, to: &actual)
+        }
+        errorHandler: { _ in }
+        expectUniqueDequeContents(actual, equalTo: expected)
+      }
+    }
+  }
+#endif
+
+#if compiler(>=6.4) && UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
   func test_append_copying_StaccatoContainer() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withEvery("count", in: 0 ... 15) { count in
