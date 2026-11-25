@@ -58,8 +58,8 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
       
       guard try process(a._trim(first: c), b._trim(first: c)) else {
         return (
-          (a.isEmpty ? i : self.index(pi, offsetBy: c)),
-          (b.isEmpty ? j : other.index(pj, offsetBy: c)))
+          (a.isEmpty ? i : self.index(pi, offsetBy: ca - a.count)),
+          (b.isEmpty ? j : other.index(pj, offsetBy: cb - b.count)))
       }
     }
   }
