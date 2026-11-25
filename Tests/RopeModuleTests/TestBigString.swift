@@ -103,6 +103,64 @@ class TestBigString: CollectionTestCase {
     checkBidirectionalCollection(str.utf16, expectedContents: shortSample.utf16)
   }
 
+  func test_UTF16View_equality_from_trailing_surrogate() {
+    // https://github.com/apple/swift-collections/issues/861
+    for pad in [0, 1, 4, 100] {
+      let left = BigString("😀xyz")
+      let right = BigString(String(repeating: "a", count: pad) + "😀xyz")
+      let lhs = left.utf16[left.utf16.index(left.startIndex, offsetBy: 1)...]
+      let rhsIndex = right.utf16.index(right.startIndex, offsetBy: pad + 1)
+      let rhs = right.utf16[rhsIndex...]
+      expectTrue(lhs.elementsEqual(rhs))
+      expectEqual(rhs, lhs)
+      expectEqual(lhs, rhs)
+    }
+
+    // An empty slice starting on a trailing surrogate compares equal to
+    // itself and to an empty slice at a scalar boundary.
+    let emoji: BigString = "😀"
+    let trailing = emoji.utf16.index(after: emoji.startIndex)
+    let empty = emoji.utf16[trailing ..< trailing]
+    expectTrue(empty.isEmpty)
+    expectEqual(empty, empty)
+    let emptyAtStart = emoji.utf16[emoji.startIndex ..< emoji.startIndex]
+    expectEqual(empty, emptyAtStart)
+    expectEqual(emptyAtStart, empty)
+
+    // Slices starting on a trailing surrogate at different offsets of the
+    // same string, in both directions.
+    let str = BigString("😀ab😀ab")
+    let i1 = str.utf16.index(str.startIndex, offsetBy: 1)
+    let j1 = str.utf16.index(str.startIndex, offsetBy: 4)
+    let i2 = str.utf16.index(str.startIndex, offsetBy: 5)
+    let j2 = str.utf16.index(str.startIndex, offsetBy: 8)
+    let a = str.utf16[i1 ..< j1]
+    let b = str.utf16[i2 ..< j2]
+    expectTrue(a.elementsEqual(b))
+    expectEqual(a, b)
+    expectEqual(b, a)
+
+    // Every pair of UTF-16 slices of two differently chunked strings must
+    // agree with elementsEqual, in both directions.
+    var chunked = BigString("😀ab")
+    chunked.append(contentsOf: BigString("😀ab"))
+    let flat = BigString("😀ab😀ab")
+    let indices1 = Array(flat.utf16.indices) + [flat.utf16.endIndex]
+    let indices2 = Array(chunked.utf16.indices) + [chunked.utf16.endIndex]
+    for i in indices1.indices {
+      for j in i ..< indices1.indices.endIndex {
+        let x = flat.utf16[indices1[i] ..< indices1[j]]
+        for k in indices2.indices {
+          for l in k ..< indices2.indices.endIndex {
+            let y = chunked.utf16[indices2[k] ..< indices2[l]]
+            expectEqual(x == y, x.elementsEqual(y))
+            expectEqual(y == x, y.elementsEqual(x))
+          }
+        }
+      }
+    }
+  }
+
   func testUnicodeScalarView() {
     let str = BigString(shortSample)
     checkBidirectionalCollection(str.unicodeScalars, expectedContents: shortSample.unicodeScalars)

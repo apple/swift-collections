@@ -66,13 +66,16 @@ extension BigSubstring.UTF16View: Equatable {
     var j1 = left._bounds.upperBound
     var j2 = right._bounds.upperBound
 
+    // Empty slices compare equal no matter where they start.
+    guard i1 < j1, i2 < j2 else { return i1 == j1 && i2 == j2 }
+
     // Compare first code units, if they're trailing surrogates.
     guard i1._chunkIndex.isUTF16TrailingSurrogate ==
             i2._chunkIndex.isUTF16TrailingSurrogate else { return false }
     if i1._chunkIndex.isUTF16TrailingSurrogate {
       guard left[i1] == right[i2] else { return false }
       left.formIndex(after: &i1)
-      left.formIndex(after: &i2)
+      right.formIndex(after: &i2)
     }
     guard i1 < j1, i2 < j2 else { return i1 == j1 && i2 == j2 }
 
