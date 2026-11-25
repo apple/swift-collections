@@ -111,40 +111,6 @@ internal func expectRigidDequeContents<
   }
 }
 
-#if compiler(>=6.4) && UnstableContainersPreview
-/// An `Iterable` source that is also a `Sequence`, handing out its items
-/// one at a time and then throwing once they run out.
-@available(SwiftStdlib 6.4, *)
-struct ThrowingIterableSequence<Element>: Iterable, Sequence {
-  typealias Failure = ThrowingIterableSequenceError
-  typealias Iterator = Array<Element>.Iterator
-
-  var items: [Element]
-
-  func makeBorrowingIterator() -> BorrowingIterator {
-    BorrowingIterator(items: items)
-  }
-
-  func makeIterator() -> Iterator {
-    items.makeIterator()
-  }
-
-  struct BorrowingIterator: BorrowingIteratorProtocol {
-    var items: [Element]
-    var offset = 0
-
-    @_lifetime(&self)
-    mutating func nextSpan(maxCount: Int) throws(Failure) -> Span<Element> {
-      guard offset < items.count else { throw ThrowingIterableSequenceError() }
-      offset += 1
-      return items.span.extracting(offset - 1 ..< offset)
-    }
-  }
-}
-
-struct ThrowingIterableSequenceError: Error {}
-#endif
-
 final class RigidDequeTests: CollectionTestCase {
   struct TestError: Error, Equatable {
     let value: Int
