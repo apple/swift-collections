@@ -1162,6 +1162,63 @@ class RigidArrayTests: CollectionTestCase {
       }
     }
   }
+
+  @available(SwiftStdlib 6.4, *)
+  func test_append_copying_throwingIterableSequence_afterExistingItems() {
+    // https://github.com/apple/swift-collections/issues/866
+    func append<S: Iterable & Sequence>(
+      _ source: S, to array: inout RigidArray<S.Element>
+    ) throws(S.Failure) {
+      try array.append(copying: source)
+    }
+
+    withEvery("throwAfter", in: 0 ... 4) { throwAfter in
+      withEvery("spanSize", in: [1, 2, 3]) { spanSize in
+        withEvery("spare", in: [0, 2]) { spare in
+          withLifetimeTracking { tracker in
+            // Two existing items, then exactly enough room (so the fit check
+            // throws) or two slots more.
+            var a = RigidArray<LifetimeTracked<Int>>(
+              capacity: 2 + throwAfter + spare)
+            a.append(tracker.instance(for: -2))
+            a.append(tracker.instance(for: -1))
+            let source = _ThrowingIterableSequence(
+              base: _ThrowingIterable(
+                items: (0 ..< throwAfter).map { tracker.instance(for: $0) },
+                spanSize: spanSize))
+            do {
+              try append(source, to: &a)
+              expectFailure("append(copying:) should have thrown")
+            } catch {}
+            expectEqual(
+              (0 ..< a.count).map { a[$0].payload },
+              [-2, -1] + Array(0 ..< throwAfter))
+          }
+        }
+      }
+    }
+  }
+
+  @available(SwiftStdlib 6.4, *)
+  func test_init_capacity_copying_throwingIterableSequence_doesNotLeak() {
+    // https://github.com/apple/swift-collections/issues/866
+    withEvery("throwAfter", in: 0 ... 4) { throwAfter in
+      withEvery("spanSize", in: [1, 2, 3]) { spanSize in
+        withEvery("spare", in: [0, 2]) { spare in
+          withLifetimeTracking { tracker in
+            let source = _ThrowingIterableSequence(
+              base: _ThrowingIterable(
+                items: (0 ..< throwAfter).map { tracker.instance(for: $0) },
+                spanSize: spanSize))
+            do {
+              _ = try RigidArray(capacity: throwAfter + spare, copying: source)
+              expectFailure("init(capacity:copying:) should have thrown")
+            } catch {}
+          }
+        }
+      }
+    }
+  }
 #endif
 
   func test_insert_at() {
@@ -1741,25 +1798,47 @@ class RigidArrayTests: CollectionTestCase {
 }
 
 #if compiler(>=6.4)
-/// An `Iterable` that hands out its items one at a time, then throws.
+/// An `Iterable` that hands out its items in spans of up to `spanSize`,
+/// then throws.
 @available(SwiftStdlib 6.4, *)
 private struct _ThrowingIterable<Element>: Iterable {
   struct Failure: Error {}
 
   var items: [Element]
+  var spanSize = 1
 
-  func makeBorrowingIterator() -> Iterator { Iterator(items: items) }
+  func makeBorrowingIterator() -> Iterator {
+    Iterator(items: items, spanSize: spanSize)
+  }
 
   struct Iterator: BorrowingIteratorProtocol {
     var items: [Element]
+    var spanSize: Int
     var offset = 0
 
     @_lifetime(&self)
     mutating func nextSpan(maxCount: Int) throws(Failure) -> Span<Element> {
       guard offset < items.count else { throw Failure() }
-      offset += 1
-      return items.span.extracting(offset - 1 ..< offset)
+      let end = Swift.min(
+        offset + Swift.min(spanSize, maxCount), items.count)
+      defer { offset = end }
+      return items.span.extracting(offset ..< end)
     }
+  }
+}
+
+/// The same source, also conforming to `Sequence`, so that calls pick the
+/// `Iterable & Sequence` overloads.
+@available(SwiftStdlib 6.4, *)
+private struct _ThrowingIterableSequence<Element>: Iterable, Sequence {
+  typealias Failure = _ThrowingIterable<Element>.Failure
+
+  var base: _ThrowingIterable<Element>
+
+  func makeIterator() -> Array<Element>.Iterator { base.items.makeIterator() }
+
+  func makeBorrowingIterator() -> _ThrowingIterable<Element>.Iterator {
+    base.makeBorrowingIterator()
   }
 }
 #endif
