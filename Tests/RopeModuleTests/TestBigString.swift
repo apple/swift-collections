@@ -474,6 +474,59 @@ class TestBigString: CollectionTestCase {
     }
   }
 
+  func test_indices_utf16_negativeOffsetAcrossChunkBoundary() {
+    let input = String(repeating: "a", count: 300)
+    let big = BigString(input)
+
+    // This input's first chunk holds 127 UTF-16 code units, so moving
+    // backward by 5 from offset 130 crosses a chunk boundary.
+    let pos = big.utf16.index(big.startIndex, offsetBy: 130)
+    let direct = big.utf16.index(pos, offsetBy: -5)
+    expectEqual(direct.utf8Offset, 125)
+
+    let limited = big.utf16.index(pos, offsetBy: -5, limitedBy: big.startIndex)
+    expectNotNil(limited)
+    if let limited {
+      expectEqual(limited.utf8Offset, 125)
+    }
+
+    let substring = big[...]
+    let subDirect = substring.utf16.index(pos, offsetBy: -5)
+    expectEqual(subDirect.utf8Offset, 125)
+
+    let subLimited = substring.utf16.index(
+      pos, offsetBy: -5, limitedBy: substring.startIndex)
+    expectNotNil(subLimited)
+    if let subLimited {
+      expectEqual(subLimited.utf8Offset, 125)
+    }
+  }
+
+  func test_indices_utf16_everyNegativeOffset() {
+    // Mixed 1-, 2-, 3- and 4-byte scalars, long enough to span several chunks.
+    // Written by Joseph-Cursio in apple/swift-collections#886.
+    let flat = String(repeating: "aé中😀b", count: 40)
+    let big = BigString(flat)
+    let count = flat.utf16.count
+    let indices = (0 ... count).map { big.utf16.index(big.startIndex, offsetBy: $0) }
+    for start in 0 ... count {
+      for distance in 0 ... start {
+        expectEqual(
+          big.utf16.index(indices[start], offsetBy: -distance),
+          indices[start - distance],
+          "start: \(start), distance: \(-distance)")
+        expectEqual(
+          big.utf16.index(
+            indices[start], offsetBy: -distance, limitedBy: big.startIndex),
+          indices[start - distance],
+          "start: \(start), distance: \(-distance)")
+      }
+      expectNil(
+        big.utf16.index(
+          indices[start], offsetBy: -(start + 1), limitedBy: big.startIndex))
+    }
+  }
+
   func test_indices_utf8() {
     let flat = sampleString
     let big = BigString(flat)

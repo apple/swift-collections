@@ -277,7 +277,7 @@ extension BigString {
       if
         distance.magnitude <= chunk.utf16Count,
         let r = chunk.utf16Index(
-          i, offsetBy: distance, limitedBy: chunk.endIndex
+          i, offsetBy: distance, limitedBy: chunk.startIndex
         ) {
         i = r
         distance = 0
