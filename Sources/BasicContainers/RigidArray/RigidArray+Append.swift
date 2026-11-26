@@ -302,7 +302,7 @@ extension RigidArray {
   ) throws(Source.Failure)
   where Source.Element == Element {
     let target = unsafe _freeSpace
-    unsafe _count += try newElements._copyContents(intoPrefixOf: target)
+    unsafe try newElements._copyContents(intoPrefixOf: target, count: &_count)
   }
 #endif
 
