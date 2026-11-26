@@ -67,6 +67,10 @@ struct TrackedList: TrailingElements {
 
 struct InitializationError: Error {}
 
+struct TrackedHeader {
+  var tracked: LifetimeTracked<Int>
+}
+
 @Suite("Trailing elements tests")
 struct TrailingElementsTests {
   @Test func simpleCoordinates() {
@@ -249,6 +253,44 @@ struct TrailingElementsTests {
       outputSpan.append(tracker.instance(for: 0))
     } body: { tracked in
       #expect(tracker.instances == 2)
+    }
+    #expect(tracker.instances == 0)
+  }
+
+  @Test func paddingOnHeapReleasesHeader() {
+    let tracker = LifetimeTracker()
+    do {
+      let padded = TrailingPadding(
+        header: TrackedHeader(tracked: tracker.instance(for: 0)),
+        totalSize: 64)
+      #expect(tracker.instances == 1)
+      _ = consume padded
+    }
+    #expect(tracker.instances == 0)
+  }
+
+  @Test func paddingOnStackReleasesHeader() {
+    let tracker = LifetimeTracker()
+    TrailingPadding.withTemporaryValue(
+      header: TrackedHeader(tracked: tracker.instance(for: 0)),
+      totalSize: 64
+    ) { _ in
+      #expect(tracker.instances == 1)
+    }
+    #expect(tracker.instances == 0)
+  }
+
+  @Test func paddingOnStackReleasesHeaderWhenBodyThrows() {
+    let tracker = LifetimeTracker()
+    let body: (inout TrailingPadding<TrackedHeader>) throws(InitializationError) -> Void = { _ in
+      #expect(tracker.instances == 1)
+      throw InitializationError()
+    }
+    #expect(throws: InitializationError.self) {
+      try TrailingPadding.withTemporaryValue(
+        header: TrackedHeader(tracked: tracker.instance(for: 0)),
+        totalSize: 64,
+        body: body)
     }
     #expect(tracker.instances == 0)
   }
