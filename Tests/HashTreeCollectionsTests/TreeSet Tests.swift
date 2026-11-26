@@ -590,6 +590,19 @@ class TreeSetTests: CollectionTestCase {
         w = x
         w.formUnion(z.keys)
         check(w, "formUnion(TreeDictionary.Keys)")
+
+        // The `some Sequence` overloads forward a `TreeSet` argument
+        // to `union(_: TreeSet)`.
+        func union(_ other: some Sequence<Tagged>) -> TreeSet<Tagged> {
+          x.union(other)
+        }
+        func formUnion(_ other: some Sequence<Tagged>) -> TreeSet<Tagged> {
+          var result = x
+          result.formUnion(other)
+          return result
+        }
+        check(union(y), "union(some Sequence)")
+        check(formUnion(y), "formUnion(some Sequence)")
       }
     }
   }

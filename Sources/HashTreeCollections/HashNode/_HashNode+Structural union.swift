@@ -238,7 +238,8 @@ extension _HashNode {
           assert(unsafe !l.hasSingletonItem) // Handled up front above
           // Keep `self`'s instance if it is one of the colliding keys.
           let item = unsafe (l[item: lslot].key, ())
-          let child = other.mapValuesToVoid()._updatingItem(level.descend(), item)
+          let child = other.mapValuesToVoid()
+            ._updatingItem(level.descend(), item)
           let node = unsafe self.mapValuesToVoid()
             ._copyNodeAndReplaceItemWithNewChild(
               level: level, child, at: bucket, itemSlot: lslot)
