@@ -279,4 +279,19 @@ struct TrailingElementsTests {
     }
     #expect(tracker.instances == 0)
   }
+
+  @Test func paddingOnStackReleasesHeaderWhenBodyThrows() {
+    let tracker = LifetimeTracker()
+    let body: (inout TrailingPadding<TrackedHeader>) throws(InitializationError) -> Void = { _ in
+      #expect(tracker.instances == 1)
+      throw InitializationError()
+    }
+    #expect(throws: InitializationError.self) {
+      try TrailingPadding.withTemporaryValue(
+        header: TrackedHeader(tracked: tracker.instance(for: 0)),
+        totalSize: 64,
+        body: body)
+    }
+    #expect(tracker.instances == 0)
+  }
 }
